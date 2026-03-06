@@ -1,18 +1,24 @@
+import { IconSymbol } from "@/components/ui/icon-symbol";
+import useAppTheme from "@/hooks/use-app-theme";
 import { Tabs } from "expo-router";
 import React from "react";
 
-import { Colors } from "@/constants/theme";
-import { useColorScheme } from "@/hooks/use-color-scheme";
-import { IconSymbol } from "@/components/ui/icon-symbol";
-
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  const [, colors] = useAppTheme();
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
+        tabBarActiveTintColor: colors["--primary"],
+        tabBarInactiveTintColor: colors["--text-secondary"],
+        tabBarActiveBackgroundColor: colors["--background"],
+        tabBarInactiveBackgroundColor: colors["--background"],
         headerShown: false,
+        tabBarPosition: "bottom",
+        tabBarStyle: {
+          borderTopWidth: 0,
+          boxShadow: `0 1px 2px 0 ${colors["--background-shadow"]}`,
+        },
       }}
     >
       <Tabs.Screen
