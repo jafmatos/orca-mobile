@@ -1,4 +1,4 @@
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { MaterialIcons as MaterialIcon } from "@expo/vector-icons";
 import useAppTheme from "@/hooks/use-app-theme";
 import { Tabs } from "expo-router";
 import React from "react";
@@ -11,13 +11,17 @@ export default function TabLayout() {
       screenOptions={{
         tabBarActiveTintColor: colors["--primary"],
         tabBarInactiveTintColor: colors["--text-secondary"],
-        tabBarActiveBackgroundColor: colors["--background"],
-        tabBarInactiveBackgroundColor: colors["--background"],
         headerShown: false,
         tabBarPosition: "bottom",
         tabBarStyle: {
+					backgroundColor: colors["--background"],
+          height: 96,
           borderTopWidth: 0,
           boxShadow: `0 1px 2px 0 ${colors["--background-shadow"]}`,
+        },
+        tabBarItemStyle: {
+          alignItems: "center",
+          flexDirection: "row",
         },
       }}
     >
@@ -25,31 +29,35 @@ export default function TabLayout() {
         name="index"
         options={{
           title: "Início",
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          tabBarIcon: ({ color }) => <MaterialIcon size={28} name="home" color={color} />,
         }}
       />
       <Tabs.Screen
         name="entries"
         options={{
           title: "Lançamentos",
+          tabBarIcon: ({ color }) => <MaterialIcon size={28} name="receipt" color={color} />,
         }}
       />
       <Tabs.Screen
         name="categories"
         options={{
           title: "Categorias",
+          tabBarIcon: ({ color }) => <MaterialIcon size={28} name="bookmark" color={color} />,
         }}
       />
       <Tabs.Screen
         name="dashboard"
         options={{
           title: "Visão Geral",
+          tabBarIcon: ({ color }) => <MaterialIcon size={28} name="donut-large" color={color} />,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
           title: "Meu Perfil",
+          tabBarIcon: ({ color }) => <MaterialIcon size={28} name="person" color={color} />,
         }}
       />
       <Tabs.Screen
