@@ -1,13 +1,11 @@
-import { KeyboardAvoidingComponent } from "@/components/KeyboardAvoindingComponent";
-import { useRouter } from "expo-router";
-import { View } from "react-native";
-import { useForm, SubmitHandler } from "react-hook-form";
-import { AppText } from "@/components/ui/AppText";
-import { Button } from "react-native-paper";
-import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
 import { AppTextField } from "@/components/AppTextField";
+import { KeyboardAvoidingComponent } from "@/components/KeyboardAvoindingComponent";
 import { ThemedComponent } from "@/components/ThemedComponent";
+import { Button } from "@/components/ui/gluestack/button";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { SubmitHandler, useForm } from "react-hook-form";
+import { Text, View } from "react-native";
+import * as yup from "yup";
 
 type SignInForm = {
   email: string;
@@ -20,7 +18,6 @@ const formSchema = yup.object({
 });
 
 export default function SignInScreen() {
-  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -37,31 +34,34 @@ export default function SignInScreen() {
   return (
     <ThemedComponent>
       <KeyboardAvoidingComponent>
-        <View className="h-screen w-screen">
-          <AppText as="h1" className="text-danger">
-            Acesse sua conta
-          </AppText>
-          <View>
-            <AppTextField
-              {...register("email", { required: true })}
-              onChangeText={(text) => setValue("email", text)}
-              label="Email"
-              placeholder="meuemail@gmail.com"
-              keyboardType="email-address"
-              errorMessage={errors.email?.message}
-            />
-            <AppTextField
-              {...register("password", { required: true })}
-              onChangeText={(text) => setValue("password", text)}
-              label="Senha"
-              placeholder="******"
-              secureTextEntry
-              errorMessage={errors.password?.message}
-            />
+        <View className="p-4 flex flex-col justify-center">
+          <View className="flex flex-col gap-4">
+            <View>
+              <Text className="text-3xl font-medium">Entrar</Text>
+              <Text className="text-base font-normal">Acesse sua conta e acompanhe suas finanças de forma simples e segura.</Text>
+            </View>
+            <View className="flex gap-2">
+              <AppTextField
+                {...register("email", { required: true })}
+                onChangeText={(text) => setValue("email", text)}
+                // label="Email"
+                placeholder="meuemail@gmail.com"
+                keyboardType="email-address"
+                errorMessage={errors.email?.message}
+              />
+              <AppTextField
+                {...register("password", { required: true })}
+                onChangeText={(text) => setValue("password", text)}
+                // label="Senha"
+                placeholder="******"
+                secureTextEntry
+                errorMessage={errors.password?.message}
+              />
 
-            <Button onPress={handleSubmit(onSubmit)} mode="contained">
-              Entrar
-            </Button>
+              <Button onPress={handleSubmit(onSubmit)} action="primary">
+                <Text>Entrar</Text>
+              </Button>
+            </View>
           </View>
         </View>
       </KeyboardAvoidingComponent>

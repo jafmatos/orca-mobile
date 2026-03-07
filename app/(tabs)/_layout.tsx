@@ -2,9 +2,11 @@ import { MaterialIcons as MaterialIcon } from "@expo/vector-icons";
 import useAppTheme from "@/hooks/use-app-theme";
 import { Tabs } from "expo-router";
 import React from "react";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function TabLayout() {
   const [, colors] = useAppTheme();
+  const insets = useSafeAreaInsets();
 
   return (
     <Tabs
@@ -14,8 +16,9 @@ export default function TabLayout() {
         headerShown: false,
         tabBarPosition: "bottom",
         tabBarStyle: {
-					backgroundColor: colors["--background"],
-          height: 96,
+          backgroundColor: colors["--background"],
+          height: 80 + insets.bottom,
+          paddingBottom: insets.bottom,
           borderTopWidth: 0,
           boxShadow: `0 1px 2px 0 ${colors["--background-shadow"]}`,
         },
