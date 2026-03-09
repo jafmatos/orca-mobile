@@ -1,5 +1,6 @@
 import { KeyboardAvoidingComponent } from "@/components/KeyboardAvoindingComponent";
 import { ThemedComponent } from "@/components/ThemedComponent";
+import { AppThemeNameStore } from "@/utils/AppThemeNameStore";
 import { useRouter } from "expo-router";
 import { Button, Text } from "react-native";
 

@@ -1,26 +1,26 @@
+import useAppThemeColors from "@/hooks/use-app-theme-colors";
 import { MaterialIcons as MaterialIcon } from "@expo/vector-icons";
-import useAppTheme from "@/hooks/use-app-theme";
 import { Tabs } from "expo-router";
 import React from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function TabLayout() {
-  const [, colors] = useAppTheme();
+  const colors = useAppThemeColors();
   const insets = useSafeAreaInsets();
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: colors["--primary"],
-        tabBarInactiveTintColor: colors["--text-secondary"],
+        tabBarActiveTintColor: colors["--color-primary-400"],
+        tabBarInactiveTintColor: colors["--color-grey-600"],
         headerShown: false,
         tabBarPosition: "bottom",
         tabBarStyle: {
-          backgroundColor: colors["--background"],
+          backgroundColor: colors["--color-background-950"],
           height: 80 + insets.bottom,
           paddingBottom: insets.bottom,
           borderTopWidth: 0,
-          boxShadow: `0 1px 2px 0 ${colors["--background-shadow"]}`,
+          boxShadow: `0 1px 2px 0 ${colors["--color-outline-400"]}`,
         },
         tabBarItemStyle: {
           alignItems: "center",
