@@ -1,13 +1,10 @@
-import { KeyboardAvoidingComponent } from "@/components/KeyboardAvoindingComponent";
-import { ThemedComponent } from "@/components/ThemedComponent";
+import { GlobalLayout } from "@/components/layouts/GlobalLayout";
 import { Text } from "react-native";
 
 export default function DashboardScreen() {
   return (
-    <ThemedComponent>
-      <KeyboardAvoidingComponent>
-        <Text>DashboardScreen</Text>
-      </KeyboardAvoidingComponent>
-    </ThemedComponent>
+    <GlobalLayout>
+      <Text>DashboardScreen</Text>
+    </GlobalLayout>
   );
 }
