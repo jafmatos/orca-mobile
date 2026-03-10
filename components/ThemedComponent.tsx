@@ -1,3 +1,4 @@
+import { useAppGluestackColorTokens } from "@/hooks/use-app-gluestack-color-tokens";
 import useAppThemeColors from "@/hooks/use-app-theme-colors";
 import { useAppThemeName } from "@/hooks/use-app-theme-name";
 import useAppThemeVars from "@/hooks/use-app-theme-vars";
@@ -12,6 +13,7 @@ export function ThemedComponent(props: ViewProps) {
   const themeVars = useAppThemeVars();
   const themeColors = useAppThemeColors();
   const themeName = useAppThemeName();
+  const gluestackColorTokens = useAppGluestackColorTokens();
   const screenDimension = Dimensions.get("screen");
   const insets = useSafeAreaInsets();
 
@@ -26,24 +28,23 @@ export function ThemedComponent(props: ViewProps) {
           backgroundColor: themeColors["--color-background-950"],
         }}
       />
-      {/* <View
-        className="border-2 border-solid border-green-500"
-        style={{
-          paddingTop: insets.top,
-          paddingBottom: insets.bottom,
+      <GluestackUIProvider
+        colorMode={themeName}
+        config={{
+          ...config,
+          light: lightThemeVars,
+          dark: darkThemeVars,
+          tokens: {
+            ...config.tokens,
+            colors: {
+              ...config.tokens.colors,
+              ...gluestackColorTokens,
+            },
+          },
         }}
-      > */}
-        <GluestackUIProvider
-          colorMode={themeName}
-          config={{
-            ...config,
-            light: lightThemeVars,
-            dark: darkThemeVars,
-          }}
-        >
-          {props.children}
-        </GluestackUIProvider>
-      {/* </View> */}
+      >
+        {props.children}
+      </GluestackUIProvider>
     </View>
   );
 }

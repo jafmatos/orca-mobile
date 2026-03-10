@@ -8,13 +8,13 @@ import {
   Input,
   InputField,
 } from "@gluestack-ui/themed";
-import { PropsWithChildren } from "react";
-import { TextInputProps } from "react-native";
+import React, { PropsWithChildren } from "react";
+import { TextInputProps, ViewProps } from "react-native";
 
-function AppFormFieldLabel({ label, ...props }: { label: string; className?: string }) {
+function AppFormFieldLabel({ ...props }: { className?: string; children?: React.ReactNode }) {
   return (
     <FormControlLabel>
-      <FormControlLabelText {...props}>{label}</FormControlLabelText>
+      <FormControlLabelText {...props} className="!text-typography-200 !font-medium">{props.children}</FormControlLabelText>
     </FormControlLabel>
   );
 }
@@ -41,7 +41,7 @@ function AppFormFieldTextInput({
   );
 }
 
-export function AppFormField({ children, ...props }: InterfaceFormControlProps & PropsWithChildren) {
+export function AppFormField({ children, ...props }: InterfaceFormControlProps & PropsWithChildren & ViewProps) {
   return <FormControl {...props}>{children}</FormControl>;
 }
 

@@ -1,6 +1,5 @@
 import { AppFormField } from "@/components/AppFormField";
 import { GlobalLayout } from "@/components/layouts/GlobalLayout";
-import { Logo } from "@/components/ui/Logo";
 import { AuthenticationService } from "@/services/AuthenticationService";
 import { AppAuthenticationTokenStore } from "@/utils/AuthenticationTokenStore";
 import { Button, ButtonText, FormControlHelper, FormControlHelperText, Link, Text } from "@gluestack-ui/themed";
