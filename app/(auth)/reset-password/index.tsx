@@ -4,7 +4,11 @@ import { ButtonWithLoading } from "@/components/ui/ButtonWithLoading";
 import { websiteUrl } from "@/constants/website-url";
 import { useAppForm } from "@/hooks/use-app-form";
 import { useAppFormWithMutation } from "@/hooks/use-app-form-with-mutation";
-import { CreateResetPasswordKeyArguments, CreateResetPasswordKeyReturnType, ResetPasswordService } from "@/services/ResetPasswordService";
+import {
+  CreateResetPasswordKeyArguments,
+  CreateResetPasswordKeyReturnType,
+  ResetPasswordService,
+} from "@/services/Auth/ResetPasswordService";
 import { ButtonText, Heading, Link, Text, View } from "@gluestack-ui/themed";
 import { useRouter } from "expo-router";
 

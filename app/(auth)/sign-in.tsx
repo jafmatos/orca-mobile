@@ -4,10 +4,10 @@ import { ButtonWithLoading } from "@/components/ui/ButtonWithLoading";
 import { useAppForm } from "@/hooks/use-app-form";
 import { useAppFormWithMutation } from "@/hooks/use-app-form-with-mutation";
 import {
-  AuthenticationService,
   CreateAuthenticationTokenArguments,
   CreateAuthenticationTokenReturnType,
-} from "@/services/AuthenticationService";
+  SignInService,
+} from "@/services/Auth/SignInService";
 import { AppAuthenticationTokenStore } from "@/utils/AuthenticationTokenStore";
 import { ButtonText, FormControlHelper, FormControlHelperText, Heading, Link, Text } from "@gluestack-ui/themed";
 import { Href, useRouter } from "expo-router";
@@ -30,7 +30,7 @@ export default function SignInScreen() {
     hasError,
     mutation: createTokenMutation,
   } = useAppFormWithMutation<SignInForm, CreateAuthenticationTokenArguments, CreateAuthenticationTokenReturnType>(form, {
-    mutationFn: AuthenticationService.createAuthenticationToken,
+    mutationFn: SignInService.createAuthenticationToken,
     onSuccess: (data) => {
       form.clear();
 

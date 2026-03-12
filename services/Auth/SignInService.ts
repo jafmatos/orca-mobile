@@ -11,7 +11,7 @@ export type CreateAuthenticationTokenReturnType = {
   user: User;
 };
 
-export class AuthenticationService {
+export class SignInService {
   private static readonly endpoint = "/sign-in";
 
   private static async _createAuthenticationToken(body: CreateAuthenticationTokenArguments): Promise<CreateAuthenticationTokenReturnType> {
@@ -20,5 +20,5 @@ export class AuthenticationService {
     return data;
   }
 
-  public static createAuthenticationToken = AuthenticationService._createAuthenticationToken.bind(AuthenticationService);
+  public static createAuthenticationToken = SignInService._createAuthenticationToken.bind(SignInService);
 }

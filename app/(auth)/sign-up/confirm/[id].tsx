@@ -3,7 +3,7 @@ import { GlobalLayout } from "@/components/layouts/GlobalLayout";
 import { ButtonWithLoading } from "@/components/ui/ButtonWithLoading";
 import { useAppForm } from "@/hooks/use-app-form";
 import { useAppFormWithMutation } from "@/hooks/use-app-form-with-mutation";
-import { ConfirmSignUpArguments, ConfirmSignUpReturnType, SignUpService } from "@/services/SignUpService";
+import { ConfirmSignUpArguments, ConfirmSignUpReturnType, SignUpService } from "@/services/Auth/SignUpService";
 import { AppAuthenticationTokenStore } from "@/utils/AuthenticationTokenStore";
 import { ButtonText, Heading, Text, View } from "@gluestack-ui/themed";
 import { useLocalSearchParams, useRouter } from "expo-router";

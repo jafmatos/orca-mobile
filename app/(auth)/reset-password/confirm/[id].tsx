@@ -4,7 +4,7 @@ import { ButtonWithLoading } from "@/components/ui/ButtonWithLoading";
 import { useAppForm } from "@/hooks/use-app-form";
 import { useAppFormWithMutation } from "@/hooks/use-app-form-with-mutation";
 import { useAppToast } from "@/hooks/use-app-toast";
-import { ConfirmResetPasswordArguments, ConfirmResetPasswordReturnType, ResetPasswordService } from "@/services/ResetPasswordService";
+import { ConfirmResetPasswordArguments, ConfirmResetPasswordReturnType, ResetPasswordService } from "@/services/Auth/ResetPasswordService";
 import { AppAuthenticationTokenStore } from "@/utils/AuthenticationTokenStore";
 import { ButtonText, FormControlHelper, FormControlHelperText, Heading, Link, Text, View } from "@gluestack-ui/themed";
 import { useLocalSearchParams, useRouter } from "expo-router";
