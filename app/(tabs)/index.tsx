@@ -1,43 +1,25 @@
 import { GlobalLayout } from "@/components/layouts/GlobalLayout";
-import { useAppToast } from "@/hooks/use-app-toast";
+import { useAuthUser } from "@/hooks/queries/use-auth-user";
+import { AppAuthenticationTokenStore } from "@/utils/AuthenticationTokenStore";
+import { Button, ButtonText, Text } from "@gluestack-ui/themed";
 import { useRouter } from "expo-router";
-import { Button, Text } from "react-native";
 
 export default function HomeScreen() {
-  const toast = useAppToast();
   const router = useRouter();
+  const user = useAuthUser();
 
   return (
     <GlobalLayout>
-      <Text>HomeScreen</Text>
-      <Button onPress={() => router.push("/sign-in")} title="Ir para SignInScreen" />
+      <Text>{`Olá, ${user?.name}!`}</Text>
       <Button
+        backgroundColor="$danger500"
         onPress={() => {
-          toast.success({
-            title: "Olá",
-            description: "Seja bem vindo!",
-          });
+          AppAuthenticationTokenStore.remove();
+          router.push("/(auth)/sign-in");
         }}
-        title="Mostrar notificação de sucesso"
-      />
-      <Button
-        onPress={() => {
-          toast.warning({
-            title: "Olá",
-            description: "Seja bem vindo!",
-          });
-        }}
-        title="Mostrar notificação de aviso"
-      />
-      <Button
-        onPress={() => {
-          toast.error({
-            title: "Olá",
-            description: "Seja bem vindo!",
-          });
-        }}
-        title="Mostrar notificação de erro"
-      />
+      >
+        <ButtonText color="$onDanger">Sair</ButtonText>
+      </Button>
     </GlobalLayout>
   );
 }

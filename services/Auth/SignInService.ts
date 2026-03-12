@@ -11,6 +11,10 @@ export type CreateAuthenticationTokenReturnType = {
   user: User;
 };
 
+export type GetProfileReturnType = {
+  user: User;
+};
+
 export class SignInService {
   private static readonly endpoint = "/sign-in";
 
@@ -20,5 +24,14 @@ export class SignInService {
     return data;
   }
 
+  private static async _getProfile(): Promise<GetProfileReturnType> {
+    const { data } = await $axios.get(this.endpoint);
+
+    console.log("Getting profile");
+
+    return data;
+  }
+
   public static createAuthenticationToken = SignInService._createAuthenticationToken.bind(SignInService);
+  public static getProfile = SignInService._getProfile.bind(SignInService);
 }

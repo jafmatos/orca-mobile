@@ -3,11 +3,7 @@ import { GlobalLayout } from "@/components/layouts/GlobalLayout";
 import { ButtonWithLoading } from "@/components/ui/ButtonWithLoading";
 import { useAppForm } from "@/hooks/use-app-form";
 import { useAppFormWithMutation } from "@/hooks/use-app-form-with-mutation";
-import {
-  CreateAuthenticationTokenArguments,
-  CreateAuthenticationTokenReturnType,
-  SignInService,
-} from "@/services/Auth/SignInService";
+import { CreateAuthenticationTokenArguments, CreateAuthenticationTokenReturnType, SignInService } from "@/services/Auth/SignInService";
 import { AppAuthenticationTokenStore } from "@/utils/AuthenticationTokenStore";
 import { ButtonText, FormControlHelper, FormControlHelperText, Heading, Link, Text } from "@gluestack-ui/themed";
 import { Href, useRouter } from "expo-router";
