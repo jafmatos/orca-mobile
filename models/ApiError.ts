@@ -1,5 +1,4 @@
 export class ApiError {
+  path!: string;
   message!: string;
-	statusCode!: number
-	errors!: any[]
 }

@@ -14,9 +14,11 @@ export type CreateAuthenticationTokenReturnType = {
 export class AuthenticationService {
   private static readonly endpoint = "/sign-in";
 
-  public static async createAuthenticationToken(body: CreateAuthenticationTokenArguments): Promise<CreateAuthenticationTokenReturnType> {
+  private static async _createAuthenticationToken(body: CreateAuthenticationTokenArguments): Promise<CreateAuthenticationTokenReturnType> {
     const { data } = await $axios.post(this.endpoint, body);
 
     return data;
   }
+
+  public static createAuthenticationToken = AuthenticationService._createAuthenticationToken.bind(AuthenticationService);
 }

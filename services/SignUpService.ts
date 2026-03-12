@@ -28,15 +28,18 @@ export type ConfirmSignUpReturnType = {
 export class SignUpService {
   private static readonly endpoint = "/sign-up";
 
-  public static async createSignUpKey(body: CreateSignUpKeyArguments): Promise<CreateSignUpKeyReturnType> {
+  private static async _createSignUpKey(body: CreateSignUpKeyArguments): Promise<CreateSignUpKeyReturnType> {
     const { data } = await $axios.post(this.endpoint, body);
 
     return data;
   }
 
-  public static async confirmSignUp(keyId: string, body: ConfirmSignUpArguments): Promise<ConfirmSignUpReturnType> {
+  private static async _confirmSignUp(keyId: string, body: ConfirmSignUpArguments): Promise<ConfirmSignUpReturnType> {
     const { data } = await $axios.put(`${this.endpoint}/${keyId}`, body);
 
     return data;
   }
+
+  public static createSignUpKey = SignUpService._createSignUpKey.bind(SignUpService);
+  public static confirmSignUp = SignUpService._confirmSignUp.bind(SignUpService);
 }

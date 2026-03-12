@@ -1,91 +1,70 @@
 import { AppFormField } from "@/components/AppFormField";
 import { GlobalLayout } from "@/components/layouts/GlobalLayout";
-import { ApiError } from "@/models/ApiError";
-import { SignUpService } from "@/services/SignUpService";
+import { ButtonWithLoading } from "@/components/ui/ButtonWithLoading";
+import { useAppForm } from "@/hooks/use-app-form";
+import { useAppFormWithMutation } from "@/hooks/use-app-form-with-mutation";
+import { ConfirmSignUpArguments, ConfirmSignUpReturnType, SignUpService } from "@/services/SignUpService";
 import { AppAuthenticationTokenStore } from "@/utils/AuthenticationTokenStore";
-import { Button, ButtonText, Text } from "@gluestack-ui/themed";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { AxiosError } from "axios";
+import { ButtonText, Heading, Text, View } from "@gluestack-ui/themed";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { SubmitHandler, useForm } from "react-hook-form";
-import { View } from "react-native";
-import * as yup from "yup";
 
 type ConfirmSignUpForm = {
   otp: string;
 };
 
-const formSchema = yup.object({
-  otp: yup
-    .string()
-    .matches(/[0-9]{6}/, "O código deve ter exatamente 6 dígitos")
-    .required("O código é obrigatório"),
-});
-
 export default function ConfirmSignUpScreen() {
   const params = useLocalSearchParams<{ id: string }>();
-  const router = useRouter();
+  const form = useAppForm<ConfirmSignUpForm>({ otp: "" });
   const {
-    handleSubmit,
-    formState: { errors },
+    hasErrors,
+    hasError,
+    getError,
     setValue,
-    clearErrors,
-    watch,
-  } = useForm<ConfirmSignUpForm>({
-    resolver: yupResolver(formSchema),
-  });
-
-  const formValues = watch();
-
-  function handleInputChange<T = any>(propertyName: keyof ConfirmSignUpForm) {
-    return (value: T) => {
-      setValue(propertyName, value as unknown as any);
-      clearErrors(propertyName);
-    };
-  }
-
-  const onSubmit: SubmitHandler<ConfirmSignUpForm> = async (form) => {
-    try {
-      const data = await SignUpService.confirmSignUp(params.id, {
-        otp: form.otp,
-      });
-
+    mutation: confirmSignUpMutation,
+  } = useAppFormWithMutation<ConfirmSignUpForm, ConfirmSignUpArguments, ConfirmSignUpReturnType>(form, {
+    mutationFn: () => SignUpService.confirmSignUp(params.id, form.values),
+    onSuccess: (data) => {
       AppAuthenticationTokenStore.set(data.token);
 
       router.push("/(tabs)");
-    } catch (error: unknown) {
-      // TODO: treat error
-      console.log(error);
-    }
-  };
+    },
+  });
+  const router = useRouter();
 
   return (
     <GlobalLayout>
       <View className="w-screen h-full p-6 flex flex-col justify-center">
         <View className="flex flex-col gap-2">
-          <Text size="3xl" className="!text-typography-100 !font-semibold">
+          <Heading size="3xl" className="!text-typography-100 !font-semibold">
             Nós te enviamos um código!
-          </Text>
+          </Heading>
           <Text marginBottom="$2" className="!text-typography-200">
-            Para confirmar o cadastro, insira o código que te enviamos pelo e-mail.
+            Para confirmar o cadastro, digite o código que te enviamos pelo e-mail.
           </Text>
-          <View className="flex gap-2">
-            <AppFormField isInvalid={!!errors.otp?.message}>
+          <View className="flex" gap="$4">
+            <AppFormField isRequired isInvalid={hasError("otp")}>
               <AppFormField.Label className="!text-typography-200 !font-medium">Código</AppFormField.Label>
               <AppFormField.TextInput
-                placeholder="Insira o código de verificação"
+                value={form.values.otp}
+                placeholder="Digite o código de verificação"
                 textContentType="oneTimeCode"
                 keyboardType="numeric"
-                onChangeText={handleInputChange("otp")}
+                onChangeText={(text) => setValue("otp", text)}
                 maxLength={6}
                 required
               />
-              <AppFormField.Error error={errors.otp?.message} />
+              <AppFormField.Error error={getError("otp")} />
             </AppFormField>
 
-            <Button className="mt-4" onPress={handleSubmit(onSubmit)} action="primary" isDisabled={formValues.otp?.length !== 6}>
-              <ButtonText color="$onPrimary">Continuar</ButtonText>
-            </Button>
+            <ButtonWithLoading
+              onPress={() => confirmSignUpMutation.mutateAsync(form.values)}
+              isDisabled={form.values.otp?.length !== 6 || hasErrors || confirmSignUpMutation.isPending}
+              isLoading={confirmSignUpMutation.isPending}
+              action="primary"
+              spinnerColor="$primary500"
+            >
+              <ButtonText color="$onPrimary">Confirmar</ButtonText>
+            </ButtonWithLoading>
           </View>
         </View>
       </View>
