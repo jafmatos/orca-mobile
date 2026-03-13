@@ -1,4 +1,5 @@
-import { GlobalLayout } from "@/components/layouts/GlobalLayout";
+import { TabbedLayout } from "@/components/layouts/TabbedLayout";
+import { Navigation } from "@/components/Navigation";
 import { useAuthUser } from "@/hooks/queries/use-auth-user";
 import { AppAuthenticationTokenStore } from "@/utils/AuthenticationTokenStore";
 import { Button, ButtonText, Text } from "@gluestack-ui/themed";
@@ -9,7 +10,8 @@ export default function HomeScreen() {
   const user = useAuthUser();
 
   return (
-    <GlobalLayout>
+    <TabbedLayout>
+      <Navigation />
       <Text>{`Olá, ${user?.name}!`}</Text>
       <Button
         backgroundColor="$danger500"
@@ -20,6 +22,6 @@ export default function HomeScreen() {
       >
         <ButtonText color="$onDanger">Sair</ButtonText>
       </Button>
-    </GlobalLayout>
+    </TabbedLayout>
   );
 }

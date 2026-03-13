@@ -1,5 +1,5 @@
 import { AppFormField } from "@/components/AppFormField";
-import { GlobalLayout } from "@/components/layouts/GlobalLayout";
+import { FullScreenLayout } from "@/components/layouts/FullScreenLayout";
 import { ButtonWithLoading } from "@/components/ui/ButtonWithLoading";
 import { useAppForm } from "@/hooks/use-app-form";
 import { useAppFormWithMutation } from "@/hooks/use-app-form-with-mutation";
@@ -32,7 +32,7 @@ export default function ConfirmSignUpScreen() {
   const router = useRouter();
 
   return (
-    <GlobalLayout>
+    <FullScreenLayout>
       <View className="w-screen h-full p-6 flex flex-col justify-center">
         <View className="flex flex-col gap-2">
           <Heading size="3xl" className="!text-typography-100 !font-semibold">
@@ -68,6 +68,6 @@ export default function ConfirmSignUpScreen() {
           </View>
         </View>
       </View>
-    </GlobalLayout>
+    </FullScreenLayout>
   );
 }

@@ -18,7 +18,7 @@ export function ThemedComponent(props: ViewProps) {
   const insets = useSafeAreaInsets();
 
   return (
-    <View {...props} style={themeVars}>
+    <View {...props} style={themeVars} className="grow">
       <View
         style={{
           position: "absolute",

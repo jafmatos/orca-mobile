@@ -1,22 +1,22 @@
 import { AppFormField } from "@/components/AppFormField";
-import { GlobalLayout } from "@/components/layouts/GlobalLayout";
+import { FullScreenLayout } from "@/components/layouts/FullScreenLayout";
 import { ButtonWithLoading } from "@/components/ui/ButtonWithLoading";
 import { websiteUrl } from "@/constants/website-url";
 import { useAppForm } from "@/hooks/use-app-form";
 import { useAppFormWithMutation } from "@/hooks/use-app-form-with-mutation";
 import { CreateSignUpKeyArguments, CreateSignUpKeyReturnType, SignUpService } from "@/services/Auth/SignUpService";
 import {
-  ButtonText,
-  Checkbox,
-  CheckboxIcon,
-  CheckboxIndicator,
-  CheckboxLabel,
-  CheckIcon,
-  FormControlHelper,
-  FormControlHelperText,
-  Heading,
-  Link,
-  Text,
+	ButtonText,
+	Checkbox,
+	CheckboxIcon,
+	CheckboxIndicator,
+	CheckboxLabel,
+	CheckIcon,
+	FormControlHelper,
+	FormControlHelperText,
+	Heading,
+	Link,
+	Text,
 } from "@gluestack-ui/themed";
 import { useRouter } from "expo-router";
 import { View } from "react-native";
@@ -58,7 +58,7 @@ export default function SignUpScreen() {
   });
 
   return (
-    <GlobalLayout>
+    <FullScreenLayout>
       <View className="w-screen h-full p-6 flex flex-col justify-center">
         <View className="flex flex-col gap-2">
           <Heading size="3xl" className="!text-typography-100 !font-semibold">
@@ -166,6 +166,6 @@ export default function SignUpScreen() {
           </View>
         </View>
       </View>
-    </GlobalLayout>
+    </FullScreenLayout>
   );
 }

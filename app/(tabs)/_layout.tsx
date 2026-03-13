@@ -20,7 +20,7 @@ export default function TabLayout() {
           height: 80 + insets.bottom,
           paddingBottom: insets.bottom,
           borderTopWidth: 0,
-          boxShadow: `0 1px 2px 0 ${colors["--color-outline-400"]}`,
+          boxShadow: `0 -1px 2px -1px ${colors["--color-outline-700"]}`,
         },
         tabBarItemStyle: {
           alignItems: "center",

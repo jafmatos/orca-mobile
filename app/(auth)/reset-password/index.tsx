@@ -1,13 +1,13 @@
 import { AppFormField } from "@/components/AppFormField";
-import { GlobalLayout } from "@/components/layouts/GlobalLayout";
+import { FullScreenLayout } from "@/components/layouts/FullScreenLayout";
 import { ButtonWithLoading } from "@/components/ui/ButtonWithLoading";
 import { websiteUrl } from "@/constants/website-url";
 import { useAppForm } from "@/hooks/use-app-form";
 import { useAppFormWithMutation } from "@/hooks/use-app-form-with-mutation";
 import {
-  CreateResetPasswordKeyArguments,
-  CreateResetPasswordKeyReturnType,
-  ResetPasswordService,
+	CreateResetPasswordKeyArguments,
+	CreateResetPasswordKeyReturnType,
+	ResetPasswordService,
 } from "@/services/Auth/ResetPasswordService";
 import { ButtonText, Heading, Link, Text, View } from "@gluestack-ui/themed";
 import { useRouter } from "expo-router";
@@ -41,7 +41,7 @@ export default function ResetPasswordScreen() {
   });
 
   return (
-    <GlobalLayout>
+    <FullScreenLayout>
       <View className="w-screen h-full p-6 flex flex-col justify-center">
         <View className="flex flex-col gap-2">
           <Heading size="3xl" className="!text-typography-100 !font-semibold">
@@ -86,6 +86,6 @@ export default function ResetPasswordScreen() {
           </Link>
         </View>
       </View>
-    </GlobalLayout>
+    </FullScreenLayout>
   );
 }

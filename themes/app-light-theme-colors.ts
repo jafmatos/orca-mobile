@@ -210,4 +210,15 @@ export const appLightThemeColors = {
   "--color-indicator-primary": "#f7f7f7",
   "--color-indicator-info": "#a1c7f5",
   "--color-indicator-error": "#e84645",
+
+  "--color-avatar-bg-1": "#FF6B6B",
+  "--color-avatar-bg-2": "#FF8C42",
+  "--color-avatar-bg-3": "#ECC94B",
+  "--color-avatar-bg-4": "#6BCB77",
+  "--color-avatar-bg-5": "#4D96FF",
+  "--color-avatar-bg-6": "#9D65FF",
+  "--color-avatar-bg-7": "#FF6B9C",
+  "--color-avatar-bg-8": "#00B8A9",
+  "--color-avatar-bg-9": "#F08A5D",
+  "--color-avatar-bg-10": "#B83B5E",
 };

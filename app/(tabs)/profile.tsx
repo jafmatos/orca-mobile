@@ -1,10 +1,13 @@
-import { GlobalLayout } from "@/components/layouts/GlobalLayout";
+import { TabbedLayout } from "@/components/layouts/TabbedLayout";
+import { Navigation } from "@/components/Navigation";
 import { Text } from "react-native";
 
 export default function ProfileScreen() {
   return (
-    <GlobalLayout>
+    <TabbedLayout>
+      {" "}
+      <Navigation />
       <Text>ProfileScreen</Text>
-    </GlobalLayout>
+    </TabbedLayout>
   );
 }

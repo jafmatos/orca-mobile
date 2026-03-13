@@ -1,12 +1,9 @@
-import { PropsWithChildren } from "react";
 import Toast, { BaseToast, ToastConfigParams } from "react-native-toast-message";
-import { KeyboardAvoidingComponent } from "../KeyboardAvoindingComponent";
-import { ThemedComponent } from "../ThemedComponent";
-import useAppThemeColors from "@/hooks/use-app-theme-colors";
 import { MaterialIcons as MaterialIcon } from "@expo/vector-icons";
 import { View } from "react-native";
+import useAppThemeColors from "@/hooks/use-app-theme-colors";
 
-export function GlobalLayout(props: PropsWithChildren) {
+export function AppToast() {
   const appThemeColors = useAppThemeColors();
 
   const makeToast = (color: string, icon?: React.ReactNode) => {
@@ -42,28 +39,25 @@ export function GlobalLayout(props: PropsWithChildren) {
   };
 
   return (
-    <ThemedComponent>
-      <KeyboardAvoidingComponent>{props.children}</KeyboardAvoidingComponent>
-      <Toast
-        autoHide
-        position="top"
-        swipeable
-        visibilityTime={5000}
-        config={{
-          success: makeToast(
-            appThemeColors["--color-success-500"],
-            <MaterialIcon size={20} color={appThemeColors["--color-success-500"]} name="check-circle-outline" />,
-          ),
-          warning: makeToast(
-            appThemeColors["--color-warning-500"],
-            <MaterialIcon size={20} color={appThemeColors["--color-warning-500"]} name="warning-amber" />,
-          ),
-          error: makeToast(
-            appThemeColors["--color-danger-500"],
-            <MaterialIcon size={20} color={appThemeColors["--color-danger-500"]} name="error-outline" />,
-          ),
-        }}
-      />
-    </ThemedComponent>
+    <Toast
+      autoHide
+      position="top"
+      swipeable
+      visibilityTime={5000}
+      config={{
+        success: makeToast(
+          appThemeColors["--color-success-500"],
+          <MaterialIcon size={20} color={appThemeColors["--color-success-500"]} name="check-circle-outline" />,
+        ),
+        warning: makeToast(
+          appThemeColors["--color-warning-500"],
+          <MaterialIcon size={20} color={appThemeColors["--color-warning-500"]} name="warning-amber" />,
+        ),
+        error: makeToast(
+          appThemeColors["--color-danger-500"],
+          <MaterialIcon size={20} color={appThemeColors["--color-danger-500"]} name="error-outline" />,
+        ),
+      }}
+    />
   );
 }

@@ -1,10 +1,12 @@
-import { GlobalLayout } from "@/components/layouts/GlobalLayout";
+import { TabbedLayout } from "@/components/layouts/TabbedLayout";
+import { Navigation } from "@/components/Navigation";
 import { Text } from "react-native";
 
 export default function DashboardScreen() {
   return (
-    <GlobalLayout>
+    <TabbedLayout>
+      <Navigation />
       <Text>DashboardScreen</Text>
-    </GlobalLayout>
+    </TabbedLayout>
   );
 }
