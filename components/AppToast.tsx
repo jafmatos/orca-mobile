@@ -1,5 +1,5 @@
 import Toast, { BaseToast, ToastConfigParams } from "react-native-toast-message";
-import { MaterialIcons as MaterialIcon } from "@expo/vector-icons";
+import { CircleCheckIcon, CircleAlertIcon, CircleXIcon } from "lucide-react-native";
 import { View } from "react-native";
 import useAppThemeColors from "@/hooks/use-app-theme-colors";
 
@@ -47,16 +47,13 @@ export function AppToast() {
       config={{
         success: makeToast(
           appThemeColors["--color-success-500"],
-          <MaterialIcon size={20} color={appThemeColors["--color-success-500"]} name="check-circle-outline" />,
+          <CircleCheckIcon size={20} color={appThemeColors["--color-success-500"]} />,
         ),
         warning: makeToast(
           appThemeColors["--color-warning-500"],
-          <MaterialIcon size={20} color={appThemeColors["--color-warning-500"]} name="warning-amber" />,
+          <CircleAlertIcon size={20} color={appThemeColors["--color-warning-500"]} />,
         ),
-        error: makeToast(
-          appThemeColors["--color-danger-500"],
-          <MaterialIcon size={20} color={appThemeColors["--color-danger-500"]} name="error-outline" />,
-        ),
+        error: makeToast(appThemeColors["--color-danger-500"], <CircleXIcon size={20} color={appThemeColors["--color-danger-500"]} />),
       }}
     />
   );

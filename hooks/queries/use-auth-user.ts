@@ -1,9 +1,10 @@
 import { SignInService } from "@/services/Auth/SignInService";
+import { QueryKeys } from "@/utils/QueryKeys";
 import { useQuery } from "@tanstack/react-query";
 
 export const useAuthUser = () => {
   const { data } = useQuery({
-    queryKey: ["auth-user"],
+    queryKey: QueryKeys.User.getAuthUser(),
     queryFn: SignInService.getProfile,
     retry: false,
     retryOnMount: true,

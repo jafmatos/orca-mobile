@@ -1,5 +1,5 @@
 import useAppThemeColors from "@/hooks/use-app-theme-colors";
-import { MaterialIcons as MaterialIcon } from "@expo/vector-icons";
+import { HomeIcon, ReceiptTextIcon, BookmarkIcon, ChartPieIcon, UserIcon } from "lucide-react-native";
 import { Tabs } from "expo-router";
 import React from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -12,7 +12,7 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: colors["--color-primary-400"],
-        tabBarInactiveTintColor: colors["--color-grey-600"],
+        tabBarInactiveTintColor: colors["--color-typography-0"],
         headerShown: false,
         tabBarPosition: "bottom",
         tabBarStyle: {
@@ -20,7 +20,7 @@ export default function TabLayout() {
           height: 80 + insets.bottom,
           paddingBottom: insets.bottom,
           borderTopWidth: 0,
-          boxShadow: `0 -1px 2px -1px ${colors["--color-outline-700"]}`,
+          boxShadow: `0 -1px 1px -1px ${colors["--color-outline-700"]}`,
         },
         tabBarItemStyle: {
           alignItems: "center",
@@ -32,35 +32,35 @@ export default function TabLayout() {
         name="index"
         options={{
           title: "Início",
-          tabBarIcon: ({ color }) => <MaterialIcon size={28} name="home" color={color} />,
+          tabBarIcon: ({ color }) => <HomeIcon size={24} color={color} />,
         }}
       />
       <Tabs.Screen
         name="entries"
         options={{
           title: "Lançamentos",
-          tabBarIcon: ({ color }) => <MaterialIcon size={28} name="receipt" color={color} />,
+          tabBarIcon: ({ color }) => <ReceiptTextIcon size={24} color={color} />,
         }}
       />
       <Tabs.Screen
         name="categories"
         options={{
           title: "Categorias",
-          tabBarIcon: ({ color }) => <MaterialIcon size={28} name="bookmark" color={color} />,
+          tabBarIcon: ({ color }) => <BookmarkIcon size={24} color={color} />,
         }}
       />
       <Tabs.Screen
         name="dashboard"
         options={{
           title: "Visão Geral",
-          tabBarIcon: ({ color }) => <MaterialIcon size={28} name="donut-large" color={color} />,
+          tabBarIcon: ({ color }) => <ChartPieIcon size={24} color={color} />,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
           title: "Meu Perfil",
-          tabBarIcon: ({ color }) => <MaterialIcon size={28} name="person" color={color} />,
+          tabBarIcon: ({ color }) => <UserIcon size={24} color={color} />,
         }}
       />
       <Tabs.Screen

@@ -1,7 +1,7 @@
 import { View } from "@gluestack-ui/themed";
 import { AppAvatar } from "./ui/AppAvatar";
 import { TouchableOpacity } from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
+import { MenuIcon } from "lucide-react-native";
 import useAppThemeColors from "@/hooks/use-app-theme-colors";
 
 export function Navigation() {
@@ -9,15 +9,15 @@ export function Navigation() {
 
   return (
     <View
-      className="relative h-[72px] px-4 flex flex-row justify-between items-center"
+      className="relative h-[72px] px-4 flex flex-row justify-between items-center bg-background-950"
       style={{
         height: 72,
-        boxShadow: `0 1px 2px -1px ${themeColors["--color-outline-700"]}`,
+        boxShadow: `0 1px 1px -1px ${themeColors["--color-outline-700"]}`,
       }}
     >
       <AppAvatar />
       <TouchableOpacity>
-        <MaterialIcons name="menu" size={32} color={themeColors["--color-background-500"]} />
+        <MenuIcon size={32} color={themeColors["--color-typography-0"]} />
       </TouchableOpacity>
     </View>
   );

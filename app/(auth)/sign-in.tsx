@@ -53,6 +53,7 @@ export default function SignInScreen() {
                 value={form.values.email}
                 placeholder="Digite seu e-mail"
                 textContentType="emailAddress"
+                keyboardType="email-address"
                 onChangeText={(text) => setValue("email", text)}
                 required
               />

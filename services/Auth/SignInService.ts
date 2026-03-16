@@ -27,8 +27,6 @@ export class SignInService {
   private static async _getProfile(): Promise<GetProfileReturnType> {
     const { data } = await $axios.get(this.endpoint);
 
-    console.log("Getting profile");
-
     return data;
   }
 

@@ -16,8 +16,6 @@ export const useAppFormWithMutation = <Form, TVariables = unknown, TData = unkno
 
       const error = err as AxiosError<Error & { errors?: ApiError[] }>;
 
-			console.log(error.response?.data)
-
 			if (error.response?.status === 422) {
         appForm.setErrors((error.response?.data?.errors || []) as any);
 
