@@ -1,38 +1,25 @@
-import { Entry, EntryTypes } from "@/models/Entry";
+import { Category } from "@/models/Category";
 import { PaginatedData } from "@/models/PaginatedData";
 import { $axios } from "@/utils/$axios";
 import qs from "qs";
 
-export type GetEntriesArguments = {
+export type GetCategoriesArguments = {
   query?: {
-    filter?: {
-      type?: EntryTypes;
-      text?: string;
-      category?: string;
-      when?: {
-        ge?: Date;
-        le?: Date;
-      };
-    };
-    order?: {
-      entity?: "entry" | "category";
-      column?: string;
-      mode?: "ASC" | "DESC";
-    };
     page?: number;
     perPage?: number;
+    paginated?: boolean;
   };
 };
 
-export class EntryService {
-  private static readonly path = "/entries";
+export class CategoryService {
+  private static readonly path = "/categories";
 
-  private static async _getEntries(options: GetEntriesArguments): Promise<PaginatedData<Entry>> {
-    const query = qs.stringify(options.query);
+  private static async _getCategories(options?: GetCategoriesArguments): Promise<PaginatedData<Category>> {
+    const query = qs.stringify(options?.query);
     const { data } = await $axios.get(`${this.path}?${query}`);
 
     return data;
   }
 
-  public static readonly getEntries = EntryService._getEntries.bind(EntryService);
+  public static readonly getCategories = CategoryService._getCategories.bind(CategoryService);
 }

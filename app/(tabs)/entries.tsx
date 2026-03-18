@@ -8,15 +8,19 @@ import { Button, ButtonIcon, Text, View } from "@gluestack-ui/themed";
 import { FlatList } from "react-native";
 import { SlidersHorizontalIcon, DownloadIcon } from "lucide-react-native";
 import { EndOfListWithLoading } from "@/components/EndOfListWithLoading";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import BottomSheet from "@gorhom/bottom-sheet";
 import { AppBottomSheet } from "@/components/ui/AppBottomSheet";
 
 export default function EntriesScreen() {
-  const { data, isPending, error, fetchNextPage, hasNextPage, isFetchingNextPage } = useEntries();
+  const { data, isPending, fetchNextPage, error, hasNextPage, isFetchingNextPage } = useEntries();
   const bottomSheetRef = useRef<BottomSheet>(null);
 
   const entries: Entry[] = data?.pages.map((page) => page.data).flat() || [];
+
+  useEffect(() => {
+    console.log(error);
+  }, [error]);
 
   return (
     <TabbedLayout>
