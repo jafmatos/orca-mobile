@@ -8,6 +8,7 @@ import { config } from "@gluestack-ui/config";
 import { GluestackUIProvider } from "@gluestack-ui/themed";
 import { Dimensions, View, ViewProps } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 export function ThemedComponent(props: ViewProps) {
   const themeVars = useAppThemeVars();
@@ -19,32 +20,34 @@ export function ThemedComponent(props: ViewProps) {
 
   return (
     <View {...props} style={themeVars} className="grow">
-      <View
-        style={{
-          position: "absolute",
-          height: screenDimension.height + insets.top,
-          width: screenDimension.width,
-          top: -insets.top,
-          backgroundColor: themeColors["--color-background-950"],
-        }}
-      />
-      <GluestackUIProvider
-        colorMode={themeName}
-        config={{
-          ...config,
-          light: lightThemeVars,
-          dark: darkThemeVars,
-          tokens: {
-            ...config.tokens,
-            colors: {
-              ...config.tokens.colors,
-              ...gluestackColorTokens,
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <View
+          style={{
+            position: "absolute",
+            height: screenDimension.height + insets.top,
+            width: screenDimension.width,
+            top: -insets.top,
+            backgroundColor: themeColors["--color-background-950"],
+          }}
+        />
+        <GluestackUIProvider
+          colorMode={themeName}
+          config={{
+            ...config,
+            light: lightThemeVars,
+            dark: darkThemeVars,
+            tokens: {
+              ...config.tokens,
+              colors: {
+                ...config.tokens.colors,
+                ...gluestackColorTokens,
+              },
             },
-          },
-        }}
-      >
-        {props.children}
-      </GluestackUIProvider>
+          }}
+        >
+          {props.children}
+        </GluestackUIProvider>
+      </GestureHandlerRootView>
     </View>
   );
 }
