@@ -1,5 +1,4 @@
 import { TabbedLayout } from "@/components/layouts/TabbedLayout";
-import { Navigation } from "@/components/Navigation";
 import { AppAuthenticationTokenStore } from "@/utils/AuthenticationTokenStore";
 import { Button, ButtonText, ScrollView, Text } from "@gluestack-ui/themed";
 import { useRouter } from "expo-router";
@@ -9,8 +8,7 @@ export default function HomeScreen() {
 
   return (
     <TabbedLayout>
-      <Navigation />
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16 }}>
+      <ScrollView style={{ flex: 1 }}>
         <Button
           backgroundColor="$danger500"
           onPress={() => {

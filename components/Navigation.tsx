@@ -9,7 +9,7 @@ export function Navigation() {
 
   return (
     <View
-      className="relative h-[72px] px-4 flex flex-row justify-between items-center bg-background-950"
+      className="h-[72px] px-4 flex flex-row justify-between items-center bg-background-950"
       style={{
         height: 72,
         boxShadow: `0 1px 3px -2px ${themeColors["--color-outline-700"]}`,

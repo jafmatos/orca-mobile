@@ -1,6 +1,5 @@
 import { EntryCard } from "@/components/EntryCard";
 import { TabbedLayout } from "@/components/layouts/TabbedLayout";
-import { Navigation } from "@/components/Navigation";
 import { SearchField } from "@/components/ui/SearchField";
 import { useEntries } from "@/hooks/queries/use-entries";
 import { Entry } from "@/models/Entry";
@@ -8,23 +7,18 @@ import { Button, ButtonIcon, Text, View } from "@gluestack-ui/themed";
 import { FlatList } from "react-native";
 import { SlidersHorizontalIcon, DownloadIcon } from "lucide-react-native";
 import { EndOfListWithLoading } from "@/components/EndOfListWithLoading";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import BottomSheet from "@gorhom/bottom-sheet";
 import { AppBottomSheet } from "@/components/ui/AppBottomSheet";
 
 export default function EntriesScreen() {
-  const { data, isPending, fetchNextPage, error, hasNextPage, isFetchingNextPage } = useEntries();
+  const { data, isPending, fetchNextPage, hasNextPage, isFetchingNextPage } = useEntries();
   const bottomSheetRef = useRef<BottomSheet>(null);
 
   const entries: Entry[] = data?.pages.map((page) => page.data).flat() || [];
 
-  useEffect(() => {
-    console.log(error);
-  }, [error]);
-
   return (
     <TabbedLayout>
-      <Navigation />
       <FlatList
         ListHeaderComponent={() => {
           return (
