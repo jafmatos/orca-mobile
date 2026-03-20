@@ -1,12 +1,13 @@
+import { TabbedLayout } from "@/components/layouts/TabbedLayout";
 import { AppAuthenticationTokenStore } from "@/utils/AuthenticationTokenStore";
-import { Button, ButtonText, ScrollView, Text } from "@gluestack-ui/themed";
+import { Button, ButtonText, Text } from "@gluestack-ui/themed";
 import { useRouter } from "expo-router";
 
 export default function HomeScreen() {
   const router = useRouter();
 
   return (
-    <ScrollView style={{ flex: 1 }}>
+    <TabbedLayout>
       <Button
         backgroundColor="$danger500"
         onPress={() => {
@@ -48,6 +49,6 @@ export default function HomeScreen() {
         ratione blanditiis? Rem quia quidem debitis. Recusandae libero similique ipsum eveniet provident ipsa soluta reprehenderit ab
         numquam, dolores enim in odio commodi labore temporibus sunt sit officia!
       </Text>
-    </ScrollView>
+    </TabbedLayout>
   );
 }

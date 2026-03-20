@@ -11,22 +11,9 @@ export function TabbedLayout(props: PropsWithChildren) {
   const insets = useSafeAreaInsets();
 
   return (
-    <PortalProvider>
-      <ThemedComponent className="grow">
-        <ThemedComponent.Background />
-
-        <View style={{ flex: 1, top: insets.top, paddingBottom: insets.top, backgroundColor: "transparent" }}>
-          <KeyboardAvoidingComponent>
-            <Navigation />
-
-            {props.children}
-          </KeyboardAvoidingComponent>
-          <AppToast />
-        </View>
-
-        <PortalHost name="bottomsheet" />
-        <PortalHost name="drawer" />
-      </ThemedComponent>
-    </PortalProvider>
+    <>
+      <ThemedComponent.Background />
+      {props.children}
+    </>
   );
 }

@@ -15,8 +15,7 @@ export function Navigation() {
       <View
         className="h-[72px] px-4 flex flex-row justify-between items-center bg-background-950"
         style={{
-          height: 72,
-          boxShadow: `0 1px 3px -2px ${themeColors["--color-outline-700"]}`,
+          boxShadow: `0 1px 3px -5px blue`,
         }}
       >
         <AppAvatar />
@@ -28,8 +27,6 @@ export function Navigation() {
         <AppDrawer
           isOpen={isDrawerOpen}
           onClose={() => {
-            console.log("close");
-
             setIsDrawerOpen(false);
           }}
         >

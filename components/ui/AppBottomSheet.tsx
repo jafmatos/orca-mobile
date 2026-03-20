@@ -1,7 +1,27 @@
 import useAppThemeColors from "@/hooks/use-app-theme-colors";
 import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from "@gorhom/bottom-sheet";
-import { forwardRef, useCallback } from "react";
+import React, { forwardRef, useMemo } from "react";
+import Animated, { interpolate, useAnimatedStyle } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+const BottomSheetCustomBackdrop = ({ animatedIndex, style }: React.ComponentProps<typeof BottomSheetBackdrop>) => {
+  const containerAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(animatedIndex.value, [0, 1], [0, 1], "clamp"),
+  }));
+
+  const containerStyle = useMemo(
+    () => [
+      style,
+      {
+        backgroundColor: "#000",
+      },
+      containerAnimatedStyle,
+    ],
+    [style, containerAnimatedStyle],
+  );
+
+  return <Animated.View style={containerStyle} />;
+};
 
 export interface AppBottomSheetProps extends React.ComponentProps<typeof BottomSheetView> {
   containerProps?: Omit<React.ComponentProps<typeof BottomSheet>, "children">;
@@ -12,20 +32,13 @@ export const AppBottomSheet = forwardRef<BottomSheet, AppBottomSheetProps>(({ co
   const themeColors = useAppThemeColors();
   const insets = useSafeAreaInsets();
 
-  const renderBackdrop = useCallback(
-    (props: React.ComponentProps<typeof BottomSheetBackdrop>) => (
-      <BottomSheetBackdrop {...props} appearsOnIndex={0} disappearsOnIndex={-1} pressBehavior="close" />
-    ),
-    [],
-  );
-
   return (
     <BottomSheet
       {...containerProps}
       ref={ref}
       index={-1}
-      backdropComponent={renderBackdrop}
-      enablePanDownToClose
+      // backdropComponent={BottomSheetCustomBackdrop}
+      enablePanDownToClose 
       backgroundStyle={{
         backgroundColor: themeColors["--color-background-950"],
       }}

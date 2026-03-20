@@ -1,5 +1,10 @@
+import { TabbedLayout } from "@/components/layouts/TabbedLayout";
 import { Text } from "react-native";
 
 export default function ProfileScreen() {
-  return <Text>ProfileScreen</Text>;
+  return (
+    <TabbedLayout>
+      <Text>ProfileScreen</Text>
+    </TabbedLayout>
+  );
 }

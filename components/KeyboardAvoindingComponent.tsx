@@ -1,9 +1,8 @@
-import { PropsWithChildren } from "react";
 import { KeyboardAvoidingView, Platform } from "react-native";
 
-export function KeyboardAvoidingComponent(props: PropsWithChildren) {
+export function KeyboardAvoidingComponent(props: React.ComponentProps<typeof KeyboardAvoidingView>) {
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
+    <KeyboardAvoidingView {...props} behavior={Platform.OS === "ios" ? "padding" : "height"} className={`grow ${props.className}`}>
       {props.children}
     </KeyboardAvoidingView>
   );
