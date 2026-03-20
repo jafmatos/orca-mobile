@@ -10,44 +10,54 @@ import { Dimensions, View, ViewProps } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
-export function ThemedComponent(props: ViewProps) {
-  const themeVars = useAppThemeVars();
+function AppBackground() {
   const themeColors = useAppThemeColors();
-  const themeName = useAppThemeName();
-  const gluestackColorTokens = useAppGluestackColorTokens();
   const screenDimension = Dimensions.get("screen");
   const insets = useSafeAreaInsets();
 
   return (
-    <View {...props} style={themeVars} className="grow">
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <View
-          style={{
-            position: "absolute",
-            height: screenDimension.height + insets.top,
-            width: screenDimension.width,
-            top: -insets.top,
-            backgroundColor: themeColors["--color-background-950"],
-          }}
-        />
-        <GluestackUIProvider
-          colorMode={themeName}
-          config={{
-            ...config,
-            light: lightThemeVars,
-            dark: darkThemeVars,
-            tokens: {
-              ...config.tokens,
-              colors: {
-                ...config.tokens.colors,
-                ...gluestackColorTokens,
+    <View
+      style={{
+        position: "absolute",
+        height: screenDimension.height + insets.top,
+        width: screenDimension.width,
+        top: -insets.top,
+        backgroundColor: themeColors["--color-background-950"],
+      }}
+    />
+  );
+}
+
+export function ThemedComponent(props: ViewProps) {
+  const themeVars = useAppThemeVars();
+  const themeName = useAppThemeName();
+  const gluestackColorTokens = useAppGluestackColorTokens();
+
+  return (
+    <View {...props}>
+      <View style={themeVars} className="grow">
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <GluestackUIProvider
+            colorMode={themeName}
+            config={{
+              ...config,
+              light: lightThemeVars,
+              dark: darkThemeVars,
+              tokens: {
+                ...config.tokens,
+                colors: {
+                  ...config.tokens.colors,
+                  ...gluestackColorTokens,
+                },
               },
-            },
-          }}
-        >
-          {props.children}
-        </GluestackUIProvider>
-      </GestureHandlerRootView>
+            }}
+          >
+            {props.children}
+          </GluestackUIProvider>
+        </GestureHandlerRootView>
+      </View>
     </View>
   );
 }
+
+ThemedComponent.Background = AppBackground;

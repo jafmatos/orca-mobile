@@ -1,6 +1,7 @@
 import useAppThemeColors from "@/hooks/use-app-theme-colors";
 import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from "@gorhom/bottom-sheet";
 import { forwardRef, useCallback } from "react";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export interface AppBottomSheetProps extends React.ComponentProps<typeof BottomSheetView> {
   containerProps?: Omit<React.ComponentProps<typeof BottomSheet>, "children">;
@@ -9,6 +10,7 @@ export interface AppBottomSheetProps extends React.ComponentProps<typeof BottomS
 // eslint-disable-next-line react/display-name
 export const AppBottomSheet = forwardRef<BottomSheet, AppBottomSheetProps>(({ containerProps, ...props }, ref) => {
   const themeColors = useAppThemeColors();
+  const insets = useSafeAreaInsets();
 
   const renderBackdrop = useCallback(
     (props: React.ComponentProps<typeof BottomSheetBackdrop>) => (
@@ -35,7 +37,7 @@ export const AppBottomSheet = forwardRef<BottomSheet, AppBottomSheetProps>(({ co
         borderRadius: 12,
       }}
     >
-      <BottomSheetView {...props} className="p-4 min-h-[240px] bg-background-950" />
+      <BottomSheetView {...props} style={{ paddingBottom: insets.bottom + 16 }} className="p-4 min-h-[240px] bg-background-950" />
     </BottomSheet>
   );
 });

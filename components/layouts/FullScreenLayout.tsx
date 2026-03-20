@@ -7,7 +7,9 @@ import { PropsWithChildren } from "react";
 export function FullScreenLayout(props: PropsWithChildren) {
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <ThemedComponent>
+      <ThemedComponent className="grow">
+        <ThemedComponent.Background />
+
         <KeyboardAvoidingComponent>{props.children}</KeyboardAvoidingComponent>
         <AppToast />
       </ThemedComponent>

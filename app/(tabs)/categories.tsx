@@ -14,7 +14,7 @@ export default function CategoriesScreen() {
   const categories = data?.data.filter((category) => category.type === type) || [];
 
   return (
-    <TabbedLayout>
+    <View>
       <SubNavigation>
         <SubNavigation.Item isActive={type === CategoryTypes.Expense} label="Despesa" onPress={() => setType(CategoryTypes.Expense)} />
         <SubNavigation.Item isActive={type === CategoryTypes.Income} label="Receita" onPress={() => setType(CategoryTypes.Income)} />
@@ -32,6 +32,6 @@ export default function CategoriesScreen() {
         renderItem={({ item }) => <CategoryCard category={item} />}
         ItemSeparatorComponent={() => <View className="h-4" />}
       />
-    </TabbedLayout>
+    </View>
   );
 }
