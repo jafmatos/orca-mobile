@@ -15,8 +15,12 @@ import { AppFormField } from "@/components/AppFormField";
 
 export default function EntriesScreen() {
   const { data, isPending, fetchNextPage, hasNextPage, isFetchingNextPage } = useEntries();
-  const bottomSheetRef = useRef<BottomSheet>(null);
+  const [isFilterBottomSheetOpen, setIsFilterBottomSheetOpen] = useState(false);
   const [text, setText] = useState("");
+
+  const closeFilterBottomSheet = () => setIsFilterBottomSheetOpen(false);
+
+  const openFilterBottomSheet = () => setIsFilterBottomSheetOpen(true);
 
   const entries: Entry[] = data?.pages.map((page) => page.data).flat() || [];
 
@@ -34,7 +38,7 @@ export default function EntriesScreen() {
                     className: "grow",
                   }}
                 />
-                <Button className="aspect-square" variant="outline" onPress={() => bottomSheetRef.current?.expand()}>
+                <Button className="aspect-square" variant="outline" onPress={openFilterBottomSheet}>
                   <ButtonIcon color="$primary500" as={SlidersHorizontalIcon} />
                 </Button>
                 <Button className="aspect-square" variant="outline">
@@ -59,7 +63,7 @@ export default function EntriesScreen() {
         onEndReachedThreshold={1}
       />
       <Portal hostName="bottomsheet">
-        <AppBottomSheet ref={bottomSheetRef}>
+        <AppBottomSheet isOpen={isFilterBottomSheetOpen} onClose={closeFilterBottomSheet}>
           <AppFormField.TextInput value={text} placeholder="Testar KBAV" onChangeText={setText} />
         </AppBottomSheet>
       </Portal>
