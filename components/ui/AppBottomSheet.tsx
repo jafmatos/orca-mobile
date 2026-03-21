@@ -1,5 +1,5 @@
 import useAppThemeColors from "@/hooks/use-app-theme-colors";
-import { Text, View } from "@gluestack-ui/themed";
+import { View } from "@gluestack-ui/themed";
 import React, { useEffect, useState } from "react";
 import { Dimensions, Pressable } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
@@ -10,6 +10,7 @@ import { scheduleOnRN } from "react-native-worklets";
 export interface AppBottomSheetProps extends React.ComponentProps<typeof Animated.View> {
   children: React.ReactNode;
   isOpen: boolean;
+  expandable?: boolean;
   closeOnBackdropTap?: boolean;
   snapPointsCollapsed?: number;
   snapPointsExpanded?: number;
@@ -24,6 +25,7 @@ const SCREEN_HEIGHT = screenDimensions.height;
 const SCREEN_WIDTH = screenDimensions.width;
 
 export function AppBottomSheet({
+  expandable = false,
   closeOnBackdropTap = true,
   snapPointsCollapsed = 400,
   snapPointsExpanded = SCREEN_HEIGHT * 0.9,
@@ -60,23 +62,22 @@ export function AppBottomSheet({
         bottomSheetTranslateYSharedValue.value = withSpring(initialBottomSheetTranslateY + event.translationY);
       }
 
-      if (event.translationY < 0 && isExpanded) {
+      if (event.translationY < 0 && !expandable) {
+        bottomSheetHeightSharedValue.value = withSpring(snapPointsCollapsed + Math.abs(event.translationY / 5));
+      }
+
+      if (event.translationY < 0 && expandable && isExpanded) {
         bottomSheetHeightSharedValue.value = withSpring(snapPointsExpanded + Math.abs(event.translationY));
       }
 
-      if (event.translationY < 0 && !isExpanded) {
+      if (event.translationY < 0 && expandable && !isExpanded) {
         bottomSheetHeightSharedValue.value = withSpring(snapPointsCollapsed + Math.abs(event.translationY));
       }
     })
     .onFinalize((event) => {
-      if (event.translationY < panSnapPoints && event.translationY > -panSnapPoints && !isExpanded) {
+      if (event.translationY < panSnapPoints && event.translationY > -panSnapPoints) {
         bottomSheetTranslateYSharedValue.value = withSpring(initialBottomSheetTranslateY);
-        bottomSheetHeightSharedValue.value = withSpring(snapPointsCollapsed);
-      }
-
-      if (event.translationY < panSnapPoints && event.translationY > -panSnapPoints && isExpanded) {
-        bottomSheetTranslateYSharedValue.value = withSpring(initialBottomSheetTranslateY);
-        bottomSheetHeightSharedValue.value = withSpring(snapPointsExpanded);
+        bottomSheetHeightSharedValue.value = withSpring(isExpanded ? snapPointsExpanded : snapPointsCollapsed);
       }
 
       if (event.translationY >= snapPointsCollapsed / 2 + panSnapPoints) {
@@ -92,31 +93,28 @@ export function AppBottomSheet({
         bottomSheetTranslateYSharedValue.value = withSpring(initialBottomSheetTranslateY);
       }
 
-      if (event.translationY <= -panSnapPoints && !isExpanded) {
+      if (event.translationY <= -panSnapPoints && !expandable) {
+        bottomSheetHeightSharedValue.value = withSpring(snapPointsCollapsed);
+        bottomSheetTranslateYSharedValue.value = withSpring(initialBottomSheetTranslateY);
+      }
+
+      if (event.translationY <= -panSnapPoints && expandable && !isExpanded) {
         bottomSheetHeightSharedValue.value = withSpring(snapPointsExpanded);
         bottomSheetTranslateYSharedValue.value = withSpring(initialBottomSheetTranslateY);
         scheduleOnRN(setIsExpanded, true);
       }
 
-      if (event.translationY <= -panSnapPoints && isExpanded) {
+      if (event.translationY <= -panSnapPoints && expandable && isExpanded) {
         bottomSheetTranslateYSharedValue.value = withSpring(initialBottomSheetTranslateY);
       }
     });
 
   return (
-    <GestureDetector gesture={pan}>
-      <View
-        style={{
-          pointerEvents: props.isOpen ? "auto" : "none",
-          width: SCREEN_WIDTH,
-          height: SCREEN_HEIGHT,
-          position: "absolute",
-          top: 0,
-          left: 0,
-        }}
-      >
+    <>
+      <GestureDetector gesture={pan}>
         <Animated.View
           style={{
+            pointerEvents: props.isOpen ? "auto" : "none",
             width: SCREEN_WIDTH,
             height: SCREEN_HEIGHT,
             position: "absolute",
@@ -135,41 +133,43 @@ export function AppBottomSheet({
             }}
           />
         </Animated.View>
-        <Animated.View
+      </GestureDetector>
+
+      <Animated.View
+        style={{
+          height: bottomSheetHeightSharedValue,
+          width: SCREEN_WIDTH,
+          transform: [{ translateY: bottomSheetTranslateYSharedValue }],
+          paddingBottom: insets.bottom,
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          borderTopLeftRadius: 18,
+          borderTopRightRadius: 18,
+          boxShadow: `0 3px 7px 0 black`,
+        }}
+        className="bg-background-950 rounded-t-3xl"
+      >
+        <View
+          className="flex flex-row justify-center"
           style={{
-            height: bottomSheetHeightSharedValue,
-            width: SCREEN_WIDTH,
-            transform: [{ translateY: bottomSheetTranslateYSharedValue }],
-            paddingBottom: insets.bottom,
-            position: "absolute",
-            bottom: 0,
-            left: 0,
-            right: 0,
-            borderTopLeftRadius: 18,
-            borderTopRightRadius: 18,
-            boxShadow: `0 3px 7px 0 black`,
+            paddingTop: 16,
+            paddingBottom: 16,
           }}
-          className="bg-background-950 rounded-t-3xl"
         >
           <View
-            className="flex flex-row justify-center"
             style={{
-              paddingTop: 16,
-              paddingBottom: 16,
+              borderRadius: 2,
+              height: 4,
+              width: 32,
+              backgroundColor: themeColors["--color-typography-200"],
             }}
-          >
-            <View
-              style={{
-                borderRadius: 2,
-                height: 4,
-                width: 32,
-                backgroundColor: themeColors["--color-typography-200"],
-              }}
-            />
-          </View>
-          <View className="p-4 pt-0">{props.children}</View>
-        </Animated.View>
-      </View>
-    </GestureDetector>
+          />
+        </View>
+
+        <View className="p-4 pt-0">{props.children}</View>
+      </Animated.View>
+    </>
   );
 }

@@ -63,7 +63,7 @@ export default function EntriesScreen() {
         onEndReachedThreshold={1}
       />
       <Portal hostName="bottomsheet">
-        <AppBottomSheet isOpen={isFilterBottomSheetOpen} onClose={closeFilterBottomSheet}>
+        <AppBottomSheet expandable isOpen={isFilterBottomSheetOpen} onClose={closeFilterBottomSheet}>
           <AppFormField.TextInput value={text} placeholder="Testar KBAV" onChangeText={setText} />
         </AppBottomSheet>
       </Portal>
