@@ -21,6 +21,7 @@ export interface AppBottomSheetProps extends React.ComponentProps<typeof Animate
 
 const screenDimensions = Dimensions.get("screen");
 const SCREEN_HEIGHT = screenDimensions.height;
+const SCREEN_WIDTH = screenDimensions.width;
 
 export function AppBottomSheet({
   closeOnBackdropTap = true,
@@ -103,17 +104,25 @@ export function AppBottomSheet({
     });
 
   return (
-    <>
-      <GestureDetector gesture={pan}>
+    <GestureDetector gesture={pan}>
+      <View
+        style={{
+          pointerEvents: props.isOpen ? "auto" : "none",
+          width: SCREEN_WIDTH,
+          height: SCREEN_HEIGHT,
+          position: "absolute",
+          top: 0,
+          left: 0,
+        }}
+      >
         <Animated.View
           style={{
-            pointerEvents: props.isOpen ? "auto" : "none",
-            width: screenDimensions.width,
-            height: screenDimensions.height,
+            width: SCREEN_WIDTH,
+            height: SCREEN_HEIGHT,
             position: "absolute",
             top: 0,
             left: 0,
-            backgroundColor: "black",
+            backgroundColor: backdropColor,
             opacity: backdropOpacitySharedValue,
           }}
         >
@@ -126,41 +135,41 @@ export function AppBottomSheet({
             }}
           />
         </Animated.View>
-      </GestureDetector>
-      <Animated.View
-        style={{
-          height: bottomSheetHeightSharedValue,
-          transform: [{ translateY: bottomSheetTranslateYSharedValue }],
-          paddingBottom: insets.bottom,
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          width: screenDimensions.width,
-          borderTopLeftRadius: 18,
-          borderTopRightRadius: 18,
-          boxShadow: `0 3px 7px 0 black`,
-        }}
-        className="bg-background-950 rounded-t-3xl"
-      >
-        <View
-          className="flex flex-row justify-center"
+        <Animated.View
           style={{
-            paddingTop: 16,
-            paddingBottom: 16,
+            height: bottomSheetHeightSharedValue,
+            width: SCREEN_WIDTH,
+            transform: [{ translateY: bottomSheetTranslateYSharedValue }],
+            paddingBottom: insets.bottom,
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            borderTopLeftRadius: 18,
+            borderTopRightRadius: 18,
+            boxShadow: `0 3px 7px 0 black`,
           }}
+          className="bg-background-950 rounded-t-3xl"
         >
           <View
+            className="flex flex-row justify-center"
             style={{
-              borderRadius: 2,
-              height: 4,
-              width: 32,
-              backgroundColor: themeColors["--color-typography-200"],
+              paddingTop: 16,
+              paddingBottom: 16,
             }}
-          />
-        </View>
-        <View className="p-4 pt-0">{props.children}</View>
-      </Animated.View>
-    </>
+          >
+            <View
+              style={{
+                borderRadius: 2,
+                height: 4,
+                width: 32,
+                backgroundColor: themeColors["--color-typography-200"],
+              }}
+            />
+          </View>
+          <View className="p-4 pt-0">{props.children}</View>
+        </Animated.View>
+      </View>
+    </GestureDetector>
   );
 }
