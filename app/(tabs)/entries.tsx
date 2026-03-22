@@ -2,7 +2,7 @@ import { EntryCard } from "@/components/EntryCard";
 import { SearchField } from "@/components/ui/SearchField";
 import { useEntries } from "@/hooks/queries/use-entries";
 import { Entry } from "@/models/Entry";
-import { Button, ButtonIcon, Text, View } from "@gluestack-ui/themed";
+import { Button, ButtonIcon, ButtonText, Text, View } from "@gluestack-ui/themed";
 import { FlatList } from "react-native";
 import { SlidersHorizontalIcon, DownloadIcon } from "lucide-react-native";
 import { EndOfListWithLoading } from "@/components/EndOfListWithLoading";
@@ -65,6 +65,12 @@ export default function EntriesScreen() {
       <Portal hostName="bottomsheet">
         <AppBottomSheet expandable isOpen={isFilterBottomSheetOpen} onClose={closeFilterBottomSheet}>
           <AppFormField.TextInput value={text} placeholder="Testar KBAV" onChangeText={setText} />
+          <Button>
+            <ButtonText>
+							Button that does nothing
+						</ButtonText>
+          </Button>
+					<Text>Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolorem quasi autem fugit officiis ipsa rem quam doloremque neque animi ab amet laborum quisquam nulla perspiciatis, repellendus alias expedita minima. Reiciendis vel quis dolor ad animi nihil, nemo voluptates a pariatur atque nulla et impedit ipsum ut magni adipisci eligendi iste eum exercitationem laudantium error enim expedita? Magni accusamus ex adipisci tempora sed quibusdam culpa. Iusto voluptatem sequi minus ipsum repudiandae, fugit consequuntur cupiditate delectus enim, sed dolor illum modi vero necessitatibus mollitia expedita alias placeat optio aliquam nisi tempore facere hic pariatur. Alias consequatur neque impedit adipisci quos dolorem praesentium voluptates aspernatur sapiente est, possimus at excepturi ad maxime. Nemo ipsum cum eum minima eligendi. Id officiis accusantium, vel distinctio cupiditate quo atque perspiciatis perferendis suscipit! Facere labore quisquam obcaecati ipsum temporibus minima facilis aspernatur porro odit eius, non alias excepturi natus ad dolore! Soluta maiores vero a laborum ducimus in, velit earum quasi voluptatem. Dolor neque error cumque dolorem, magnam cum fugiat molestiae minima illo in cupiditate similique, vero dolore. Quasi voluptas, deleniti excepturi magni consequuntur itaque cum! Impedit, ut. Laboriosam non dolores illo voluptate inventore omnis qui ea eveniet! Tempora architecto facilis ipsum. In blanditiis quis illum sunt?</Text>
         </AppBottomSheet>
       </Portal>
     </TabbedLayout>

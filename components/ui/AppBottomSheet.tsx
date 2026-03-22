@@ -1,11 +1,12 @@
 import useAppThemeColors from "@/hooks/use-app-theme-colors";
 import { View } from "@gluestack-ui/themed";
 import React, { useEffect, useState } from "react";
-import { Dimensions, Pressable } from "react-native";
+import { Dimensions, Platform, Pressable } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import Animated, { useSharedValue, withSpring } from "react-native-reanimated";
+import Animated, { Easing, useSharedValue, withSpring, withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { scheduleOnRN } from "react-native-worklets";
+import { KeyboardEvents, useKeyboardHandler } from "react-native-keyboard-controller";
 
 export interface AppBottomSheetProps extends React.ComponentProps<typeof Animated.View> {
   children: React.ReactNode;
@@ -34,11 +35,15 @@ export function AppBottomSheet({
   ...props
 }: AppBottomSheetProps) {
   const themeColors = useAppThemeColors();
-  const [isExpanded, setIsExpanded] = useState(false);
 
+  const isExpandedSharedValue = useSharedValue(false);
   const initialBottomSheetTranslateY = 0;
   const bottomSheetHeightSharedValue = useSharedValue(snapPointsCollapsed);
   const bottomSheetTranslateYSharedValue = useSharedValue(props.isOpen ? initialBottomSheetTranslateY : SCREEN_HEIGHT);
+  const isKeyboardOpened = useSharedValue(false);
+  const isKeyboardOpening = useSharedValue(false);
+  const isKeyboardClosed = useSharedValue(false);
+  const isKeyboardClosing = useSharedValue(false);
 
   const backdropOpacitySharedValue = useSharedValue(props.isOpen ? backdropOpacity : 0);
 
@@ -56,6 +61,63 @@ export function AppBottomSheet({
     }
   }, [props.isOpen, backdropOpacitySharedValue, bottomSheetTranslateYSharedValue, backdropOpacity]);
 
+  useEffect(() => {
+    console.log(isExpandedSharedValue.value);
+  }, [isExpandedSharedValue.value]);
+
+  useKeyboardHandler(
+    {
+      onStart: () => {
+        "worklet";
+
+        if (!isKeyboardOpened.value) {
+          isKeyboardOpening.value = true;
+          isKeyboardClosing.value = false;
+        } else {
+          isKeyboardOpening.value = false;
+          isKeyboardClosing.value = true;
+        }
+      },
+      onMove: (event) => {
+        "worklet";
+
+        bottomSheetTranslateYSharedValue.value = -event.height;
+
+        console.log(isExpandedSharedValue.value);
+
+        if (isKeyboardOpened.value) {
+          bottomSheetHeightSharedValue.value = Math.min(
+            isExpandedSharedValue.value ? snapPointsExpanded : snapPointsCollapsed,
+            snapPointsExpanded - event.height,
+          );
+        } else {
+          bottomSheetHeightSharedValue.value = Math.min(bottomSheetHeightSharedValue.value, snapPointsExpanded - event.height);
+        }
+      },
+      onEnd: () => {
+        "worklet";
+
+        if (isKeyboardOpening.value) {
+          isKeyboardOpened.value = true;
+          isKeyboardClosed.value = false;
+          isKeyboardOpening.value = false;
+        }
+
+        if (isKeyboardClosing.value) {
+          isKeyboardClosed.value = true;
+          isKeyboardOpened.value = false;
+          isKeyboardClosing.value = false;
+        }
+
+        console.log("is closing? " + isKeyboardClosing.value);
+        console.log("is closed? " + isKeyboardClosed.value);
+        console.log("is opening? " + isKeyboardOpening.value);
+        console.log("is opened? " + isKeyboardOpened.value);
+      },
+    },
+    [],
+  );
+
   const pan = Gesture.Pan()
     .onBegin((event) => {})
     .onChange((event) => {
@@ -67,31 +129,32 @@ export function AppBottomSheet({
         bottomSheetHeightSharedValue.value = withSpring(snapPointsCollapsed + Math.abs(event.translationY / 5));
       }
 
-      if (event.translationY < 0 && expandable && isExpanded) {
+      if (event.translationY < 0 && expandable && isExpandedSharedValue.value) {
         bottomSheetHeightSharedValue.value = withSpring(snapPointsExpanded + Math.abs(event.translationY));
       }
 
-      if (event.translationY < 0 && expandable && !isExpanded) {
+      if (event.translationY < 0 && expandable && !isExpandedSharedValue.value) {
         bottomSheetHeightSharedValue.value = withSpring(snapPointsCollapsed + Math.abs(event.translationY));
       }
     })
     .onFinalize((event) => {
       if (event.translationY < panSnapPoints && event.translationY > -panSnapPoints) {
         bottomSheetTranslateYSharedValue.value = withSpring(initialBottomSheetTranslateY);
-        bottomSheetHeightSharedValue.value = withSpring(isExpanded ? snapPointsExpanded : snapPointsCollapsed);
+        bottomSheetHeightSharedValue.value = withSpring(isExpandedSharedValue.value ? snapPointsExpanded : snapPointsCollapsed);
       }
 
       if (event.translationY >= snapPointsCollapsed / 2 + panSnapPoints) {
         scheduleOnRN(props.onClose);
-        scheduleOnRN(setIsExpanded, false);
+
+        isExpandedSharedValue.value = false;
       }
 
-      if (event.translationY >= panSnapPoints && !isExpanded) scheduleOnRN(props.onClose);
+      if (event.translationY >= panSnapPoints && !isExpandedSharedValue.value) scheduleOnRN(props.onClose);
 
-      if (event.translationY >= panSnapPoints && isExpanded) {
+      if (event.translationY >= panSnapPoints && isExpandedSharedValue.value) {
         bottomSheetHeightSharedValue.value = withSpring(snapPointsCollapsed);
-        scheduleOnRN(setIsExpanded, false);
         bottomSheetTranslateYSharedValue.value = withSpring(initialBottomSheetTranslateY);
+        isExpandedSharedValue.value = false;
       }
 
       if (event.translationY <= -panSnapPoints && !expandable) {
@@ -99,13 +162,14 @@ export function AppBottomSheet({
         bottomSheetTranslateYSharedValue.value = withSpring(initialBottomSheetTranslateY);
       }
 
-      if (event.translationY <= -panSnapPoints && expandable && !isExpanded) {
+      if (event.translationY <= -panSnapPoints && expandable && !isExpandedSharedValue.value) {
+        console.log("expanding...");
         bottomSheetHeightSharedValue.value = withSpring(snapPointsExpanded);
         bottomSheetTranslateYSharedValue.value = withSpring(initialBottomSheetTranslateY);
-        scheduleOnRN(setIsExpanded, true);
+        isExpandedSharedValue.value = true;
       }
 
-      if (event.translationY <= -panSnapPoints && expandable && isExpanded) {
+      if (event.translationY <= -panSnapPoints && expandable && isExpandedSharedValue.value) {
         bottomSheetTranslateYSharedValue.value = withSpring(initialBottomSheetTranslateY);
       }
     });
@@ -137,7 +201,7 @@ export function AppBottomSheet({
             className="w-full h-full"
             onPress={() => {
               bottomSheetHeightSharedValue.value = withSpring(snapPointsCollapsed);
-              setIsExpanded(false);
+              isExpandedSharedValue.value = false;
               closeOnBackdropTap && props.onClose?.();
             }}
           />
