@@ -1,12 +1,12 @@
 import useAppThemeColors from "@/hooks/use-app-theme-colors";
-import { View } from "@gluestack-ui/themed";
-import React, { useEffect, useState } from "react";
-import { Dimensions, Platform, Pressable } from "react-native";
+import { ScrollView, View } from "@gluestack-ui/themed";
+import React, { useEffect } from "react";
+import { Dimensions, Pressable } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import Animated, { Easing, useSharedValue, withSpring, withTiming } from "react-native-reanimated";
+import Animated, { useSharedValue, withSpring } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { scheduleOnRN } from "react-native-worklets";
-import { KeyboardEvents, useKeyboardHandler } from "react-native-keyboard-controller";
+import { useKeyboardHandler } from "react-native-keyboard-controller";
 
 export interface AppBottomSheetProps extends React.ComponentProps<typeof Animated.View> {
   children: React.ReactNode;
@@ -59,11 +59,7 @@ export function AppBottomSheet({
       backdropOpacitySharedValue.value = withSpring(0);
       bottomSheetTranslateYSharedValue.value = withSpring(screenDimensions.height);
     }
-  }, [props.isOpen, backdropOpacitySharedValue, bottomSheetTranslateYSharedValue, backdropOpacity]);
-
-  useEffect(() => {
-    console.log(isExpandedSharedValue.value);
-  }, [isExpandedSharedValue.value]);
+  }, [props.isOpen, backdropOpacitySharedValue, bottomSheetHeightSharedValue, bottomSheetTranslateYSharedValue, backdropOpacity]);
 
   useKeyboardHandler(
     {
@@ -82,8 +78,6 @@ export function AppBottomSheet({
         "worklet";
 
         bottomSheetTranslateYSharedValue.value = -event.height;
-
-        console.log(isExpandedSharedValue.value);
 
         if (isKeyboardOpened.value) {
           bottomSheetHeightSharedValue.value = Math.min(
@@ -109,10 +103,8 @@ export function AppBottomSheet({
           isKeyboardClosing.value = false;
         }
 
-        console.log("is closing? " + isKeyboardClosing.value);
-        console.log("is closed? " + isKeyboardClosed.value);
-        console.log("is opening? " + isKeyboardOpening.value);
-        console.log("is opened? " + isKeyboardOpened.value);
+        console.log("height? " + bottomSheetHeightSharedValue.value);
+        console.log("translate? " + bottomSheetTranslateYSharedValue.value);
       },
     },
     [],
@@ -173,6 +165,8 @@ export function AppBottomSheet({
         bottomSheetTranslateYSharedValue.value = withSpring(initialBottomSheetTranslateY);
       }
     });
+
+  const native = Gesture.Native().blocksExternalGesture(pan);
 
   return (
     <GestureDetector gesture={pan}>
@@ -240,7 +234,16 @@ export function AppBottomSheet({
             />
           </View>
 
-          <View className="p-4 pt-0">{props.children}</View>
+          <GestureDetector gesture={native}>
+            <ScrollView
+              contentContainerStyle={{
+                padding: 16,
+                paddingTop: 0,
+              }}
+            >
+              {props.children}
+            </ScrollView>
+          </GestureDetector>
         </Animated.View>
       </View>
     </GestureDetector>
