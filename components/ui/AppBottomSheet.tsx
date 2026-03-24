@@ -171,21 +171,17 @@ export function AppBottomSheet({
       bottomSheetHeightSharedValue.value = withSpring(snapPointsCollapsed + Math.abs(event.translationY / 5));
     }
 
-    if (expandable && isExpandedSharedValue.value) {
-      bottomSheetHeightSharedValue.value = withSpring(snapPointsScreen + Math.abs(event.translationY));
-    }
-
     if (expandable && !isExpandedSharedValue.value) {
       bottomSheetHeightSharedValue.value = withSpring(snapPointsCollapsed + Math.abs(event.translationY));
     }
   };
 
   const panUpGestureOnFinalizeCallback: NonNullable<Parameters<ReturnType<typeof Gesture.Pan>["onFinalize"]>[0]> = (event) => {
-    if (event.translationY > 0) return;
+    if (event.translationY > 0 || isExpandedSharedValue.value) return;
 
     if (event.translationY > -panSnapPoints) {
       bottomSheetTranslateYSharedValue.value = withSpring(bottomSheetOpenedTranslateY);
-      bottomSheetHeightSharedValue.value = withSpring(isExpandedSharedValue.value ? snapPointsScreen : snapPointsCollapsed);
+      bottomSheetHeightSharedValue.value = withSpring(snapPointsCollapsed);
     }
 
     if (event.translationY <= -panSnapPoints && !expandable) {
@@ -193,14 +189,10 @@ export function AppBottomSheet({
       bottomSheetTranslateYSharedValue.value = withSpring(bottomSheetOpenedTranslateY);
     }
 
-    if (event.translationY <= -panSnapPoints && expandable && !isExpandedSharedValue.value) {
+    if (event.translationY <= -panSnapPoints && expandable) {
       bottomSheetHeightSharedValue.value = withSpring(snapPointsScreen - keyboardHeightSharedValue.value);
       bottomSheetTranslateYSharedValue.value = withSpring(bottomSheetOpenedTranslateY);
       isExpandedSharedValue.value = true;
-    }
-
-    if (event.translationY <= -panSnapPoints && expandable && isExpandedSharedValue.value) {
-      bottomSheetTranslateYSharedValue.value = withSpring(bottomSheetOpenedTranslateY);
     }
   };
 
