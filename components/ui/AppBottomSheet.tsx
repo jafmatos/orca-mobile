@@ -1,12 +1,12 @@
 import useAppThemeColors from "@/hooks/use-app-theme-colors";
-import { ScrollView, View } from "@gluestack-ui/themed";
-import React, { useEffect } from "react";
-import { Dimensions, Pressable } from "react-native";
+import React, { useEffect, useState } from "react";
+import { Dimensions, Pressable, ScrollView, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
+import Animated, { useAnimatedStyle, useDerivedValue, useSharedValue, withSpring } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { scheduleOnRN } from "react-native-worklets";
 import { useKeyboardHandler } from "react-native-keyboard-controller";
+import { ScrollViewObserver, useInView } from "react-native-use-in-view";
 
 export interface AppBottomSheetProps extends React.ComponentProps<typeof Animated.View> {
   children: React.ReactNode;
@@ -35,14 +35,32 @@ export function AppBottomSheet({
   ...props
 }: AppBottomSheetProps) {
   const themeColors = useAppThemeColors();
+  const [isScrollViewOnStart, _setIsScrollViewOnStart] = useState(true);
+  const [isScrollViewOnEnd, _setIsScrollViewOnEnd] = useState(true);
+
+  const setIsScrollViewOnStart = (value: boolean) => {
+    if (value === isScrollViewOnStart) return;
+
+    _setIsScrollViewOnStart(value);
+  };
+
+  const setIsScrollViewOnEnd = (value: boolean) => {
+    if (value === isScrollViewOnEnd) return;
+
+    _setIsScrollViewOnEnd(value);
+  };
 
   const bottomSheetOpenedTranslateY = 0;
   const isExpandedSharedValue = useSharedValue(false);
-  const isKeyboardOpened = useSharedValue(false);
-  const isKeyboardOpening = useSharedValue(false);
-  const isKeyboardClosed = useSharedValue(false);
-  const isKeyboardClosing = useSharedValue(false);
-
+  const isKeyboardOpenedSharedValue = useSharedValue(false);
+  const isKeyboardOpeningSharedValue = useSharedValue(false);
+  const isKeyboardClosedSharedValue = useSharedValue(false);
+  const isKeyboardClosingSharedValue = useSharedValue(false);
+  const scrollViewContentSizeSharedValue = useSharedValue(0);
+  const scrollViewLayoutSizeSharedValue = useSharedValue(0);
+  const scrollViewContentOffsetSharedValue = useSharedValue(0);
+  // const isScrollViewOnStart = useSharedValue(true);
+  // const isScrollViewOnEnd = useSharedValue(true);
   const bottomSheetHeightSharedValue = useSharedValue(snapPointsCollapsed);
   const bottomSheetTranslateYSharedValue = useSharedValue(props.isOpen ? bottomSheetOpenedTranslateY : SCREEN_HEIGHT);
 
@@ -77,14 +95,14 @@ export function AppBottomSheet({
       onStart: () => {
         "worklet";
 
-        if (!isKeyboardOpened.value) {
-          isKeyboardOpening.value = true;
-          isKeyboardClosing.value = false;
-          isKeyboardClosed.value = false;
+        if (!isKeyboardOpenedSharedValue.value) {
+          isKeyboardOpeningSharedValue.value = true;
+          isKeyboardClosingSharedValue.value = false;
+          isKeyboardClosedSharedValue.value = false;
         } else {
-          isKeyboardOpening.value = false;
-          isKeyboardClosing.value = true;
-          isKeyboardOpened.value = false;
+          isKeyboardOpeningSharedValue.value = false;
+          isKeyboardClosingSharedValue.value = true;
+          isKeyboardOpenedSharedValue.value = false;
         }
       },
       onMove: (event) => {
@@ -99,80 +117,122 @@ export function AppBottomSheet({
       onEnd: () => {
         "worklet";
 
-        if (isKeyboardOpening.value) {
-          isKeyboardOpened.value = true;
-          isKeyboardOpening.value = false;
+        if (isKeyboardOpeningSharedValue.value) {
+          isKeyboardOpenedSharedValue.value = true;
+          isKeyboardOpeningSharedValue.value = false;
         }
 
-        if (isKeyboardClosing.value) {
-          isKeyboardClosed.value = true;
-          isKeyboardClosing.value = false;
+        if (isKeyboardClosingSharedValue.value) {
+          isKeyboardClosedSharedValue.value = true;
+          isKeyboardClosingSharedValue.value = false;
         }
       },
     },
     [],
   );
 
-  const pan = Gesture.Pan()
-    .onBegin((event) => {})
-    .onChange((event) => {
-      if (event.translationY > 0) {
-        bottomSheetTranslateYSharedValue.value = withSpring(bottomSheetOpenedTranslateY + event.translationY);
-      }
+  const panDownGestureOnBeginCallback: NonNullable<Parameters<ReturnType<typeof Gesture.Pan>["onBegin"]>[0]> = (event) => {};
 
-      if (event.translationY < 0 && !expandable) {
-        bottomSheetHeightSharedValue.value = withSpring(snapPointsCollapsed + Math.abs(event.translationY / 5));
-      }
+  const panDownGestureOnChangeCallback: NonNullable<Parameters<ReturnType<typeof Gesture.Pan>["onChange"]>[0]> = (event) => {
+    if (event.translationY < 0) return;
 
-      if (event.translationY < 0 && expandable && isExpandedSharedValue.value) {
-        bottomSheetHeightSharedValue.value = withSpring(snapPointsScreen + Math.abs(event.translationY));
-      }
+    bottomSheetTranslateYSharedValue.value = withSpring(bottomSheetOpenedTranslateY + event.translationY);
+  };
 
-      if (event.translationY < 0 && expandable && !isExpandedSharedValue.value) {
-        bottomSheetHeightSharedValue.value = withSpring(snapPointsCollapsed + Math.abs(event.translationY));
-      }
-    })
-    .onFinalize((event) => {
-      if (event.translationY < panSnapPoints && event.translationY > -panSnapPoints) {
-        bottomSheetTranslateYSharedValue.value = withSpring(bottomSheetOpenedTranslateY);
-        bottomSheetHeightSharedValue.value = withSpring(isExpandedSharedValue.value ? snapPointsScreen : snapPointsCollapsed);
-      }
+  const panDownGestureOnFinalizeCallback: NonNullable<Parameters<ReturnType<typeof Gesture.Pan>["onFinalize"]>[0]> = (event) => {
+    if (event.translationY < 0) return;
 
-      if (event.translationY >= snapPointsCollapsed / 2 + panSnapPoints) {
-        scheduleOnRN(props.onClose);
+    if (event.translationY < panSnapPoints) {
+      bottomSheetTranslateYSharedValue.value = withSpring(bottomSheetOpenedTranslateY);
+      bottomSheetHeightSharedValue.value = withSpring(isExpandedSharedValue.value ? snapPointsScreen : snapPointsCollapsed);
+    }
 
-        isExpandedSharedValue.value = false;
-      }
+    if (event.translationY >= snapPointsCollapsed / 2 + panSnapPoints) {
+      scheduleOnRN(props.onClose);
 
-      if (event.translationY >= panSnapPoints && !isExpandedSharedValue.value) scheduleOnRN(props.onClose);
+      isExpandedSharedValue.value = false;
+    }
 
-      if (event.translationY >= panSnapPoints && isExpandedSharedValue.value) {
-        bottomSheetHeightSharedValue.value = withSpring(snapPointsCollapsed);
-        bottomSheetTranslateYSharedValue.value = withSpring(bottomSheetOpenedTranslateY);
-        isExpandedSharedValue.value = false;
-      }
+    if (event.translationY >= panSnapPoints && !isExpandedSharedValue.value) scheduleOnRN(props.onClose);
 
-      if (event.translationY <= -panSnapPoints && !expandable) {
-        bottomSheetHeightSharedValue.value = withSpring(snapPointsCollapsed);
-        bottomSheetTranslateYSharedValue.value = withSpring(bottomSheetOpenedTranslateY);
-      }
+    if (event.translationY >= panSnapPoints && isExpandedSharedValue.value) {
+      bottomSheetHeightSharedValue.value = withSpring(snapPointsCollapsed);
+      bottomSheetTranslateYSharedValue.value = withSpring(bottomSheetOpenedTranslateY);
+      isExpandedSharedValue.value = false;
+    }
+  };
 
-      if (event.translationY <= -panSnapPoints && expandable && !isExpandedSharedValue.value) {
-        bottomSheetHeightSharedValue.value = withSpring(snapPointsScreen - keyboardHeightSharedValue.value);
-        bottomSheetTranslateYSharedValue.value = withSpring(bottomSheetOpenedTranslateY);
-        isExpandedSharedValue.value = true;
-      }
+  const panUpGestureOnBeginCallback: NonNullable<Parameters<ReturnType<typeof Gesture.Pan>["onBegin"]>[0]> = (event) => {};
 
-      if (event.translationY <= -panSnapPoints && expandable && isExpandedSharedValue.value) {
-        bottomSheetTranslateYSharedValue.value = withSpring(bottomSheetOpenedTranslateY);
-      }
-    });
+  const panUpGestureOnChangeCallback: NonNullable<Parameters<ReturnType<typeof Gesture.Pan>["onChange"]>[0]> = (event) => {
+    if (event.translationY > 0) return;
 
-  const native = Gesture.Native().blocksExternalGesture(pan);
+    if (!expandable) {
+      bottomSheetHeightSharedValue.value = withSpring(snapPointsCollapsed + Math.abs(event.translationY / 5));
+    }
+
+    if (expandable && isExpandedSharedValue.value) {
+      bottomSheetHeightSharedValue.value = withSpring(snapPointsScreen + Math.abs(event.translationY));
+    }
+
+    if (expandable && !isExpandedSharedValue.value) {
+      bottomSheetHeightSharedValue.value = withSpring(snapPointsCollapsed + Math.abs(event.translationY));
+    }
+  };
+
+  const panUpGestureOnFinalizeCallback: NonNullable<Parameters<ReturnType<typeof Gesture.Pan>["onFinalize"]>[0]> = (event) => {
+    if (event.translationY > 0) return;
+
+    if (event.translationY > -panSnapPoints) {
+      bottomSheetTranslateYSharedValue.value = withSpring(bottomSheetOpenedTranslateY);
+      bottomSheetHeightSharedValue.value = withSpring(isExpandedSharedValue.value ? snapPointsScreen : snapPointsCollapsed);
+    }
+
+    if (event.translationY <= -panSnapPoints && !expandable) {
+      bottomSheetHeightSharedValue.value = withSpring(snapPointsCollapsed);
+      bottomSheetTranslateYSharedValue.value = withSpring(bottomSheetOpenedTranslateY);
+    }
+
+    if (event.translationY <= -panSnapPoints && expandable && !isExpandedSharedValue.value) {
+      bottomSheetHeightSharedValue.value = withSpring(snapPointsScreen - keyboardHeightSharedValue.value);
+      bottomSheetTranslateYSharedValue.value = withSpring(bottomSheetOpenedTranslateY);
+      isExpandedSharedValue.value = true;
+    }
+
+    if (event.translationY <= -panSnapPoints && expandable && isExpandedSharedValue.value) {
+      bottomSheetTranslateYSharedValue.value = withSpring(bottomSheetOpenedTranslateY);
+    }
+  };
+
+  const panDown = Gesture.Pan()
+    .onBegin(panDownGestureOnBeginCallback)
+    .onChange(panDownGestureOnChangeCallback)
+    .onFinalize(panDownGestureOnFinalizeCallback);
+
+  const panUp = Gesture.Pan()
+    .onBegin(panUpGestureOnBeginCallback)
+    .onChange(panUpGestureOnChangeCallback)
+    .onFinalize(panUpGestureOnFinalizeCallback);
+
+  const nativePanDown = Gesture.Pan()
+    .onBegin(panDownGestureOnBeginCallback)
+    .onChange(panDownGestureOnChangeCallback)
+    .onFinalize(panDownGestureOnFinalizeCallback)
+    .enabled(isScrollViewOnStart);
+
+  const nativePanUp = Gesture.Pan()
+    .onBegin(panUpGestureOnBeginCallback)
+    .onChange(panUpGestureOnChangeCallback)
+    .onFinalize(panUpGestureOnFinalizeCallback)
+    .enabled(isScrollViewOnEnd);
+
+  const pan = Gesture.Simultaneous(panDown, panUp);
+  const native = Gesture.Native().blocksExternalGesture(panDown, panUp);
+  const panNative = Gesture.Simultaneous(native, nativePanDown, nativePanUp);
 
   const bottomSheetAnimatedStyles = useAnimatedStyle(() => {
     return {
-      paddingBottom: isKeyboardOpened.value ? 0 : insets.bottom,
+      paddingBottom: isKeyboardOpenedSharedValue.value ? 0 : insets.bottom,
       transform: [{ translateY: bottomSheetTranslateYSharedValue.value - keyboardHeightSharedValue.value }],
     };
   });
@@ -244,8 +304,30 @@ export function AppBottomSheet({
             />
           </View>
 
-          <GestureDetector gesture={native}>
+          <GestureDetector gesture={panNative}>
             <ScrollView
+              onLayout={(event) => {
+                scrollViewLayoutSizeSharedValue.value = event.nativeEvent.layout.height;
+              }}
+              onContentSizeChange={(_width, height) => {
+                if (height < scrollViewLayoutSizeSharedValue.value) {
+                  setIsScrollViewOnStart(true);
+                  setIsScrollViewOnEnd(true);
+                }
+              }}
+              onScroll={(event) => {
+                const layoutSize = event.nativeEvent.layoutMeasurement.height;
+                const contentOffset = event.nativeEvent.contentOffset.y;
+                const contentSize = event.nativeEvent.contentSize.height;
+
+                scrollViewContentOffsetSharedValue.value = contentOffset;
+                scrollViewLayoutSizeSharedValue.value = layoutSize;
+                scrollViewContentSizeSharedValue.value = contentSize;
+
+                setIsScrollViewOnStart(contentOffset <= 0);
+                setIsScrollViewOnEnd(Math.round(layoutSize + contentOffset) === Math.round(contentSize));
+              }}
+              scrollEventThrottle={16}
               contentContainerStyle={{
                 padding: 16,
                 paddingTop: 0,
