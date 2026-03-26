@@ -2,11 +2,10 @@ import useAppThemeColors from "@/hooks/use-app-theme-colors";
 import React, { useEffect, useState } from "react";
 import { Dimensions, Pressable, ScrollView, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import Animated, { useAnimatedStyle, useDerivedValue, useSharedValue, withSpring } from "react-native-reanimated";
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { scheduleOnRN } from "react-native-worklets";
 import { useKeyboardHandler } from "react-native-keyboard-controller";
-import { ScrollViewObserver, useInView } from "react-native-use-in-view";
 
 export interface AppBottomSheetProps extends React.ComponentProps<typeof Animated.View> {
   children: React.ReactNode;
@@ -59,8 +58,6 @@ export function AppBottomSheet({
   const scrollViewContentSizeSharedValue = useSharedValue(0);
   const scrollViewLayoutSizeSharedValue = useSharedValue(0);
   const scrollViewContentOffsetSharedValue = useSharedValue(0);
-  // const isScrollViewOnStart = useSharedValue(true);
-  // const isScrollViewOnEnd = useSharedValue(true);
   const bottomSheetHeightSharedValue = useSharedValue(snapPointsCollapsed);
   const bottomSheetTranslateYSharedValue = useSharedValue(props.isOpen ? bottomSheetOpenedTranslateY : SCREEN_HEIGHT);
 

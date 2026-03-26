@@ -95,9 +95,16 @@ export default function TabLayout(props: PropsWithChildren) {
                   href: null,
                 }}
               />
+              <Tabs.Screen
+                name="analyses"
+                options={{
+                  title: "Análises",
+                  href: null,
+                }}
+              />
             </Tabs>
           </KeyboardAvoidingComponent>
-					
+
           <PortalHost name="bottomsheet" />
           <PortalHost name="drawer" />
         </ThemedComponent>
