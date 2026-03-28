@@ -11,6 +11,7 @@ export interface AppBottomSheetProps extends React.ComponentProps<typeof Animate
   children: React.ReactNode;
   isOpen: boolean;
   expandable?: boolean;
+  fullscreen?: boolean;
   closeOnBackdropTap?: boolean;
   snapPointsCollapsed?: number;
   snapPointsExpanded?: number;
@@ -26,6 +27,7 @@ const SCREEN_WIDTH = screenDimensions.width;
 
 export function AppBottomSheet({
   expandable = false,
+  fullscreen = false,
   closeOnBackdropTap = true,
   snapPointsCollapsed = 400,
   panSnapPoints = 100,
@@ -34,8 +36,10 @@ export function AppBottomSheet({
   ...props
 }: AppBottomSheetProps) {
   const themeColors = useAppThemeColors();
+  const insets = useSafeAreaInsets();
   const [isScrollViewOnStart, _setIsScrollViewOnStart] = useState(true);
   const [isScrollViewOnEnd, _setIsScrollViewOnEnd] = useState(true);
+  const snapPointsScreen = SCREEN_HEIGHT - insets.top;
 
   const setIsScrollViewOnStart = (value: boolean) => {
     if (value === isScrollViewOnStart) return;
@@ -49,6 +53,8 @@ export function AppBottomSheet({
     _setIsScrollViewOnEnd(value);
   };
 
+  if (fullscreen) snapPointsCollapsed = snapPointsScreen;
+
   const bottomSheetOpenedTranslateY = 0;
   const isExpandedSharedValue = useSharedValue(false);
   const isKeyboardOpenedSharedValue = useSharedValue(false);
@@ -58,16 +64,12 @@ export function AppBottomSheet({
   const scrollViewContentSizeSharedValue = useSharedValue(0);
   const scrollViewLayoutSizeSharedValue = useSharedValue(0);
   const scrollViewContentOffsetSharedValue = useSharedValue(0);
-  const bottomSheetHeightSharedValue = useSharedValue(snapPointsCollapsed);
+  const bottomSheetHeightSharedValue = useSharedValue(fullscreen ? snapPointsScreen : snapPointsCollapsed);
   const bottomSheetTranslateYSharedValue = useSharedValue(props.isOpen ? bottomSheetOpenedTranslateY : SCREEN_HEIGHT);
 
   const keyboardHeightSharedValue = useSharedValue(0);
 
   const backdropOpacitySharedValue = useSharedValue(props.isOpen ? backdropOpacity : 0);
-
-  const insets = useSafeAreaInsets();
-
-  const snapPointsScreen = SCREEN_HEIGHT - insets.top;
 
   useEffect(() => {
     if (props.isOpen) {
@@ -162,7 +164,7 @@ export function AppBottomSheet({
   const panUpGestureOnBeginCallback: NonNullable<Parameters<ReturnType<typeof Gesture.Pan>["onBegin"]>[0]> = (event) => {};
 
   const panUpGestureOnChangeCallback: NonNullable<Parameters<ReturnType<typeof Gesture.Pan>["onChange"]>[0]> = (event) => {
-    if (event.translationY > 0) return;
+    if (event.translationY > 0 || fullscreen) return;
 
     if (!expandable) {
       bottomSheetHeightSharedValue.value = withSpring(snapPointsCollapsed + Math.abs(event.translationY / 5));
@@ -174,7 +176,7 @@ export function AppBottomSheet({
   };
 
   const panUpGestureOnFinalizeCallback: NonNullable<Parameters<ReturnType<typeof Gesture.Pan>["onFinalize"]>[0]> = (event) => {
-    if (event.translationY > 0 || isExpandedSharedValue.value) return;
+    if (event.translationY > 0 || isExpandedSharedValue.value || fullscreen) return;
 
     if (event.translationY > -panSnapPoints) {
       bottomSheetTranslateYSharedValue.value = withSpring(bottomSheetOpenedTranslateY);

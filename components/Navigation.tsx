@@ -1,23 +1,17 @@
-import {
-	Button,
-	ButtonIcon,
-	ButtonText,
-	Divider, Pressable,
-	Text
-} from "@gluestack-ui/themed";
+import { Button, ButtonIcon, ButtonText, Divider, Pressable, Text } from "@gluestack-ui/themed";
 import { AppAvatar } from "./ui/AppAvatar";
 import {
-	LucideIcon,
-	MenuIcon,
-	HomeIcon,
-	ReceiptTextIcon,
-	BookmarkIcon,
-	ChartPieIcon,
-	UserIcon,
-	OctagonAlertIcon,
-	ClockIcon,
-	SparklesIcon,
-	LogOutIcon,
+  LucideIcon,
+  MenuIcon,
+  HomeIcon,
+  ReceiptTextIcon,
+  BookmarkIcon,
+  ChartPieIcon,
+  UserIcon,
+  OctagonAlertIcon,
+  ClockIcon,
+  SparklesIcon,
+  LogOutIcon,
 } from "lucide-react-native";
 import useAppThemeColors from "@/hooks/use-app-theme-colors";
 import { AppDrawer } from "./ui/AppDrawer";
@@ -52,7 +46,6 @@ function DrawerNavigationItem({ icon: Icon, ...props }: DrawerNavigationItemProp
         className={`rounded-lg relative w-full p-4 flex flex-row items-center gap-3`}
         style={{
           backgroundColor: isActive ? "#f2850710" : "none",
-          // backgroundColor: "#f2850710",
         }}
       >
         {Icon ? <Icon size={18} color={isActive ? themeColors["--color-primary-500"] : themeColors["--color-typography-0"]} /> : <></>}
@@ -114,10 +107,7 @@ export function Navigation() {
             <DrawerNavigationItem onPressCallback={closeDrawer} to={"/analyses"} icon={SparklesIcon} text="Análises" />
             <DrawerNavigationItem onPressCallback={closeDrawer} to={"/profile"} icon={UserIcon} text="Meu Perfil" />
           </View>
-          <Button
-            className="flex flex-row items-center gap-2"
-            backgroundColor={themeColors["--color-danger-500"]}
-          >
+          <Button className="flex flex-row items-center gap-2" backgroundColor={themeColors["--color-danger-500"]}>
             <ButtonText color={themeColors["--color-on-danger"]}>Sair</ButtonText>
             <ButtonIcon color={themeColors["--color-on-danger"]} as={LogOutIcon} />
           </Button>
