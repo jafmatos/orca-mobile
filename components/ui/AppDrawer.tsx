@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Dimensions, Pressable, View } from "react-native";
+import { BackHandler, Dimensions, Pressable, View } from "react-native";
 import Animated, { useSharedValue, withSpring } from "react-native-reanimated";
 import { ThemedComponent } from "../ThemedComponent";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -39,6 +39,20 @@ export function AppDrawer({ isOpen, onClose, panSnapPoints = 100, snapPoints = 0
 
       scheduleOnRN(onClose);
     });
+
+  useEffect(() => {
+    const listener = BackHandler.addEventListener("hardwareBackPress", () => {
+      if (isOpen) {
+        onClose();
+
+        return true;
+      }
+    });
+
+    return () => {
+      listener.remove();
+    };
+  }, [isOpen, onClose]);
 
   useEffect(() => {
     if (isOpen) {
@@ -88,7 +102,7 @@ export function AppDrawer({ isOpen, onClose, panSnapPoints = 100, snapPoints = 0
         >
           <Animated.View
             {...props}
-            className={`bg-background-950 h-full ${props.className}`}
+            className={`bg-background-900 h-full ${props.className}`}
             style={{
               paddingTop: insets.top + 16,
               paddingBottom: insets.bottom + 16,

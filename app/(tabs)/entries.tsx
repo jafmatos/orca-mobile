@@ -1,35 +1,19 @@
-import { AppFormField } from "@/components/AppFormField";
 import { EndOfListWithLoading } from "@/components/EndOfListWithLoading";
 import { EntryCard } from "@/components/EntryCard";
+import { EntryDetailBottomSheet } from "@/components/EntryDetailBottomSheet";
+import { EntryFormBottomSheet } from "@/components/EntryFormBottomSheet";
 import { TabbedLayout } from "@/components/layouts/TabbedLayout";
-import { AppBottomSheet } from "@/components/ui/AppBottomSheet";
-import { AppSelect } from "@/components/ui/AppSelect";
 import { SearchField } from "@/components/ui/SearchField";
-import { useCategories } from "@/hooks/queries/use-categories";
 import { useEntries } from "@/hooks/queries/use-entries";
-import useAppThemeColors from "@/hooks/use-app-theme-colors";
 import { Entry } from "@/models/Entry";
-import { Button, ButtonIcon, ButtonText, Fab, FabIcon, FabLabel, View } from "@gluestack-ui/themed";
-import { Portal } from "@gorhom/portal";
+import { Button, ButtonIcon, Fab, FabIcon, FabLabel, View } from "@gluestack-ui/themed";
 import { DownloadIcon, PlusIcon, SlidersHorizontalIcon } from "lucide-react-native";
 import { useState } from "react";
-import { FlatList } from "react-native";
+import { FlatList, Pressable } from "react-native";
 
 export default function EntriesScreen() {
-  const themeColors = useAppThemeColors();
+  const [selectedEntry, setSelectedEntry] = useState<Entry | undefined>();
   const { data, isPending, fetchNextPage, hasNextPage, isFetchingNextPage } = useEntries();
-  const { data: categories } = useCategories();
-  const [isFilterBottomSheetOpen, setIsFilterBottomSheetOpen] = useState(false);
-  const [isFormBottomSheetOpen, setIsFormBottomSheetOpen] = useState(false);
-  const [isSelectCategoryBottomSheetOpen, setIsSelectCategoryBottomSheetOpen] = useState(false);
-
-  const closeFilterBottomSheet = () => setIsFilterBottomSheetOpen(false);
-
-  const openFilterBottomSheet = () => setIsFilterBottomSheetOpen(true);
-
-  const closeFormBottomSheet = () => setIsFormBottomSheetOpen(false);
-
-  const openFormBottomSheet = () => setIsFormBottomSheetOpen(true);
 
   const entries: Entry[] = data?.pages.map((page) => page.data).flat() || [];
 
@@ -47,7 +31,7 @@ export default function EntriesScreen() {
                     className: "grow",
                   }}
                 />
-                <Button className="aspect-square" variant="outline" onPress={openFilterBottomSheet}>
+                <Button className="aspect-square" variant="outline">
                   <ButtonIcon color="$primary500" as={SlidersHorizontalIcon} />
                 </Button>
                 <Button className="aspect-square" variant="outline">
@@ -66,28 +50,35 @@ export default function EntriesScreen() {
         }
         contentContainerClassName="p-4"
         data={entries}
-        renderItem={({ item }) => <EntryCard entry={item} />}
+        renderItem={({ item }) => {
+          return (
+            <Pressable
+              onPress={() => {
+                setSelectedEntry(item);
+              }}
+            >
+              <EntryCard entry={item} />
+            </Pressable>
+          );
+        }}
         ItemSeparatorComponent={() => <View className="h-4" />}
         onEndReached={() => fetchNextPage()}
         onEndReachedThreshold={1}
       />
-      <Fab size="sm" placement="bottom right" onPress={openFormBottomSheet}>
-        <FabIcon mr="$1" as={PlusIcon} color="$onPrimary" />
-        <FabLabel fontWeight={500} color="$onPrimary">
-          Novo lançamento
-        </FabLabel>
-      </Fab>
-      <Portal hostName="bottomsheet">
-        <AppBottomSheet expandable isOpen={isFilterBottomSheetOpen} onClose={closeFilterBottomSheet}>
-          <AppFormField.TextInput value={text} placeholder="Testar KBAV" onChangeText={setText} />
-          <Button>
-            <ButtonText>Button that does nothing</ButtonText>
-          </Button>
-        </AppBottomSheet>
-        <AppBottomSheet expandable isOpen={isFormBottomSheetOpen} onClose={closeFormBottomSheet}>
-          
-        </AppBottomSheet>
-      </Portal>
+      <EntryFormBottomSheet
+        update={selectedEntry}
+        trigger={({ open }) => {
+          return (
+            <Fab size="sm" placement="bottom right" onPress={open}>
+              <FabIcon mr="$1" as={PlusIcon} color="$onPrimary" />
+              <FabLabel fontWeight={500} color="$onPrimary">
+                Novo lançamento
+              </FabLabel>
+            </Fab>
+          );
+        }}
+      />
+      <EntryDetailBottomSheet isOpen={!!selectedEntry} close={() => setSelectedEntry(undefined)} entry={selectedEntry} />
     </TabbedLayout>
   );
 }

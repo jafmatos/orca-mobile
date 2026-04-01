@@ -11,12 +11,24 @@ export type AppForm<Form> = {
   hasError: (key: keyof Form) => boolean;
   setErrors: React.Dispatch<React.SetStateAction<AppFormErrors<Form>>>;
   setValue: <Key extends keyof Form>(key: Key, value: Form[Key]) => void;
+  makeSetter: <Key extends keyof Form>(key: Key) => (value: Form[Key]) => void;
   clear: () => void;
 };
 
 export const useAppForm = <Form>(initialState: Form): AppForm<Form> => {
   const [form, setForm] = useState<Form>(initialState);
   const [errors, setErrors] = useState<AppFormErrors<Form>>([]);
+
+  const makeSetter = <Key extends keyof Form>(key: Key) => {
+    return (value: Form[Key]) => {
+			console.log(value)
+      setForm({
+        ...form,
+        [key]: value,
+      });
+      setErrors(errors.filter((error) => error.path !== key));
+    };
+  };
 
   const setValue = <Key extends keyof Form>(key: Key, value: Form[Key]) => {
     setForm({
@@ -45,6 +57,7 @@ export const useAppForm = <Form>(initialState: Form): AppForm<Form> => {
     values: form,
     errors: errors,
     hasErrors: !!errors.length,
+    makeSetter,
     setValue,
     setErrors,
     getError,

@@ -1,7 +1,7 @@
 import useAppThemeColors from "@/hooks/use-app-theme-colors";
 import { HomeIcon, ReceiptTextIcon, BookmarkIcon, ChartPieIcon, UserIcon } from "lucide-react-native";
 import { Tabs } from "expo-router";
-import React, { PropsWithChildren } from "react";
+import React from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Navigation } from "@/components/Navigation";
 import { KeyboardAvoidingComponent } from "@/components/KeyboardAvoindingComponent";
@@ -9,7 +9,7 @@ import { PortalHost, PortalProvider } from "@gorhom/portal";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { ThemedComponent } from "@/components/ThemedComponent";
 
-export default function TabLayout(props: PropsWithChildren) {
+export default function TabLayout() {
   const colors = useAppThemeColors();
   const insets = useSafeAreaInsets();
 

@@ -20,6 +20,7 @@ import { Portal } from "@gorhom/portal";
 import { Link, usePathname, useRouter } from "expo-router";
 import { useAuthUser } from "@/hooks/queries/use-auth-user";
 import { View } from "react-native";
+import { AppAuthenticationTokenStore } from "@/utils/AuthenticationTokenStore";
 
 interface DrawerNavigationItemProps {
   icon?: LucideIcon;
@@ -58,6 +59,7 @@ function DrawerNavigationItem({ icon: Icon, ...props }: DrawerNavigationItemProp
 }
 
 export function Navigation() {
+  const router = useRouter();
   const user = useAuthUser();
   const themeColors = useAppThemeColors();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -107,7 +109,15 @@ export function Navigation() {
             <DrawerNavigationItem onPressCallback={closeDrawer} to={"/analyses"} icon={SparklesIcon} text="Análises" />
             <DrawerNavigationItem onPressCallback={closeDrawer} to={"/profile"} icon={UserIcon} text="Meu Perfil" />
           </View>
-          <Button className="flex flex-row items-center gap-2" backgroundColor={themeColors["--color-danger-500"]}>
+          <Button
+            className="flex flex-row items-center gap-2"
+            backgroundColor={themeColors["--color-danger-500"]}
+            onPress={() => {
+              AppAuthenticationTokenStore.remove();
+
+              router.push("/sign-in");
+            }}
+          >
             <ButtonText color={themeColors["--color-on-danger"]}>Sair</ButtonText>
             <ButtonIcon color={themeColors["--color-on-danger"]} as={LogOutIcon} />
           </Button>

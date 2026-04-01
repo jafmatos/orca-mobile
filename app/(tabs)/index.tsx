@@ -1,14 +1,21 @@
 import { TabbedLayout } from "@/components/layouts/TabbedLayout";
-import { AppAuthenticationTokenStore } from "@/utils/AuthenticationTokenStore";
-import { Button, ButtonText, Text } from "@gluestack-ui/themed";
-import { useRouter } from "expo-router";
+import { useAppToast } from "@/hooks/use-app-toast";
+import { Button, ButtonText } from "@gluestack-ui/themed";
 
 export default function HomeScreen() {
-  const router = useRouter();
+  const toast = useAppToast();
 
   return (
     <TabbedLayout>
-      
+      <Button
+        onPress={() =>
+          toast.success({
+            title: "Sucesso!",
+          })
+        }
+      >
+        <ButtonText>Sucesso</ButtonText>
+      </Button>
     </TabbedLayout>
   );
 }

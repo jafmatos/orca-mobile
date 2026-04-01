@@ -1,6 +1,5 @@
 import { Box, Button, ButtonIcon, Menu, MenuItem, MenuItemLabel, Text } from "@gluestack-ui/themed";
 import { Category, CategoryTypes } from "@/models/Category";
-import { TouchableOpacity } from "react-native";
 import { MoreVerticalIcon, PencilIcon, TrashIcon } from "lucide-react-native";
 import useAppThemeColors from "@/hooks/use-app-theme-colors";
 

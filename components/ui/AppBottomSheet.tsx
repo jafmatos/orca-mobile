@@ -1,6 +1,6 @@
 import useAppThemeColors from "@/hooks/use-app-theme-colors";
 import React, { useEffect, useState } from "react";
-import { Dimensions, Pressable, ScrollView, View } from "react-native";
+import { BackHandler, Dimensions, Pressable, ScrollView, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -70,6 +70,20 @@ export function AppBottomSheet({
   const keyboardHeightSharedValue = useSharedValue(0);
 
   const backdropOpacitySharedValue = useSharedValue(props.isOpen ? backdropOpacity : 0);
+
+  useEffect(() => {
+    const listener = BackHandler.addEventListener("hardwareBackPress", () => {
+      if (props.isOpen) {
+        props.onClose();
+
+        return true;
+      }
+    });
+
+    return () => {
+      listener.remove();
+    };
+  }, [props]);
 
   useEffect(() => {
     if (props.isOpen) {
@@ -272,11 +286,11 @@ export function AppBottomSheet({
               right: 0,
               borderTopLeftRadius: 18,
               borderTopRightRadius: 18,
-              boxShadow: `0 3px 7px 0 black`,
+              boxShadow: `0 3px 7px 0 rgba(0, 0, 0, 0.5)`,
             },
             bottomSheetAnimatedStyles,
           ]}
-          className="bg-background-950 rounded-t-3xl"
+          className="bg-background-900 rounded-t-3xl"
         >
           <View
             className="flex flex-row justify-center"

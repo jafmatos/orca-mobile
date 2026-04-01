@@ -3,7 +3,7 @@ import { CircleCheckIcon, CircleAlertIcon, CircleXIcon } from "lucide-react-nati
 import { View } from "react-native";
 import useAppThemeColors from "@/hooks/use-app-theme-colors";
 
-export function AppToast() {
+export function AppToast(props: React.ComponentProps<typeof Toast>) {
   const appThemeColors = useAppThemeColors();
 
   const makeToast = (color: string, icon?: React.ReactNode) => {
@@ -14,7 +14,7 @@ export function AppToast() {
           {...props}
           style={{
             borderLeftColor: color,
-            backgroundColor: appThemeColors["--color-background-900"],
+            backgroundColor: appThemeColors["--color-background-700"],
             height: "auto",
             paddingVertical: 10,
           }}
@@ -40,6 +40,7 @@ export function AppToast() {
 
   return (
     <Toast
+      {...props}
       autoHide
       position="top"
       swipeable

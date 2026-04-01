@@ -78,6 +78,18 @@ module.exports = {
         "danger-900": "var(--color-danger-900)",
         "on-danger": "var(--color-on-danger)",
 
+        "info-50": "var(--color-info-50)",
+        "info-100": "var(--color-info-100)",
+        "info-200": "var(--color-info-200)",
+        "info-300": "var(--color-info-300)",
+        "info-400": "var(--color-info-400)",
+        "info-500": "var(--color-info-500)",
+        "info-600": "var(--color-info-600)",
+        "info-700": "var(--color-info-700)",
+        "info-800": "var(--color-info-800)",
+        "info-900": "var(--color-info-900)",
+        "on-info": "var(--color-on-info)",
+
         "chart-blue-50": "var(--color-chart-blue-50)",
         "chart-blue-100": "var(--color-chart-blue-100)",
         "chart-blue-200": "var(--color-chart-blue-200)",
