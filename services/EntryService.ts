@@ -33,7 +33,9 @@ export type CreateEntryBody = {
   when: Date;
 };
 
-export type CreateEntryReturnType = Entry;
+export type CreateEntryReturnType = {
+  entry: Entry;
+};
 
 export type UpdateEntryBody = {
   category?: {
@@ -44,7 +46,13 @@ export type UpdateEntryBody = {
   when?: Date;
 };
 
-export type UpdateEntryReturnType = Entry;
+export type UpdateEntryReturnType = {
+  entry: Entry;
+};
+
+export type DeleteEntryReturnType = {
+  entry: Entry;
+};
 
 export class EntryService {
   private static readonly path = "/entries";
@@ -68,7 +76,14 @@ export class EntryService {
     return data;
   }
 
+  private static async _delete(id: Entry["id"]): Promise<DeleteEntryReturnType> {
+    const { data } = await $axios.delete(`${this.path}/${id}`);
+
+    return data;
+  }
+
   public static readonly getEntries = EntryService._getEntries.bind(EntryService);
   public static readonly create = EntryService._create.bind(EntryService);
   public static readonly update = EntryService._update.bind(EntryService);
+  public static readonly delete = EntryService._delete.bind(EntryService);
 }

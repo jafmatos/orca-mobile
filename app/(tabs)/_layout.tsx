@@ -105,8 +105,11 @@ export default function TabLayout() {
             </Tabs>
           </KeyboardAvoidingComponent>
 
-          <PortalHost name="bottomsheet" />
           <PortalHost name="drawer" />
+          <PortalHost name="bottomsheet" />
+          <PortalHost name="fullscreen-overlay" />
+          <PortalHost name="modal" />
+          <PortalHost name="select" />
         </ThemedComponent>
       </PortalProvider>
     </GestureHandlerRootView>

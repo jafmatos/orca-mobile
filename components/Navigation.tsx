@@ -71,7 +71,7 @@ export function Navigation() {
       <View
         className="h-[72px] px-4 flex flex-row justify-between items-center bg-background-950"
         style={{
-          boxShadow: `0 1px 3px -5px blue`,
+          boxShadow: `0 1px 3px -2px ${themeColors["--color-outline-600"]}`,
         }}
       >
         <AppAvatar />

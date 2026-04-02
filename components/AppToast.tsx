@@ -14,7 +14,7 @@ export function AppToast(props: React.ComponentProps<typeof Toast>) {
           {...props}
           style={{
             borderLeftColor: color,
-            backgroundColor: appThemeColors["--color-background-700"],
+            backgroundColor: appThemeColors["--color-background-900"],
             height: "auto",
             paddingVertical: 10,
           }}

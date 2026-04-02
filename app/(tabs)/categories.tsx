@@ -4,9 +4,8 @@ import { TabbedLayout } from "@/components/layouts/TabbedLayout";
 import { SubNavigation } from "@/components/SubNavigation";
 import { useCategories } from "@/hooks/queries/use-categories";
 import { CategoryTypes } from "@/models/Category";
-import { View } from "@gluestack-ui/themed";
 import { useState } from "react";
-import { FlatList } from "react-native";
+import { FlatList, View } from "react-native";
 
 export default function CategoriesScreen() {
   const { data, isPending } = useCategories();

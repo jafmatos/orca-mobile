@@ -3,6 +3,8 @@ import {
   FormControl,
   FormControlError,
   FormControlErrorText,
+  FormControlHelper,
+  FormControlHelperText,
   FormControlLabel,
   FormControlLabelText,
   Input,
@@ -14,7 +16,9 @@ import { TextInputProps, ViewProps } from "react-native";
 function AppFormFieldLabel({ ...props }: { className?: string; children?: React.ReactNode }) {
   return (
     <FormControlLabel>
-      <FormControlLabelText {...props} className="!text-typography-200 !font-medium">{props.children}</FormControlLabelText>
+      <FormControlLabelText {...props} className="!text-typography-200 !font-medium">
+        {props.children}
+      </FormControlLabelText>
     </FormControlLabel>
   );
 }
@@ -24,6 +28,14 @@ function AppFormFieldError(props: { error?: string }) {
     <FormControlError>
       <FormControlErrorText>{props.error}</FormControlErrorText>
     </FormControlError>
+  );
+}
+
+function AppFormFieldHelperText(props: { text: string; color?: string }) {
+  return (
+    <FormControlHelper>
+      <FormControlHelperText color={props.color || "$typography400"}>{props.text}</FormControlHelperText>
+    </FormControlHelper>
   );
 }
 
@@ -48,3 +60,4 @@ export function AppFormField({ children, ...props }: InterfaceFormControlProps &
 AppFormField.Label = AppFormFieldLabel;
 AppFormField.Error = AppFormFieldError;
 AppFormField.TextInput = AppFormFieldTextInput;
+AppFormField.HelperText = AppFormFieldHelperText;

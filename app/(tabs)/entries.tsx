@@ -1,7 +1,7 @@
 import { EndOfListWithLoading } from "@/components/EndOfListWithLoading";
 import { EntryCard } from "@/components/EntryCard";
 import { EntryDetailBottomSheet } from "@/components/EntryDetailBottomSheet";
-import { EntryFormBottomSheet } from "@/components/EntryFormBottomSheet";
+import { EntryFormFullScreenOverlay } from "@/components/EntryFormFullScreenOverlay";
 import { TabbedLayout } from "@/components/layouts/TabbedLayout";
 import { SearchField } from "@/components/ui/SearchField";
 import { useEntries } from "@/hooks/queries/use-entries";
@@ -65,7 +65,7 @@ export default function EntriesScreen() {
         onEndReached={() => fetchNextPage()}
         onEndReachedThreshold={1}
       />
-      <EntryFormBottomSheet
+      <EntryFormFullScreenOverlay
         update={selectedEntry}
         trigger={({ open }) => {
           return (

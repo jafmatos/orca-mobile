@@ -1,6 +1,5 @@
 import { useAppThemeName } from "@/hooks/use-app-theme-name";
 import { Input, InputField, InputIcon, InputSlot, Text } from "@gluestack-ui/themed";
-import { Portal } from "@gorhom/portal";
 import { ChevronDownIcon } from "lucide-react-native";
 import { useState } from "react";
 import { Pressable, View } from "react-native";
@@ -52,26 +51,24 @@ export function AppSelect(props: AppSelectProps) {
           <InputIcon as={ChevronDownIcon} />
         </InputSlot>
       </Input>
-      <Portal hostName="bottomsheet">
-        <AppBottomSheet fullscreen expandable={false} isOpen={isBottomSheetOpen} onClose={closeBottomSheet}>
-          <View>
-            {[{ label: emptyLabel, value: "" }, ...props.options].map((option) => {
-              return (
-                <Pressable
-                  key={option.value}
-                  onPress={() => handleOptionPress(option)}
-                  className="rounded-lg w-full py-4 px-6"
-                  style={{
-                    backgroundColor: option.value === currentOption?.value ? selectedOptionBackgroundColor : "transparent",
-                  }}
-                >
-                  <Text italic={!option.value}>{option.label}</Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        </AppBottomSheet>
-      </Portal>
+      <AppBottomSheet portalHostName="select" fullscreen expandable={false} isOpen={isBottomSheetOpen} onClose={closeBottomSheet}>
+        <View>
+          {[{ label: emptyLabel, value: "" }, ...props.options].map((option) => {
+            return (
+              <Pressable
+                key={option.value}
+                onPress={() => handleOptionPress(option)}
+                className="rounded-lg w-full py-4 px-6"
+                style={{
+                  backgroundColor: option.value === currentOption?.value ? selectedOptionBackgroundColor : "transparent",
+                }}
+              >
+                <Text italic={!option.value}>{option.label}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      </AppBottomSheet>
     </>
   );
 }

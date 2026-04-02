@@ -1,14 +1,16 @@
 import useAppThemeColors from "@/hooks/use-app-theme-colors";
-import React, { useEffect, useState } from "react";
+import { Portal } from "@gorhom/portal";
+import React, { useCallback, useEffect, useState } from "react";
 import { BackHandler, Dimensions, Pressable, ScrollView, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import { useKeyboardHandler } from "react-native-keyboard-controller";
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { scheduleOnRN } from "react-native-worklets";
-import { useKeyboardHandler } from "react-native-keyboard-controller";
 
 export interface AppBottomSheetProps extends React.ComponentProps<typeof Animated.View> {
   children: React.ReactNode;
+  portalHostName?: string;
   isOpen: boolean;
   expandable?: boolean;
   fullscreen?: boolean;
@@ -71,6 +73,15 @@ export function AppBottomSheet({
 
   const backdropOpacitySharedValue = useSharedValue(props.isOpen ? backdropOpacity : 0);
 
+  const setBottomSheetHeightSharedValue = useCallback(
+    (height: number) => {
+      const expectedBottomSheetHeight = isExpandedSharedValue.value ? snapPointsScreen : snapPointsCollapsed;
+
+      bottomSheetHeightSharedValue.value = Math.min(expectedBottomSheetHeight, height - keyboardHeightSharedValue.value);
+    },
+    [bottomSheetHeightSharedValue, isExpandedSharedValue.value, keyboardHeightSharedValue.value, snapPointsCollapsed, snapPointsScreen],
+  );
+
   useEffect(() => {
     const listener = BackHandler.addEventListener("hardwareBackPress", () => {
       if (props.isOpen) {
@@ -87,7 +98,7 @@ export function AppBottomSheet({
 
   useEffect(() => {
     if (props.isOpen) {
-      bottomSheetHeightSharedValue.value = snapPointsCollapsed;
+      setBottomSheetHeightSharedValue(snapPointsCollapsed);
       backdropOpacitySharedValue.value = withSpring(backdropOpacity);
       bottomSheetTranslateYSharedValue.value = withSpring(bottomSheetOpenedTranslateY);
     } else {
@@ -101,6 +112,7 @@ export function AppBottomSheet({
     bottomSheetTranslateYSharedValue,
     backdropOpacity,
     snapPointsCollapsed,
+    setBottomSheetHeightSharedValue,
   ]);
 
   useKeyboardHandler(
@@ -243,106 +255,109 @@ export function AppBottomSheet({
   });
 
   return (
-    <GestureDetector gesture={pan}>
-      <View
-        style={{
-          pointerEvents: props.isOpen ? "auto" : "none",
-          width: SCREEN_WIDTH,
-          height: SCREEN_HEIGHT,
-          position: "absolute",
-          top: 0,
-          left: 0,
-        }}
-      >
-        <Animated.View
+    <Portal hostName={props.portalHostName || "bottomsheet"}>
+      <GestureDetector gesture={pan}>
+        <View
           style={{
+            pointerEvents: props.isOpen ? "auto" : "none",
             width: SCREEN_WIDTH,
             height: SCREEN_HEIGHT,
             position: "absolute",
             top: 0,
             left: 0,
-            backgroundColor: backdropColor,
-            opacity: backdropOpacitySharedValue,
           }}
         >
-          <Pressable
-            className="w-full h-full"
-            onPress={() => {
-              bottomSheetHeightSharedValue.value = withSpring(snapPointsCollapsed);
-              isExpandedSharedValue.value = false;
-              closeOnBackdropTap && props.onClose?.();
-            }}
-          />
-        </Animated.View>
-
-        <Animated.View
-          style={[
-            {
-              height: bottomSheetHeightSharedValue,
-              width: SCREEN_WIDTH,
-              position: "absolute",
-              bottom: 0,
-              left: 0,
-              right: 0,
-              borderTopLeftRadius: 18,
-              borderTopRightRadius: 18,
-              boxShadow: `0 3px 7px 0 rgba(0, 0, 0, 0.5)`,
-            },
-            bottomSheetAnimatedStyles,
-          ]}
-          className="bg-background-900 rounded-t-3xl"
-        >
-          <View
-            className="flex flex-row justify-center"
+          <Animated.View
             style={{
-              paddingTop: 16,
-              paddingBottom: 16,
+              width: SCREEN_WIDTH,
+              height: SCREEN_HEIGHT,
+              position: "absolute",
+              top: 0,
+              left: 0,
+              backgroundColor: backdropColor,
+              opacity: backdropOpacitySharedValue,
             }}
           >
-            <View
-              style={{
-                borderRadius: 2,
-                height: 4,
-                width: 32,
-                backgroundColor: themeColors["--color-typography-200"],
+            <Pressable
+              className="w-full h-full"
+              onPress={() => {
+                bottomSheetHeightSharedValue.value = withSpring(snapPointsCollapsed);
+                isExpandedSharedValue.value = false;
+                closeOnBackdropTap && props.onClose?.();
               }}
             />
-          </View>
+          </Animated.View>
 
-          <GestureDetector gesture={panNative}>
-            <ScrollView
-              onLayout={(event) => {
-                scrollViewLayoutSizeSharedValue.value = event.nativeEvent.layout.height;
-              }}
-              onContentSizeChange={(_width, height) => {
-                if (height < scrollViewLayoutSizeSharedValue.value) {
-                  setIsScrollViewOnStart(true);
-                  setIsScrollViewOnEnd(true);
-                }
-              }}
-              onScroll={(event) => {
-                const layoutSize = event.nativeEvent.layoutMeasurement.height;
-                const contentOffset = event.nativeEvent.contentOffset.y;
-                const contentSize = event.nativeEvent.contentSize.height;
-
-                scrollViewContentOffsetSharedValue.value = contentOffset;
-                scrollViewLayoutSizeSharedValue.value = layoutSize;
-                scrollViewContentSizeSharedValue.value = contentSize;
-
-                setIsScrollViewOnStart(contentOffset <= 0);
-                setIsScrollViewOnEnd(Math.round(layoutSize + contentOffset) === Math.round(contentSize));
-              }}
-              scrollEventThrottle={16}
-              contentContainerStyle={{
-                padding: 16,
-                paddingTop: 0,
+          <Animated.View
+            style={[
+              {
+                height: bottomSheetHeightSharedValue,
+                width: SCREEN_WIDTH,
+                position: "absolute",
+                bottom: 0,
+                left: 0,
+                right: 0,
+                borderTopLeftRadius: 18,
+                borderTopRightRadius: 18,
+                boxShadow: `0 3px 7px 0 rgba(0, 0, 0, 0.5)`,
+                backgroundColor: themeColors["--color-background-900"],
+              },
+              bottomSheetAnimatedStyles,
+            ]}
+            className="rounded-t-3xl"
+          >
+            <View
+              className="flex flex-row justify-center"
+              style={{
+                paddingTop: 16,
+                paddingBottom: 16,
               }}
             >
-              {props.children}
-            </ScrollView>
-          </GestureDetector>
-        </Animated.View>
-      </View>
-    </GestureDetector>
+              <View
+                style={{
+                  borderRadius: 2,
+                  height: 4,
+                  width: 32,
+                  backgroundColor: themeColors["--color-typography-200"],
+                }}
+              />
+            </View>
+
+            <GestureDetector gesture={panNative}>
+              <ScrollView
+                onLayout={(event) => {
+                  scrollViewLayoutSizeSharedValue.value = event.nativeEvent.layout.height;
+                }}
+                onContentSizeChange={(_width, height) => {
+                  if (height < scrollViewLayoutSizeSharedValue.value) {
+                    setIsScrollViewOnStart(true);
+                    setIsScrollViewOnEnd(true);
+                  }
+                }}
+                onScroll={(event) => {
+                  const layoutSize = event.nativeEvent.layoutMeasurement.height;
+                  const contentOffset = event.nativeEvent.contentOffset.y;
+                  const contentSize = event.nativeEvent.contentSize.height;
+
+                  scrollViewContentOffsetSharedValue.value = contentOffset;
+                  scrollViewLayoutSizeSharedValue.value = layoutSize;
+                  scrollViewContentSizeSharedValue.value = contentSize;
+
+                  setIsScrollViewOnStart(contentOffset <= 0);
+                  setIsScrollViewOnEnd(Math.round(layoutSize + contentOffset) === Math.round(contentSize));
+                }}
+                scrollEventThrottle={16}
+                contentContainerStyle={{
+                  padding: 16,
+                  paddingTop: 0,
+                }}
+              >
+                {props.children}
+              </ScrollView>
+            </GestureDetector>
+          </Animated.View>
+        </View>
+      </GestureDetector>
+    </Portal>
   );
 }

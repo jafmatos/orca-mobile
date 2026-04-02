@@ -1,21 +1,23 @@
-import { Portal } from "@gorhom/portal";
-import { EntryForm } from "./EntryForm";
-import { AppBottomSheet } from "./ui/AppBottomSheet";
-import React, { useState } from "react";
 import { useCategories } from "@/hooks/queries/use-categories";
 import { useAppForm } from "@/hooks/use-app-form";
+import { useAppFormWithMutation } from "@/hooks/use-app-form-with-mutation";
+import { useAppToast } from "@/hooks/use-app-toast";
 import { Entry, EntryTypes } from "@/models/Entry";
+import { ButtonText } from "@gluestack-ui/themed";
+import { Portal } from "@gorhom/portal";
+import React, { useState } from "react";
 import { View } from "react-native";
+import { CreateEntryBody, CreateEntryReturnType, EntryService, UpdateEntryBody, UpdateEntryReturnType } from "../services/EntryService";
 import { AppFormField } from "./AppFormField";
+import { AppCurrencyInput } from "./ui/AppCurrencyInput";
+import { AppDatePicker } from "./ui/AppDatePicker";
 import { AppSelect } from "./ui/AppSelect";
 import { AppToggleSelect } from "./ui/AppToggleSelect";
 import { ButtonWithLoading } from "./ui/ButtonWithLoading";
-import { ButtonText } from "@gluestack-ui/themed";
-import { AppDatePicker } from "./ui/AppDatePicker";
-import { AppCurrencyInput } from "./ui/AppCurrencyInput";
-import { useAppFormWithMutation } from "@/hooks/use-app-form-with-mutation";
-import { CreateEntryBody, CreateEntryReturnType, EntryService } from "../services/EntryService";
-import { useAppToast } from "@/hooks/use-app-toast";
+import { AppFullScreenOverlay } from "./ui/AppFullScreenOverlay";
+import { PaginatedData } from "@/models/PaginatedData";
+import { QueryKeys } from "@/utils/QueryKeys";
+import { useQueryClient } from "@tanstack/react-query";
 
 type TriggerProps = {
   open?: () => void;
@@ -36,14 +38,18 @@ export interface EntryFormBottomSheetProps {
   update?: Form;
   initialValues?: Form;
   trigger: (props: TriggerProps) => React.JSX.Element;
-  onSuccess?: (data: CreateEntryReturnType) => void;
 }
 
-export function EntryFormBottomSheet(props: EntryFormBottomSheetProps) {
+export function EntryFormFullScreenOverlay(props: EntryFormBottomSheetProps) {
   const [isOpen, setIsOpen] = useState(false);
   const Trigger = props.trigger;
 
+  const open = () => setIsOpen(true);
+
+  const close = () => setIsOpen(false);
+
   const toast = useAppToast();
+  const queryClient = useQueryClient();
   const { data: categories } = useCategories();
   const form = useAppForm<Form>(
     props.initialValues ||
@@ -59,16 +65,14 @@ export function EntryFormBottomSheet(props: EntryFormBottomSheetProps) {
   );
   const { values, hasErrors, hasError, getError, makeSetter, setValue, mutation } = useAppFormWithMutation<
     Form,
-    CreateEntryBody,
-    CreateEntryReturnType
+    CreateEntryBody & UpdateEntryBody,
+    CreateEntryReturnType | UpdateEntryReturnType
   >(form, {
     mutationFn: (body) => {
       if (form.values.id) return EntryService.update(form.values.id, body);
       else return EntryService.create(body);
     },
     onSuccess: (data) => {
-      console.log(data);
-
       form.clear();
 
       if (form.values.id) {
@@ -83,20 +87,35 @@ export function EntryFormBottomSheet(props: EntryFormBottomSheetProps) {
         });
       }
 
-      props.onSuccess?.(data);
+      queryClient.setQueryData(QueryKeys.Entry.getEntries(), (oldData: { pageParams: number[]; pages: PaginatedData<Entry>[] }) => {
+        return {
+          ...oldData,
+          pages: [
+            {
+              ...oldData.pages[0],
+              data: [data.entry, ...oldData.pages[0].data.filter((item) => data.entry.id !== item.id)],
+            },
+            ...oldData.pages.slice(1).map((page) => {
+              return {
+                ...page,
+                data: page.data.filter((item) => data.entry.id !== item.id),
+              };
+            }),
+          ],
+        };
+      });
+
+      close();
     },
   });
-
-  const open = () => setIsOpen(true);
-
-  const close = () => setIsOpen(false);
 
   return (
     <>
       <Trigger open={open} />
-      <Portal hostName="bottomsheet">
-        <AppBottomSheet fullscreen expandable={false} isOpen={isOpen} onClose={close}>
-          <View className="flex flex-col gap-2">
+      <Portal hostName="fullscreen-overlay">
+        <AppFullScreenOverlay isOpen={isOpen} onClose={close}>
+          <AppFullScreenOverlay.Header title={props.update ? "Editar lançamento" : "Novo lançamento"} onBack={close} />
+          <View className="p-4 flex flex-col gap-2">
             <AppToggleSelect<EntryTypes>
               value={values.type}
               options={[
@@ -138,6 +157,10 @@ export function EntryFormBottomSheet(props: EntryFormBottomSheetProps) {
               <AppFormField.Label>Descrição</AppFormField.Label>
               <AppFormField.TextInput value={values.description} placeholder="Descrição" onChangeText={makeSetter("description")} />
               <AppFormField.Error error={getError("description")} />
+              <AppFormField.HelperText
+                text={`${values.description.length}/60`}
+                color={values.description.length > 60 ? "$danger500" : undefined}
+              />
             </AppFormField>
             <View className="flex flex-row columns-2 gap-4">
               <AppFormField className="grow basis-0" isRequired isInvalid={hasError("when")}>
@@ -180,7 +203,7 @@ export function EntryFormBottomSheet(props: EntryFormBottomSheetProps) {
               <ButtonText color="$onPrimary">Pronto</ButtonText>
             </ButtonWithLoading>
           </View>
-        </AppBottomSheet>
+        </AppFullScreenOverlay>
       </Portal>
     </>
   );
