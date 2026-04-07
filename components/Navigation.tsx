@@ -21,6 +21,7 @@ import { Link, usePathname, useRouter } from "expo-router";
 import { useAuthUser } from "@/hooks/queries/use-auth-user";
 import { View } from "react-native";
 import { AppAuthenticationTokenStore } from "@/utils/AuthenticationTokenStore";
+import { AppButton } from "./ui/AppButton";
 
 interface DrawerNavigationItemProps {
   icon?: LucideIcon;
@@ -72,6 +73,7 @@ export function Navigation() {
         className="h-[72px] px-4 flex flex-row justify-between items-center bg-background-950"
         style={{
           boxShadow: `0 1px 3px -2px ${themeColors["--color-outline-600"]}`,
+					zIndex: 0
         }}
       >
         <AppAvatar />
@@ -109,18 +111,16 @@ export function Navigation() {
             <DrawerNavigationItem onPressCallback={closeDrawer} to={"/analyses"} icon={SparklesIcon} text="Análises" />
             <DrawerNavigationItem onPressCallback={closeDrawer} to={"/profile"} icon={UserIcon} text="Meu Perfil" />
           </View>
-          <Button
-            className="flex flex-row items-center gap-2"
-            backgroundColor={themeColors["--color-danger-500"]}
+          <AppButton
+            text="Sair"
+            color="danger"
+            icon={LogOutIcon}
             onPress={() => {
               AppAuthenticationTokenStore.remove();
 
               router.push("/sign-in");
             }}
-          >
-            <ButtonText color={themeColors["--color-on-danger"]}>Sair</ButtonText>
-            <ButtonIcon color={themeColors["--color-on-danger"]} as={LogOutIcon} />
-          </Button>
+          />
         </AppDrawer>
       </Portal>
     </>

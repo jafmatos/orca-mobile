@@ -1,11 +1,11 @@
 import { AppFormField } from "@/components/AppFormField";
 import { FullScreenLayout } from "@/components/layouts/FullScreenLayout";
-import { ButtonWithLoading } from "@/components/ui/ButtonWithLoading";
+import { AppButton } from "@/components/ui/AppButton";
 import { useAppForm } from "@/hooks/use-app-form";
 import { useAppFormWithMutation } from "@/hooks/use-app-form-with-mutation";
 import { ConfirmSignUpArguments, ConfirmSignUpReturnType, SignUpService } from "@/services/Auth/SignUpService";
 import { AppAuthenticationTokenStore } from "@/utils/AuthenticationTokenStore";
-import { ButtonText, Heading, Text, View } from "@gluestack-ui/themed";
+import { Heading, Text, View } from "@gluestack-ui/themed";
 import { useLocalSearchParams, useRouter } from "expo-router";
 
 type ConfirmSignUpForm = {
@@ -56,15 +56,13 @@ export default function ConfirmSignUpScreen() {
               <AppFormField.Error error={getError("otp")} />
             </AppFormField>
 
-            <ButtonWithLoading
+            <AppButton
+              text="Confirmar"
               onPress={() => confirmSignUpMutation.mutateAsync(form.values)}
-              isDisabled={form.values.otp?.length !== 6 || hasErrors || confirmSignUpMutation.isPending}
-              isLoading={confirmSignUpMutation.isPending}
-              action="primary"
-              spinnerColor="$primary500"
-            >
-              <ButtonText color="$onPrimary">Confirmar</ButtonText>
-            </ButtonWithLoading>
+              disabled={form.values.otp?.length !== 6 || hasErrors || confirmSignUpMutation.isPending}
+              loading={confirmSignUpMutation.isPending}
+              color="primary"
+            />
           </View>
         </View>
       </View>

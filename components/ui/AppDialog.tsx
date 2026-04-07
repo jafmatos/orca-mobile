@@ -1,8 +1,9 @@
 import React from "react";
 import Animated from "react-native-reanimated";
 import { AppModal } from "./AppModal";
-import { Text, View } from "react-native";
+import { View } from "react-native";
 import useAppThemeColors from "@/hooks/use-app-theme-colors";
+import { AppText } from "./AppText";
 
 export interface AppDialogProps extends React.ComponentProps<typeof Animated.View> {
   isOpen: boolean;
@@ -10,13 +11,13 @@ export interface AppDialogProps extends React.ComponentProps<typeof Animated.Vie
   modalProps?: React.ComponentProps<typeof AppModal>;
 }
 
-function AppDialogTitle(props: React.ComponentProps<typeof Text>) {
+function AppDialogTitle(props: React.ComponentProps<typeof AppText>) {
   const themeColors = useAppThemeColors();
 
   return (
-    <Text className="px-6" style={{ fontSize: 18, fontWeight: 600, color: themeColors["--color-typography-0"] }}>
+    <AppText className="px-6" style={{ fontSize: 18, fontWeight: 600, color: themeColors["--color-typography-0"] }}>
       {props.children}
-    </Text>
+    </AppText>
   );
 }
 
@@ -25,9 +26,9 @@ function AppDialogContent(props: React.ComponentProps<typeof View>) {
 
   return (
     <View>
-      <Text className="px-6" style={{ fontSize: 15, fontWeight: 400, color: themeColors["--color-typography-200"] }}>
+      <AppText className="px-6" style={{ fontSize: 15, fontWeight: 400, color: themeColors["--color-typography-200"] }}>
         {props.children}
-      </Text>
+      </AppText>
     </View>
   );
 }

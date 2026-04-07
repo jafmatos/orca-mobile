@@ -1,13 +1,14 @@
-import { useEffect } from "react";
-import { BackHandler, Dimensions, Pressable, View } from "react-native";
+import { useCallback, useEffect } from "react";
+import { Dimensions, Pressable, View } from "react-native";
 import Animated, { useSharedValue, withSpring } from "react-native-reanimated";
 import { ThemedComponent } from "../ThemedComponent";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import { scheduleOnRN } from "react-native-worklets";
+import { scheduleOnRN, scheduleOnUI } from "react-native-worklets";
+import { useStackedBackHandler } from "@/hooks/use-stacked-back-handler";
 
 export interface AppDrawerProps extends React.ComponentProps<typeof Animated.View> {
-  isOpen?: boolean;
+  isOpen: boolean;
   onClose: () => void;
   snapPoints?: number;
   panSnapPoints?: number;
@@ -17,58 +18,72 @@ const screenDimensions = Dimensions.get("screen");
 const SCREEN_HEIGHT = screenDimensions.height;
 const SCREEN_WIDTH = screenDimensions.width;
 
-export function AppDrawer({ isOpen, onClose, panSnapPoints = 100, snapPoints = 0.8 * SCREEN_WIDTH, ...props }: AppDrawerProps) {
+export function AppDrawer({ panSnapPoints = 100, snapPoints = 0.8 * SCREEN_WIDTH, ...props }: AppDrawerProps) {
   const insets = useSafeAreaInsets();
   const drawerOpenedTranslateX = 0;
   const drawerTranslateX = useSharedValue(-snapPoints);
   const backdropOpacity = useSharedValue(0);
 
+  const open = useCallback(() => {
+    "worklet";
+
+    drawerTranslateX.value = withSpring(0);
+    backdropOpacity.value = withSpring(0.5);
+  }, [backdropOpacity, drawerTranslateX]);
+
+  const close = useCallback(() => {
+    "worklet";
+
+    drawerTranslateX.value = withSpring(-snapPoints);
+    backdropOpacity.value = withSpring(0);
+
+    scheduleOnRN(props.onClose);
+  }, [props.onClose, backdropOpacity, drawerTranslateX, snapPoints]);
+
+  const initializeAnimation = useCallback(() => {
+    "worklet";
+
+    if (props.isOpen) open();
+    else close();
+  }, [props.isOpen, open, close]);
+
+  useEffect(() => {
+    scheduleOnUI(initializeAnimation);
+  }, [initializeAnimation]);
+
+  useStackedBackHandler({
+    isOpen: props.isOpen,
+    onClose: close,
+  });
+
   const pan = Gesture.Pan()
-    .onStart((_event) => {})
+    .onStart((_event) => {
+      "worklet";
+    })
     .onChange((event) => {
+      "worklet";
+
       if (event.translationX > 0) return;
 
       drawerTranslateX.value = withSpring(event.translationX);
     })
     .onFinalize((event) => {
+      "worklet";
+
       if (event.translationX > -panSnapPoints) {
         drawerTranslateX.value = withSpring(drawerOpenedTranslateX);
 
         return;
       }
 
-      scheduleOnRN(onClose);
+      close();
     });
-
-  useEffect(() => {
-    const listener = BackHandler.addEventListener("hardwareBackPress", () => {
-      if (isOpen) {
-        onClose();
-
-        return true;
-      }
-    });
-
-    return () => {
-      listener.remove();
-    };
-  }, [isOpen, onClose]);
-
-  useEffect(() => {
-    if (isOpen) {
-      drawerTranslateX.value = withSpring(0);
-      backdropOpacity.value = withSpring(0.5);
-    } else {
-      drawerTranslateX.value = withSpring(-snapPoints);
-      backdropOpacity.value = withSpring(0);
-    }
-  }, [isOpen, snapPoints, drawerTranslateX, backdropOpacity]);
 
   return (
     <GestureDetector gesture={pan}>
       <View
         style={{
-          pointerEvents: isOpen ? "auto" : "none",
+          pointerEvents: props.isOpen ? "auto" : "none",
           width: SCREEN_WIDTH,
           height: SCREEN_HEIGHT,
           position: "absolute",
@@ -78,7 +93,7 @@ export function AppDrawer({ isOpen, onClose, panSnapPoints = 100, snapPoints = 0
       >
         <Animated.View
           style={{
-            pointerEvents: isOpen ? "auto" : "none",
+            pointerEvents: props.isOpen ? "auto" : "none",
             zIndex: 90,
             position: "absolute",
             inset: 0,
@@ -88,11 +103,11 @@ export function AppDrawer({ isOpen, onClose, panSnapPoints = 100, snapPoints = 0
             opacity: backdropOpacity,
           }}
         >
-          <Pressable className="w-full h-full" onPress={onClose} />
+          <Pressable className="w-full h-full" onPress={props.onClose} />
         </Animated.View>
         <ThemedComponent
           style={{
-            pointerEvents: isOpen ? "auto" : "none",
+            pointerEvents: props.isOpen ? "auto" : "none",
             zIndex: 9999,
             position: "absolute",
             width: snapPoints,

@@ -1,6 +1,6 @@
 import { AppFormField } from "@/components/AppFormField";
 import { FullScreenLayout } from "@/components/layouts/FullScreenLayout";
-import { ButtonWithLoading } from "@/components/ui/ButtonWithLoading";
+import { AppButton } from "@/components/ui/AppButton";
 import { websiteUrl } from "@/constants/website-url";
 import { useAppForm } from "@/hooks/use-app-form";
 import { useAppFormWithMutation } from "@/hooks/use-app-form-with-mutation";
@@ -9,7 +9,7 @@ import {
 	CreateResetPasswordKeyReturnType,
 	ResetPasswordService,
 } from "@/services/Auth/ResetPasswordService";
-import { ButtonText, Heading, Link, Text, View } from "@gluestack-ui/themed";
+import { Heading, Link, Text, View } from "@gluestack-ui/themed";
 import { useRouter } from "expo-router";
 
 type ResetPasswordForm = {
@@ -63,20 +63,18 @@ export default function ResetPasswordScreen() {
               <AppFormField.Error error={getError("email")} />
             </AppFormField>
 
-            <ButtonWithLoading
+            <AppButton
+              text="Enviar"
               onPress={() =>
                 createResetPasswordKeyMutation.mutateAsync({
                   ...form.values,
                   confirmUrl: websiteUrl,
                 })
               }
-              isDisabled={createResetPasswordKeyMutation.isPending || hasErrors}
-              isLoading={createResetPasswordKeyMutation.isPending}
-              spinnerColor="$primary500"
-              action="primary"
-            >
-              <ButtonText color="$onPrimary">Enviar</ButtonText>
-            </ButtonWithLoading>
+              disabled={createResetPasswordKeyMutation.isPending || hasErrors}
+              loading={createResetPasswordKeyMutation.isPending}
+              color="primary"
+            />
           </View>
 
           <Link mt="$2" className="self-center" onPress={() => router.push("/(auth)/sign-in")}>

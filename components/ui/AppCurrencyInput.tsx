@@ -20,7 +20,7 @@ export function AppCurrencyInput({ value, onChange, containerProps, ...props }: 
 
   return (
     <Input {...containerProps}>
-      <InputField {...props} value={formattedValue} onChangeText={handleOnChangeText} maxLength={28} />
+      <InputField {...props} keyboardType="numeric" value={formattedValue} onChangeText={handleOnChangeText} maxLength={28} />
     </Input>
   );
 }

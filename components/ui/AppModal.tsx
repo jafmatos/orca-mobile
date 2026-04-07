@@ -1,9 +1,10 @@
 import useAppThemeColors from "@/hooks/use-app-theme-colors";
+import { useStackedBackHandler } from "@/hooks/use-stacked-back-handler";
 import { Portal } from "@gorhom/portal";
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect } from "react";
 import { Dimensions, Pressable } from "react-native";
 import Animated, { useSharedValue, withSpring } from "react-native-reanimated";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { scheduleOnRN, scheduleOnUI } from "react-native-worklets";
 
 export interface AppModalProps extends React.ComponentProps<typeof Animated.View> {
   isOpen: boolean;
@@ -13,23 +14,44 @@ export interface AppModalProps extends React.ComponentProps<typeof Animated.View
 }
 
 export function AppModal({ backdropColor = "#000000", backdropOpacity = 0.5, ...props }: AppModalProps) {
-  const insets = useSafeAreaInsets();
   const themeColors = useAppThemeColors();
   const screenDimensions = Dimensions.get("screen");
   const SCREEN_WIDTH = screenDimensions.width;
   const SCREEN_HEIGHT = screenDimensions.height;
-  const backdropOpacitySharedValue = useSharedValue(props.isOpen ? backdropOpacity : 0);
-  const modalOpacitySharedValue = useSharedValue(props.isOpen ? 1 : 0);
+  const backdropOpacitySharedValue = useSharedValue(0);
+  const modalOpacitySharedValue = useSharedValue(0);
+
+  const open = useCallback(() => {
+    "worklet";
+
+    backdropOpacitySharedValue.value = withSpring(backdropOpacity);
+    modalOpacitySharedValue.value = withSpring(1);
+  }, [backdropOpacity, backdropOpacitySharedValue, modalOpacitySharedValue]);
+
+  const close = useCallback(() => {
+    "worklet";
+
+    backdropOpacitySharedValue.value = withSpring(0);
+    modalOpacitySharedValue.value = withSpring(0);
+
+    scheduleOnRN(props.onClose);
+  }, [backdropOpacitySharedValue, modalOpacitySharedValue, props.onClose]);
+
+  const initializeAnimation = useCallback(() => {
+    "worklet";
+
+    if (props.isOpen) open();
+    else close();
+  }, [close, open, props.isOpen]);
 
   useEffect(() => {
-    if (props.isOpen) {
-      backdropOpacitySharedValue.value = withSpring(backdropOpacity);
-      modalOpacitySharedValue.value = withSpring(1);
-    } else {
-      backdropOpacitySharedValue.value = withSpring(0);
-      modalOpacitySharedValue.value = withSpring(0);
-    }
-  }, [props.isOpen, backdropOpacitySharedValue, modalOpacitySharedValue, backdropOpacity]);
+    scheduleOnUI(initializeAnimation);
+  }, [initializeAnimation]);
+
+  useStackedBackHandler({
+    isOpen: props.isOpen,
+    onClose: close,
+  });
 
   return (
     <Portal hostName="modal">

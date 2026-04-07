@@ -1,4 +1,3 @@
-import useAppThemeColors from "@/hooks/use-app-theme-colors";
 import { useAppThemeName } from "@/hooks/use-app-theme-name";
 import { Text } from "@gluestack-ui/themed";
 import { Pressable, View } from "react-native";
@@ -16,7 +15,6 @@ export interface AppToggleSelectProps<T = string> {
 
 export function AppToggleSelect<T>(props: AppToggleSelectProps<T>) {
   const themeName = useAppThemeName();
-  const themeColors = useAppThemeColors();
   const selectedOptionBackgroundColor = themeName === "dark" ? "#ffffff15" : "#00000015";
 
   const handleOptionPress = (option: SelectOption<T>) => {

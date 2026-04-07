@@ -28,7 +28,7 @@ export function AppSelect(props: AppSelectProps) {
 
   const handleOptionPress = (option: SelectOption) => {
     props.onChange?.(option.value);
-    props.closeOnSelect && setTimeout(closeBottomSheet, 150);
+    props.closeOnSelect && closeBottomSheet();
   };
 
   const currentOption = props.options.find((option) => option.value === props.value);

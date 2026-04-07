@@ -1,6 +1,6 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { AppDialog } from "./AppDialog";
-import { Button, ButtonText } from "@gluestack-ui/themed";
+import { AppButton } from "./AppButton";
 
 type TriggerProps = {
   open?: () => void;
@@ -13,6 +13,8 @@ export interface AppConfirmationDialogProps {
   cancelText?: string;
   onConfirm: () => void;
   onCancel?: () => void;
+  cancelButtonProps?: React.ComponentProps<typeof AppButton>;
+  confirmButtonProps?: React.ComponentProps<typeof AppButton>;
   trigger: (props: TriggerProps) => React.JSX.Element;
 }
 
@@ -31,21 +33,18 @@ export function AppConfirmationDialog({ confirmText = "Confirmar", cancelText = 
         <AppDialog.Title>{props.title}</AppDialog.Title>
         <AppDialog.Content>{props.description}</AppDialog.Content>
         <AppDialog.Actions>
-          <Button
+          <AppButton
+            {...props.cancelButtonProps}
+            text={cancelText}
             size="sm"
-            bgColor="$background600"
-            borderColor="$outline500"
+            color="neutral"
             variant="outline"
             onPress={() => {
               close();
               props.onCancel?.();
             }}
-          >
-            <ButtonText color="$typography200">{cancelText}</ButtonText>
-          </Button>
-          <Button size="sm" bgColor="$danger500" onPress={props.onConfirm}>
-            <ButtonText color="$onDanger">{confirmText}</ButtonText>
-          </Button>
+          />
+          <AppButton {...props.confirmButtonProps} text={confirmText} size="sm" color="danger" onPress={props.onConfirm} />
         </AppDialog.Actions>
       </AppDialog>
     </>

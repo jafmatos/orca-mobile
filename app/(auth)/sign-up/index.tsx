@@ -1,12 +1,11 @@
 import { AppFormField } from "@/components/AppFormField";
 import { FullScreenLayout } from "@/components/layouts/FullScreenLayout";
-import { ButtonWithLoading } from "@/components/ui/ButtonWithLoading";
+import { AppButton } from "@/components/ui/AppButton";
 import { websiteUrl } from "@/constants/website-url";
 import { useAppForm } from "@/hooks/use-app-form";
 import { useAppFormWithMutation } from "@/hooks/use-app-form-with-mutation";
 import { CreateSignUpKeyArguments, CreateSignUpKeyReturnType, SignUpService } from "@/services/Auth/SignUpService";
 import {
-	ButtonText,
 	Checkbox,
 	CheckboxIcon,
 	CheckboxIndicator,
@@ -16,7 +15,7 @@ import {
 	FormControlHelperText,
 	Heading,
 	Link,
-	Text,
+	Text
 } from "@gluestack-ui/themed";
 import { useRouter } from "expo-router";
 import { View } from "react-native";
@@ -139,20 +138,18 @@ export default function SignUpScreen() {
               </Checkbox>
             </AppFormField>
 
-            <ButtonWithLoading
+            <AppButton
+              text="Enviar"
               onPress={() =>
                 createSignUpKeyMutation.mutateAsync({
                   ...form.values,
                   confirmUrl: websiteUrl,
                 })
               }
-              isDisabled={!form.values.acceptedTerms || hasErrors || createSignUpKeyMutation.isPending}
-              isLoading={createSignUpKeyMutation.isPending}
-              spinnerColor="$primary500"
-              action="primary"
-            >
-              <ButtonText color="$onPrimary">Enviar</ButtonText>
-            </ButtonWithLoading>
+              disabled={!form.values.acceptedTerms || hasErrors || createSignUpKeyMutation.isPending}
+              loading={createSignUpKeyMutation.isPending}
+              color="primary"
+            />
           </View>
           <View className="mt-2 flex flex-row gap-0 self-center">
             <Text className="flex items-center !text-typography-400" size="sm">

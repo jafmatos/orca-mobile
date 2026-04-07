@@ -1,13 +1,16 @@
 import useAppThemeColors from "@/hooks/use-app-theme-colors";
+import { useStackedBackHandler } from "@/hooks/use-stacked-back-handler";
+import { Portal } from "@gorhom/portal";
 import { ArrowLeft } from "lucide-react-native";
-import React, { useEffect } from "react";
-import { BackHandler, Dimensions, Pressable, Text, View } from "react-native";
+import React, { useCallback, useEffect } from "react";
+import { Dimensions, Pressable, Text, View } from "react-native";
 import Animated, { useSharedValue, withSpring } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { scheduleOnRN, scheduleOnUI } from "react-native-worklets";
 
 export interface AppFullScreenOverlayProps extends React.ComponentProps<typeof Animated.View> {
-  isOpen?: boolean;
-  onClose?: () => void;
+  isOpen: boolean;
+  onClose: () => void;
   backdropOpacity?: number;
   backdropColor?: string;
 }
@@ -50,44 +53,43 @@ export function AppFullScreenOverlay({ backdropOpacity = 0.5, backdropColor = "#
   const SCREEN_WIDTH = screenDimensions.width;
   const SCREEN_HEIGHT = screenDimensions.height;
   const insets = useSafeAreaInsets();
-  const translateXSharedValue = useSharedValue(props.isOpen ? 0 : SCREEN_WIDTH);
-  const backdropOpacitySharedValue = useSharedValue(props.isOpen ? backdropOpacity : 0);
+  const translateXSharedValue = useSharedValue(SCREEN_WIDTH);
+  const backdropOpacitySharedValue = useSharedValue(0);
+
+  const open = useCallback(() => {
+    "worklet";
+
+    translateXSharedValue.value = withSpring(0);
+    backdropOpacitySharedValue.value = withSpring(backdropOpacity);
+  }, [backdropOpacity, backdropOpacitySharedValue, translateXSharedValue]);
+
+  const close = useCallback(() => {
+    "worklet";
+
+    translateXSharedValue.value = withSpring(SCREEN_WIDTH);
+    backdropOpacitySharedValue.value = withSpring(0);
+
+    scheduleOnRN(props.onClose);
+  }, [props.onClose, SCREEN_WIDTH, backdropOpacitySharedValue, translateXSharedValue]);
+
+  const initializeAnimation = useCallback(() => {
+    "worklet";
+
+    if (props.isOpen) open();
+    else close();
+  }, [props.isOpen, open, close]);
 
   useEffect(() => {
-    const listener = BackHandler.addEventListener("hardwareBackPress", () => {
-      if (props.isOpen) {
-        props.onClose?.();
+    scheduleOnUI(initializeAnimation);
+  }, [initializeAnimation]);
 
-        return true;
-      }
-    });
-
-    return () => {
-      listener.remove();
-    };
-  }, [props]);
-
-  useEffect(() => {
-    if (props.isOpen) {
-      translateXSharedValue.value = withSpring(0);
-      backdropOpacitySharedValue.value = withSpring(backdropOpacity);
-    } else {
-      translateXSharedValue.value = withSpring(SCREEN_WIDTH);
-      backdropOpacitySharedValue.value = withSpring(0);
-    }
-  }, [props.isOpen, backdropOpacity, translateXSharedValue, backdropOpacitySharedValue, SCREEN_WIDTH]);
+  useStackedBackHandler({
+    isOpen: props.isOpen,
+    onClose: close,
+  });
 
   return (
-    <Animated.View
-      style={{
-        position: "absolute",
-        width: SCREEN_WIDTH,
-        height: SCREEN_HEIGHT,
-        top: 0,
-        left: 0,
-        pointerEvents: props.isOpen ? "auto" : "none",
-      }}
-    >
+    <Portal hostName="fullscreen-overlay">
       <Animated.View
         style={{
           position: "absolute",
@@ -95,26 +97,37 @@ export function AppFullScreenOverlay({ backdropOpacity = 0.5, backdropColor = "#
           height: SCREEN_HEIGHT,
           top: 0,
           left: 0,
-          backgroundColor: backdropColor,
-          opacity: backdropOpacitySharedValue,
-        }}
-      />
-      <Animated.View
-        style={{
-          position: "absolute",
-          width: SCREEN_WIDTH,
-          height: SCREEN_HEIGHT,
-          top: 0,
-          left: 0,
-          paddingTop: insets.top,
-          paddingBottom: insets.bottom,
-          backgroundColor: themeColors["--color-background-950"],
-          transform: [{ translateX: translateXSharedValue }],
+          pointerEvents: props.isOpen ? "auto" : "none",
         }}
       >
-        {props.children}
+        <Animated.View
+          style={{
+            position: "absolute",
+            width: SCREEN_WIDTH,
+            height: SCREEN_HEIGHT,
+            top: 0,
+            left: 0,
+            backgroundColor: backdropColor,
+            opacity: backdropOpacitySharedValue,
+          }}
+        />
+        <Animated.View
+          style={{
+            position: "absolute",
+            width: SCREEN_WIDTH,
+            height: SCREEN_HEIGHT,
+            top: 0,
+            left: 0,
+            paddingTop: insets.top,
+            paddingBottom: insets.bottom,
+            backgroundColor: themeColors["--color-background-950"],
+            transform: [{ translateX: translateXSharedValue }],
+          }}
+        >
+          {props.children}
+        </Animated.View>
       </Animated.View>
-    </Animated.View>
+    </Portal>
   );
 }
 

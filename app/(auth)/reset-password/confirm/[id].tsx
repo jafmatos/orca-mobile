@@ -1,12 +1,12 @@
 import { AppFormField } from "@/components/AppFormField";
 import { FullScreenLayout } from "@/components/layouts/FullScreenLayout";
-import { ButtonWithLoading } from "@/components/ui/ButtonWithLoading";
+import { AppButton } from "@/components/ui/AppButton";
 import { useAppForm } from "@/hooks/use-app-form";
 import { useAppFormWithMutation } from "@/hooks/use-app-form-with-mutation";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { ConfirmResetPasswordArguments, ConfirmResetPasswordReturnType, ResetPasswordService } from "@/services/Auth/ResetPasswordService";
 import { AppAuthenticationTokenStore } from "@/utils/AuthenticationTokenStore";
-import { ButtonText, FormControlHelper, FormControlHelperText, Heading, Link, Text, View } from "@gluestack-ui/themed";
+import { FormControlHelper, FormControlHelperText, Heading, Link, Text, View } from "@gluestack-ui/themed";
 import { useLocalSearchParams, useRouter } from "expo-router";
 
 type ConfirmResetPasswordForm = {
@@ -102,15 +102,13 @@ export default function ConfirmResetPasswordScreen() {
               </FormControlHelper>
             </AppFormField>
 
-            <ButtonWithLoading
+            <AppButton
+              text="Confirmar"
               onPress={() => confirmResetPasswordMutation.mutateAsync(form.values)}
-              isDisabled={form.values.otp?.length !== 6 || hasErrors || confirmResetPasswordMutation.isPending}
-              isLoading={confirmResetPasswordMutation.isPending}
-              action="primary"
-              spinnerColor="$primary500"
-            >
-              <ButtonText color="$onPrimary">Confirmar</ButtonText>
-            </ButtonWithLoading>
+              disabled={form.values.otp?.length !== 6 || hasErrors || confirmResetPasswordMutation.isPending}
+              loading={confirmResetPasswordMutation.isPending}
+              color="primary"
+            />
           </View>
         </View>
       </View>

@@ -1,11 +1,11 @@
 import { AppFormField } from "@/components/AppFormField";
 import { FullScreenLayout } from "@/components/layouts/FullScreenLayout";
-import { ButtonWithLoading } from "@/components/ui/ButtonWithLoading";
+import { AppButton } from "@/components/ui/AppButton";
 import { useAppForm } from "@/hooks/use-app-form";
 import { useAppFormWithMutation } from "@/hooks/use-app-form-with-mutation";
 import { CreateAuthenticationTokenArguments, CreateAuthenticationTokenReturnType, SignInService } from "@/services/Auth/SignInService";
 import { AppAuthenticationTokenStore } from "@/utils/AuthenticationTokenStore";
-import { ButtonText, FormControlHelper, FormControlHelperText, Heading, Link, Text } from "@gluestack-ui/themed";
+import { FormControlHelper, FormControlHelperText, Heading, Link, Text } from "@gluestack-ui/themed";
 import { Href, useRouter } from "expo-router";
 import React from "react";
 import { View } from "react-native";
@@ -80,15 +80,13 @@ export default function SignInScreen() {
                 </FormControlHelperText>
               </FormControlHelper>
             </AppFormField>
-            <ButtonWithLoading
+            <AppButton
+              text="Entrar"
               onPress={() => createTokenMutation.mutateAsync(form.values)}
-              isDisabled={createTokenMutation.isPending || hasErrors}
-              isLoading={createTokenMutation.isPending}
-              spinnerColor="$primary500"
-              action="primary"
-            >
-              <ButtonText color="$onPrimary">Entrar</ButtonText>
-            </ButtonWithLoading>
+              disabled={createTokenMutation.isPending || hasErrors}
+              loading={createTokenMutation.isPending}
+              color="primary"
+            />
           </View>
           <View className="mt-2 flex flex-row gap-0 self-center">
             <Text className="flex items-center !text-typography-400" size="sm">
