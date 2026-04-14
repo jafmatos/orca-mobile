@@ -1,4 +1,3 @@
-import { Button, ButtonIcon, ButtonText, Divider, Pressable, Text } from "@gluestack-ui/themed";
 import { AppAvatar } from "./ui/AppAvatar";
 import {
   LucideIcon,
@@ -11,17 +10,17 @@ import {
   OctagonAlertIcon,
   ClockIcon,
   SparklesIcon,
-  LogOutIcon,
 } from "lucide-react-native";
 import useAppThemeColors from "@/hooks/use-app-theme-colors";
 import { AppDrawer } from "./ui/AppDrawer";
 import { useState } from "react";
 import { Portal } from "@gorhom/portal";
-import { Link, usePathname, useRouter } from "expo-router";
+import { Link, usePathname } from "expo-router";
 import { useAuthUser } from "@/hooks/queries/use-auth-user";
-import { View } from "react-native";
+import { Pressable, View } from "react-native";
 import { AppAuthenticationTokenStore } from "@/utils/AuthenticationTokenStore";
-import { AppButton } from "./ui/AppButton";
+import { Button, Divider, Text, useTheme } from "react-native-paper";
+import { useAppRouter } from "@/hooks/use-app-router";
 
 interface DrawerNavigationItemProps {
   icon?: LucideIcon;
@@ -31,8 +30,8 @@ interface DrawerNavigationItemProps {
 }
 
 function DrawerNavigationItem({ icon: Icon, ...props }: DrawerNavigationItemProps) {
-  const router = useRouter();
-  const themeColors = useAppThemeColors();
+  const router = useAppRouter();
+  const theme = useTheme();
   const pathname = usePathname();
   const isActive = pathname === props.to;
 
@@ -44,14 +43,14 @@ function DrawerNavigationItem({ icon: Icon, ...props }: DrawerNavigationItemProp
         props.onPressCallback?.();
       }}
     >
-      <View
-        className={`rounded-lg relative w-full p-4 flex flex-row items-center gap-3`}
-        style={{
-          backgroundColor: isActive ? "#f2850710" : "none",
-        }}
-      >
-        {Icon ? <Icon size={18} color={isActive ? themeColors["--color-primary-500"] : themeColors["--color-typography-0"]} /> : <></>}
-        <Text size="md" fontWeight={500} color={isActive ? themeColors["--color-primary-500"] : themeColors["--color-typography-0"]}>
+      <View className={`relative w-full p-4 flex flex-row items-center gap-3`}>
+        {Icon ? <Icon size={18} color={isActive ? theme.colors.primary : theme.colors.onBackground} /> : <></>}
+        <Text
+          variant="labelLarge"
+          style={{
+            color: isActive ? theme.colors.primary : theme.colors.onBackground,
+          }}
+        >
           {props.text}
         </Text>
       </View>
@@ -60,7 +59,8 @@ function DrawerNavigationItem({ icon: Icon, ...props }: DrawerNavigationItemProp
 }
 
 export function Navigation() {
-  const router = useRouter();
+  const theme = useTheme();
+  const router = useAppRouter();
   const user = useAuthUser();
   const themeColors = useAppThemeColors();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -70,10 +70,13 @@ export function Navigation() {
   return (
     <>
       <View
-        className="h-[72px] px-4 flex flex-row justify-between items-center bg-background-950"
+        className="h-[72px] px-4 flex flex-row justify-between items-center"
         style={{
-          boxShadow: `0 1px 3px -2px ${themeColors["--color-outline-600"]}`,
-					zIndex: 0
+          backgroundColor: theme.colors.background,
+          borderBottomWidth: 0,
+          borderBottomColor: theme.colors.outlineVariant,
+          boxShadow: `0 1px 1px -1px ${theme.colors.outlineVariant}`,
+          zIndex: 1,
         }}
       >
         <AppAvatar />
@@ -91,16 +94,21 @@ export function Navigation() {
         >
           <View className="flex flex-row gap-2 items-center">
             <AppAvatar />
-            <View className="flex flex-col">
-              <Text size="sm" fontWeight={600}>
+            <View style={{ flexShrink: 1, gap: 4 }} className="flex flex-col">
+              <Text
+                variant="titleSmall"
+                ellipsizeMode="tail"
+                numberOfLines={1}
+                style={{
+                  color: theme.colors.onBackground,
+                }}
+              >
                 {user?.name}
               </Text>
-              <Text size="sm" color="$typography400">
-                {user?.email}
-              </Text>
+              <Text variant="bodySmall">{user?.email}</Text>
             </View>
           </View>
-          <Divider bgColor="$typography0" opacity={0.1} />
+          <Divider />
           <View className="grow flex flex-col">
             <DrawerNavigationItem onPressCallback={closeDrawer} to={"/"} icon={HomeIcon} text="Início" />
             <DrawerNavigationItem onPressCallback={closeDrawer} to={"/entries"} icon={ReceiptTextIcon} text="Lançamentos" />
@@ -111,16 +119,19 @@ export function Navigation() {
             <DrawerNavigationItem onPressCallback={closeDrawer} to={"/analyses"} icon={SparklesIcon} text="Análises" />
             <DrawerNavigationItem onPressCallback={closeDrawer} to={"/profile"} icon={UserIcon} text="Meu Perfil" />
           </View>
-          <AppButton
-            text="Sair"
-            color="danger"
-            icon={LogOutIcon}
+          <Button
+            icon="LogOut"
+            mode="contained-tonal"
+            buttonColor={theme.colors.error}
+            textColor={theme.colors.onError}
             onPress={() => {
               AppAuthenticationTokenStore.remove();
 
-              router.push("/sign-in");
+              router.goToSignIn();
             }}
-          />
+          >
+            Sair
+          </Button>
         </AppDrawer>
       </Portal>
     </>

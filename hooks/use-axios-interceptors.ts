@@ -1,10 +1,10 @@
 import { $axios } from "@/utils/$axios";
 import { AppAuthenticationTokenStore } from "@/utils/AuthenticationTokenStore";
 import { AxiosError } from "axios";
-import { useRouter } from "expo-router";
+import { useAppRouter } from "./use-app-router";
 
 export const useAxiosInterceptors = () => {
-  const router = useRouter();
+  const router = useAppRouter();
 
   $axios.interceptors.request.use(
     (config) => {
@@ -28,7 +28,7 @@ export const useAxiosInterceptors = () => {
       if (error instanceof AxiosError && error.response?.status === 401) {
         AppAuthenticationTokenStore.remove();
 
-        router.push("/(auth)/sign-in");
+        router.goToSignIn();
       }
 
       return Promise.reject(error);

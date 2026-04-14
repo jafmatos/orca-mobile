@@ -1,68 +1,64 @@
-import { AppFormField } from "@/components/AppFormField";
 import { FullScreenLayout } from "@/components/layouts/FullScreenLayout";
-import { AppButton } from "@/components/ui/AppButton";
+import { AppOTPInput } from "@/components/ui/AppOTPInput";
+import { FormField } from "@/components/ui/FormField";
 import { useAppForm } from "@/hooks/use-app-form";
 import { useAppFormWithMutation } from "@/hooks/use-app-form-with-mutation";
+import { useAppRouter } from "@/hooks/use-app-router";
 import { ConfirmSignUpArguments, ConfirmSignUpReturnType, SignUpService } from "@/services/Auth/SignUpService";
 import { AppAuthenticationTokenStore } from "@/utils/AuthenticationTokenStore";
-import { Heading, Text, View } from "@gluestack-ui/themed";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
+import { View } from "react-native";
+import { Button, HelperText, Text } from "react-native-paper";
 
 type ConfirmSignUpForm = {
   otp: string;
 };
 
 export default function ConfirmSignUpScreen() {
+  const router = useAppRouter();
   const params = useLocalSearchParams<{ id: string }>();
   const form = useAppForm<ConfirmSignUpForm>({ otp: "" });
-  const {
-    hasErrors,
-    hasError,
-    getError,
-    setValue,
-    mutation: confirmSignUpMutation,
-  } = useAppFormWithMutation<ConfirmSignUpForm, ConfirmSignUpArguments, ConfirmSignUpReturnType>(form, {
-    mutationFn: () => SignUpService.confirmSignUp(params.id, form.values),
-    onSuccess: (data) => {
-      AppAuthenticationTokenStore.set(data.token);
+  const { mutation: confirmSignUpMutation } = useAppFormWithMutation<ConfirmSignUpForm, ConfirmSignUpArguments, ConfirmSignUpReturnType>(
+    form,
+    {
+      mutationFn: () => SignUpService.confirmSignUp(params.id, form.values),
+      onSuccess: (data) => {
+        AppAuthenticationTokenStore.set(data.token);
 
-      router.push("/(tabs)");
+        router.goToHome();
+      },
     },
-  });
-  const router = useRouter();
+  );
 
   return (
     <FullScreenLayout>
       <View className="w-screen h-full p-6 flex flex-col justify-center">
         <View className="flex flex-col gap-2">
-          <Heading size="3xl" className="!text-typography-100 !font-semibold">
-            Nós te enviamos um código!
-          </Heading>
-          <Text marginBottom="$2" className="!text-typography-200">
-            Para confirmar o cadastro, digite o código que te enviamos pelo e-mail.
-          </Text>
-          <View className="flex" gap="$4">
-            <AppFormField isRequired isInvalid={hasError("otp")}>
-              <AppFormField.Label className="!text-typography-200 !font-medium">Código</AppFormField.Label>
-              <AppFormField.TextInput
-                value={form.values.otp}
+          <Text variant="headlineMedium">Nós te enviamos um código!</Text>
+          <Text variant="bodyMedium">Para confirmar o cadastro, digite o código que te enviamos pelo e-mail.</Text>
+          <View className="flex gap-2">
+            <FormField>
+              <AppOTPInput
+                label="Código*"
                 placeholder="Digite o código de verificação"
-                textContentType="oneTimeCode"
-                keyboardType="numeric"
-                onChangeText={(text) => setValue("otp", text)}
-                maxLength={6}
-                required
+                mode="outlined"
+                value={form.values.otp}
+                onChangeText={form.makeSetter("otp")}
+                error={form.hasError("otp")}
               />
-              <AppFormField.Error error={getError("otp")} />
-            </AppFormField>
+              <HelperText type="error" visible={form.hasError("otp")}>
+                {form.getError("otp")}
+              </HelperText>
+            </FormField>
 
-            <AppButton
-              text="Confirmar"
+            <Button
+              mode="contained"
               onPress={() => confirmSignUpMutation.mutateAsync(form.values)}
-              disabled={form.values.otp?.length !== 6 || hasErrors || confirmSignUpMutation.isPending}
+              disabled={form.values.otp?.length !== 6 || form.hasErrors || confirmSignUpMutation.isPending}
               loading={confirmSignUpMutation.isPending}
-              color="primary"
-            />
+            >
+              Confirmar
+            </Button>
           </View>
         </View>
       </View>

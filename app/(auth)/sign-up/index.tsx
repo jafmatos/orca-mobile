@@ -1,24 +1,13 @@
-import { AppFormField } from "@/components/AppFormField";
 import { FullScreenLayout } from "@/components/layouts/FullScreenLayout";
-import { AppButton } from "@/components/ui/AppButton";
+import { AppSecureInput } from "@/components/ui/AppSecureInput";
+import { FormField } from "@/components/ui/FormField";
 import { websiteUrl } from "@/constants/website-url";
 import { useAppForm } from "@/hooks/use-app-form";
 import { useAppFormWithMutation } from "@/hooks/use-app-form-with-mutation";
+import { useAppRouter } from "@/hooks/use-app-router";
 import { CreateSignUpKeyArguments, CreateSignUpKeyReturnType, SignUpService } from "@/services/Auth/SignUpService";
-import {
-	Checkbox,
-	CheckboxIcon,
-	CheckboxIndicator,
-	CheckboxLabel,
-	CheckIcon,
-	FormControlHelper,
-	FormControlHelperText,
-	Heading,
-	Link,
-	Text
-} from "@gluestack-ui/themed";
-import { useRouter } from "expo-router";
-import { View } from "react-native";
+import { Pressable, View } from "react-native";
+import { Button, Checkbox, HelperText, Text, TextInput, useTheme } from "react-native-paper";
 
 type SignUpForm = {
   email: string;
@@ -29,7 +18,8 @@ type SignUpForm = {
 };
 
 export default function SignUpScreen() {
-  const router = useRouter();
+  const router = useAppRouter();
+  const theme = useTheme();
   const form = useAppForm<SignUpForm>({
     email: "",
     name: "",
@@ -38,128 +28,113 @@ export default function SignUpScreen() {
     acceptedTerms: false,
   });
 
-  const {
-    hasErrors,
-    getError,
-    hasError,
-    setValue,
-    mutation: createSignUpKeyMutation,
-  } = useAppFormWithMutation<SignUpForm, CreateSignUpKeyArguments, CreateSignUpKeyReturnType>(form, {
-    mutationFn: SignUpService.createSignUpKey,
-    onSuccess: (data) => {
-      router.push({
-        pathname: "/(auth)/sign-up/confirm/[id]",
-        params: {
-          id: data.key.id,
-        },
-      });
+  const { mutation: createSignUpKeyMutation } = useAppFormWithMutation<SignUpForm, CreateSignUpKeyArguments, CreateSignUpKeyReturnType>(
+    form,
+    {
+      mutationFn: SignUpService.createSignUpKey,
+      onSuccess: (data) => {
+        router.goToSignUpConfirm(data.key.id);
+      },
     },
-  });
+  );
 
   return (
     <FullScreenLayout>
-      <View className="w-screen h-full p-6 flex flex-col justify-center">
+      <View className="w-screen h-full p-4 flex flex-col justify-center">
         <View className="flex flex-col gap-2">
-          <Heading size="3xl" className="!text-typography-100 !font-semibold">
-            Cadastrar-se
-          </Heading>
-          <Text marginBottom="$2" className="!text-typography-200">
-            Junte-se a nós e comece a gerenciar suas finanças de forma simples e segura.
-          </Text>
+          <Text variant="headlineMedium">Cadastrar-se</Text>
+          <Text variant="bodyMedium">Junte-se a nós e comece a gerenciar suas finanças de forma simples e segura.</Text>
           <View className="flex gap-2">
-            <AppFormField isRequired isInvalid={hasError("name")}>
-              <AppFormField.Label className="!text-typography-200 !font-medium">Nome</AppFormField.Label>
-              <AppFormField.TextInput
+            <FormField>
+              <TextInput
+                label="Nome*"
+                placeholder="Digite seu nome"
+                mode="outlined"
                 value={form.values.name}
-                placeholder="Informe seu nome"
                 textContentType="name"
-                onChangeText={(text) => setValue("name", text)}
-                required
+                onChangeText={form.makeSetter("name")}
+                error={form.hasError("name")}
               />
-              <AppFormField.Error error={getError("name")} />
-            </AppFormField>
-            <AppFormField isRequired isInvalid={hasError("email")}>
-              <AppFormField.Label className="!text-typography-200 !font-medium">Email</AppFormField.Label>
-              <AppFormField.TextInput
-                value={form.values.email}
-                placeholder="Digite seu e-mail"
-                textContentType="emailAddress"
-                onChangeText={(text) => setValue("email", text)}
-                required
-              />
-              <AppFormField.Error error={getError("email")} />
-            </AppFormField>
-            <AppFormField isRequired isInvalid={hasError("password")}>
-              <AppFormField.Label className="!text-typography-200 !font-medium">Senha</AppFormField.Label>
-              <AppFormField.TextInput
-                value={form.values.password}
-                placeholder="Digite sua senha"
-                textContentType="password"
-                onChangeText={(text) => setValue("password", text)}
-                secureTextEntry
-                required
-              />
-              <AppFormField.Error error={getError("password")} />
-            </AppFormField>
-            <AppFormField isRequired isInvalid={hasError("passwordConfirmation")}>
-              <AppFormField.Label className="!text-typography-200 !font-medium">Confirmação da Senha</AppFormField.Label>
-              <AppFormField.TextInput
-                value={form.values.passwordConfirmation}
-                placeholder="Confirme sua senha"
-                textContentType="password"
-                onChangeText={(text) => setValue("passwordConfirmation", text)}
-                secureTextEntry
-                required
-              />
-              <AppFormField.Error error={getError("passwordConfirmation")} />
-              <FormControlHelper>
-                <FormControlHelperText>
-                  <Link>
-                    <Text size="sm" className="!text-typography-400">
-                      Sua senha deve ter no mínimo 6 dígitos
-                    </Text>
-                  </Link>
-                </FormControlHelperText>
-              </FormControlHelper>
-            </AppFormField>
-            <AppFormField isRequired className="mt-2">
-              <Checkbox
-                isChecked={form.values.acceptedTerms}
-                value="Terms of Use"
-                size="md"
-                onChange={(value) => setValue("acceptedTerms", value)}
-              >
-                <View className="flex flex-row gap-2">
-                  <CheckboxIndicator>
-                    <CheckboxIcon as={() => <CheckIcon color="$onPrimary" />} />
-                  </CheckboxIndicator>
-                  <CheckboxLabel>Eu li e aceito os termos de uso</CheckboxLabel>
-                </View>
-              </Checkbox>
-            </AppFormField>
+              <HelperText type="error" visible={form.hasError("name")}>
+                {form.getError("name")}
+              </HelperText>
+            </FormField>
 
-            <AppButton
-              text="Enviar"
+            <FormField>
+              <TextInput
+                label="Email*"
+                placeholder="Digite seu email"
+                mode="outlined"
+                keyboardType="email-address"
+                value={form.values.email}
+                onChangeText={form.makeSetter("email")}
+                error={form.hasError("email")}
+              />
+              <HelperText type="error" visible={form.hasError("email")}>
+                {form.getError("email")}
+              </HelperText>
+            </FormField>
+
+            <FormField>
+              <AppSecureInput
+                label="Senha*"
+                placeholder="Digite sua senha"
+                value={form.values.password}
+                onChangeText={form.makeSetter("password")}
+                error={form.hasError("password")}
+                mode="outlined"
+              />
+              <HelperText type="error" visible={form.hasError("password")}>
+                {form.getError("password")}
+              </HelperText>
+            </FormField>
+
+            <FormField>
+              <AppSecureInput
+                mode="outlined"
+                label="Confirmação da senha*"
+                placeholder="Confirme sua senha"
+                value={form.values.passwordConfirmation}
+                onChangeText={form.makeSetter("passwordConfirmation")}
+                error={form.hasError("passwordConfirmation") || form.values.password !== form.values.passwordConfirmation}
+              />
+              <HelperText
+                type="error"
+                visible={form.hasError("passwordConfirmation") || form.values.password !== form.values.passwordConfirmation}
+              >
+                {form.getError("passwordConfirmation") || "As senhas não coincidem"}
+              </HelperText>
+            </FormField>
+
+            <Pressable
+              className="flex flex-row items-center"
+              onPress={() => {
+                form.setValue("acceptedTerms", !form.values.acceptedTerms);
+              }}
+            >
+              <Checkbox status={form.values.acceptedTerms ? "checked" : "unchecked"} />
+              <Text variant="bodyMedium">Eu li e aceito os termos de uso</Text>
+            </Pressable>
+
+            <Button
+              mode="contained"
               onPress={() =>
                 createSignUpKeyMutation.mutateAsync({
                   ...form.values,
                   confirmUrl: websiteUrl,
                 })
               }
-              disabled={!form.values.acceptedTerms || hasErrors || createSignUpKeyMutation.isPending}
+              disabled={!form.values.acceptedTerms || form.hasErrors || createSignUpKeyMutation.isPending}
               loading={createSignUpKeyMutation.isPending}
-              color="primary"
-            />
+            >
+              Enviar
+            </Button>
           </View>
           <View className="mt-2 flex flex-row gap-0 self-center">
-            <Text className="flex items-center !text-typography-400" size="sm">
-              Já tem uma conta?{" "}
+            <Text variant="bodyMedium">Já tem uma conta? </Text>
+            <Text variant="bodyMedium" onPress={() => router.goToSignIn()} style={{ color: theme.colors.primary }}>
+              Entrar
             </Text>
-            <Link onPress={() => router.push("/(auth)/sign-in")}>
-              <Text color="$info500" size="sm">
-                Entrar
-              </Text>
-            </Link>
           </View>
         </View>
       </View>

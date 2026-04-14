@@ -66,6 +66,7 @@ export function AppModal({ backdropColor = "#000000", backdropOpacity = 0.5, ...
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+          zIndex: 100,
         }}
       >
         <Animated.View

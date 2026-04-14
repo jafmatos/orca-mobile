@@ -1,18 +1,18 @@
-import { SafeAreaView } from "react-native-safe-area-context";
 import { AppToast } from "../AppToast";
 import { KeyboardAvoidingComponent } from "../KeyboardAvoindingComponent";
-import { ThemedComponent } from "../ThemedComponent";
 import { PropsWithChildren } from "react";
+import { SafeAreaComponent } from "../SafeAreaComponent";
+import { useTheme } from "react-native-paper";
 
 export function FullScreenLayout(props: PropsWithChildren) {
-  return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <ThemedComponent className="grow">
-        <ThemedComponent.Background />
+  const theme = useTheme();
 
-        <KeyboardAvoidingComponent>{props.children}</KeyboardAvoidingComponent>
+  return (
+    <KeyboardAvoidingComponent style={{ backgroundColor: theme.colors.background }}>
+      <SafeAreaComponent style={{ flex: 1 }}>
+        {props.children}
         <AppToast />
-      </ThemedComponent>
-    </SafeAreaView>
+      </SafeAreaComponent>
+    </KeyboardAvoidingComponent>
   );
 }

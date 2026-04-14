@@ -35,7 +35,7 @@ export function AppToggleSelect<T>(props: AppToggleSelectProps<T>) {
               backgroundColor: isActive ? selectedOptionBackgroundColor : "transparent",
             }}
           >
-            <Text size="md" color="$typography0">
+            <Text >
               {option.label}
             </Text>
           </Pressable>

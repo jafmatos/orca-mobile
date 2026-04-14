@@ -1,11 +1,11 @@
 import { useCallback, useEffect } from "react";
 import { Dimensions, Pressable, View } from "react-native";
 import Animated, { useSharedValue, withSpring } from "react-native-reanimated";
-import { ThemedComponent } from "../ThemedComponent";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { scheduleOnRN, scheduleOnUI } from "react-native-worklets";
 import { useStackedBackHandler } from "@/hooks/use-stacked-back-handler";
+import { useTheme } from "react-native-paper";
 
 export interface AppDrawerProps extends React.ComponentProps<typeof Animated.View> {
   isOpen: boolean;
@@ -19,6 +19,7 @@ const SCREEN_HEIGHT = screenDimensions.height;
 const SCREEN_WIDTH = screenDimensions.width;
 
 export function AppDrawer({ panSnapPoints = 100, snapPoints = 0.8 * SCREEN_WIDTH, ...props }: AppDrawerProps) {
+  const theme = useTheme();
   const insets = useSafeAreaInsets();
   const drawerOpenedTranslateX = 0;
   const drawerTranslateX = useSharedValue(-snapPoints);
@@ -105,26 +106,19 @@ export function AppDrawer({ panSnapPoints = 100, snapPoints = 0.8 * SCREEN_WIDTH
         >
           <Pressable className="w-full h-full" onPress={props.onClose} />
         </Animated.View>
-        <ThemedComponent
+
+        <Animated.View
+          {...props}
+          className={`h-full ${props.className}`}
           style={{
-            pointerEvents: props.isOpen ? "auto" : "none",
             zIndex: 9999,
-            position: "absolute",
             width: snapPoints,
-            height: SCREEN_HEIGHT,
-            left: 0,
+            backgroundColor: theme.colors.background,
+            paddingTop: insets.top + 16,
+            paddingBottom: insets.bottom + 16,
+            transform: [{ translateX: drawerTranslateX }],
           }}
-        >
-          <Animated.View
-            {...props}
-            className={`bg-background-900 h-full ${props.className}`}
-            style={{
-              paddingTop: insets.top + 16,
-              paddingBottom: insets.bottom + 16,
-              transform: [{ translateX: drawerTranslateX }],
-            }}
-          />
-        </ThemedComponent>
+        />
       </View>
     </GestureDetector>
   );

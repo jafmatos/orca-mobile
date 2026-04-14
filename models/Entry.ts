@@ -14,5 +14,5 @@ export interface Entry {
   amount: number;
   description: string;
   when: Date;
-  category: Category;
+  category?: Category;
 }

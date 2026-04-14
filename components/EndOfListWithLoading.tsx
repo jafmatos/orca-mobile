@@ -1,5 +1,5 @@
-import { Text, Spinner } from "@gluestack-ui/themed";
 import { View } from "react-native";
+import { ActivityIndicator, Text } from "react-native-paper";
 
 export type EndOfListWithLoadingProps = {
   isLoading?: boolean;
@@ -9,11 +9,9 @@ export type EndOfListWithLoadingProps = {
 
 export function EndOfListWithLoading(props: EndOfListWithLoadingProps) {
   const content = props.endOfList ? (
-    <Text color="$typography400" size="sm">
-      {props.endOfListText}
-    </Text>
+    <Text variant="bodyMedium">{props.endOfListText}</Text>
   ) : props.isLoading ? (
-    <Spinner className="mt-4" size={40} />
+    <ActivityIndicator className="mt-4" />
   ) : (
     <></>
   );

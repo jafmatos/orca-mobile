@@ -1,10 +1,10 @@
-import useAppThemeColors from "@/hooks/use-app-theme-colors";
 import { useStackedBackHandler } from "@/hooks/use-stacked-back-handler";
 import { Portal } from "@gorhom/portal";
 import React, { useCallback, useEffect, useState } from "react";
 import { Dimensions, Pressable, ScrollView, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { useKeyboardHandler } from "react-native-keyboard-controller";
+import { useTheme } from "react-native-paper";
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { scheduleOnRN, scheduleOnUI } from "react-native-worklets";
@@ -38,7 +38,7 @@ export function AppBottomSheet({
   backdropColor = "#000000",
   ...props
 }: AppBottomSheetProps) {
-  const themeColors = useAppThemeColors();
+  const theme = useTheme();
   const insets = useSafeAreaInsets();
   const [isScrollViewOnStart, _setIsScrollViewOnStart] = useState(true);
   const [isScrollViewOnEnd, _setIsScrollViewOnEnd] = useState(true);
@@ -298,6 +298,7 @@ export function AppBottomSheet({
             position: "absolute",
             top: 0,
             left: 0,
+            zIndex: 100,
           }}
         >
           <Animated.View
@@ -333,7 +334,7 @@ export function AppBottomSheet({
                 borderTopLeftRadius: 18,
                 borderTopRightRadius: 18,
                 boxShadow: `0 3px 7px 0 rgba(0, 0, 0, 0.5)`,
-                backgroundColor: themeColors["--color-background-900"],
+                backgroundColor: theme.colors.background,
               },
               bottomSheetAnimatedStyles,
             ]}
@@ -351,7 +352,7 @@ export function AppBottomSheet({
                   borderRadius: 2,
                   height: 4,
                   width: 32,
-                  backgroundColor: themeColors["--color-typography-200"],
+                  backgroundColor: theme.colors.onBackground,
                 }}
               />
             </View>

@@ -1,14 +1,14 @@
-import { AppFormField } from "@/components/AppFormField";
 import { FullScreenLayout } from "@/components/layouts/FullScreenLayout";
-import { AppButton } from "@/components/ui/AppButton";
+import { AppSecureInput } from "@/components/ui/AppSecureInput";
+import { FormField } from "@/components/ui/FormField";
 import { useAppForm } from "@/hooks/use-app-form";
 import { useAppFormWithMutation } from "@/hooks/use-app-form-with-mutation";
+import { useAppRouter } from "@/hooks/use-app-router";
 import { CreateAuthenticationTokenArguments, CreateAuthenticationTokenReturnType, SignInService } from "@/services/Auth/SignInService";
 import { AppAuthenticationTokenStore } from "@/utils/AuthenticationTokenStore";
-import { FormControlHelper, FormControlHelperText, Heading, Link, Text } from "@gluestack-ui/themed";
-import { Href, useRouter } from "expo-router";
 import React from "react";
 import { View } from "react-native";
+import { Button, HelperText, Text, TextInput, useTheme } from "react-native-paper";
 
 type SignInForm = {
   email: string;
@@ -16,87 +16,81 @@ type SignInForm = {
 };
 
 export default function SignInScreen() {
-  const router = useRouter();
+  const router = useAppRouter();
+  const theme = useTheme();
   const form = useAppForm<SignInForm>({ email: "", password: "" });
 
-  const {
-    hasErrors,
-    setValue,
-    getError,
-    hasError,
-    mutation: createTokenMutation,
-  } = useAppFormWithMutation<SignInForm, CreateAuthenticationTokenArguments, CreateAuthenticationTokenReturnType>(form, {
+  const { mutation: createTokenMutation } = useAppFormWithMutation<
+    SignInForm,
+    CreateAuthenticationTokenArguments,
+    CreateAuthenticationTokenReturnType
+  >(form, {
     mutationFn: SignInService.createAuthenticationToken,
     onSuccess: (data) => {
       form.clear();
 
       AppAuthenticationTokenStore.set(data.token);
 
-      router.push("/(tabs)");
+      router.goToHome();
     },
   });
 
   return (
     <FullScreenLayout>
-      <View className="w-screen h-full p-6 flex flex-col justify-center items-start">
+      <View className="p-4 w-screen h-full flex flex-col justify-center">
         <View className="flex flex-col gap-2">
-          <Heading size="3xl" className="!text-typography-100 !font-semibold">
-            Entrar
-          </Heading>
-          <Text marginBottom="$2" className="!text-typography-200">
-            Acesse sua conta e acompanhe suas finanças de forma simples e segura.
-          </Text>
+          <Text variant="headlineMedium">Entrar</Text>
+          <Text variant="bodyMedium">Acesse sua conta e acompanhe suas finanças de forma simples e segura.</Text>
           <View className="flex gap-2">
-            <AppFormField isRequired isInvalid={hasError("email")}>
-              <AppFormField.Label className="!text-typography-200 !font-medium">Email</AppFormField.Label>
-              <AppFormField.TextInput
-                value={form.values.email}
-                placeholder="Digite seu e-mail"
-                textContentType="emailAddress"
+            <FormField>
+              <TextInput
+                label="Email*"
+                placeholder="Digite seu email"
+                mode="outlined"
                 keyboardType="email-address"
-                onChangeText={(text) => setValue("email", text)}
-                required
+                value={form.values.email}
+                onChangeText={form.makeSetter("email")}
+                error={form.hasError("email")}
               />
-              <AppFormField.Error error={getError("email")} />
-            </AppFormField>
-            <AppFormField isRequired isInvalid={hasError("password")}>
-              <AppFormField.Label className="!text-typography-200 !font-medium">Senha</AppFormField.Label>
-              <AppFormField.TextInput
-                value={form.values.password}
+              <HelperText type="error" visible={form.hasError("email")}>
+                {form.getError("email")}
+              </HelperText>
+            </FormField>
+
+            <FormField>
+              <AppSecureInput
+                label="Senha*"
                 placeholder="Digite sua senha"
-                textContentType="password"
-                onChangeText={(text) => setValue("password", text)}
-                secureTextEntry
-                required
+                value={form.values.password}
+                onChangeText={form.makeSetter("password")}
+                error={form.hasError("password")}
+                mode="outlined"
               />
-              <AppFormField.Error error={getError("password")} />
-              <FormControlHelper>
-                <FormControlHelperText>
-                  <Link onPress={() => router.push("/(auth)/reset-password" as Href)}>
-                    <Text size="sm" className="!text-typography-400">
-                      Esqueceu a senha?
-                    </Text>
-                  </Link>
-                </FormControlHelperText>
-              </FormControlHelper>
-            </AppFormField>
-            <AppButton
-              text="Entrar"
+              <View className="flex flex-row items-center justify-between">
+                <HelperText type="error" visible={form.hasError("password")}>
+                  {form.getError("password")}
+                </HelperText>
+
+                <HelperText type="info" visible onPress={() => router.goToResetPassword()}>
+                  Esqueceu a senha?
+                </HelperText>
+              </View>
+            </FormField>
+
+            <Button
+              mode="contained"
               onPress={() => createTokenMutation.mutateAsync(form.values)}
-              disabled={createTokenMutation.isPending || hasErrors}
+              disabled={createTokenMutation.isPending || form.hasErrors}
               loading={createTokenMutation.isPending}
-              color="primary"
-            />
+            >
+              Entrar
+            </Button>
           </View>
           <View className="mt-2 flex flex-row gap-0 self-center">
-            <Text className="flex items-center !text-typography-400" size="sm">
-              Não tem uma conta?{" "}
+            <Text variant="bodyMedium">Não tem uma conta? </Text>
+            <Text variant="bodyMedium" onPress={() => router.goToSignUp()} style={{ color: theme.colors.primary }}>
+              Cadastre-se
             </Text>
-            <Link onPress={() => router.push("/(auth)/sign-up")}>
-              <Text color="$info500" size="sm">
-                Cadastre-se
-              </Text>
-            </Link>
           </View>
         </View>
       </View>

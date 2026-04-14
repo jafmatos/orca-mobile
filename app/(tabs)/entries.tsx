@@ -1,9 +1,7 @@
-import { AppFormField } from "@/components/AppFormField";
 import { Conditional } from "@/components/Conditional";
 import { EndOfListWithLoading } from "@/components/EndOfListWithLoading";
 import { TabbedLayout } from "@/components/layouts/TabbedLayout";
 import { AppBottomSheet } from "@/components/ui/AppBottomSheet";
-import { AppButton } from "@/components/ui/AppButton";
 import { AppConfirmationDialog } from "@/components/ui/AppConfirmationDialog";
 import { AppCurrencyInput } from "@/components/ui/AppCurrencyInput";
 import { AppDatePicker } from "@/components/ui/AppDatePicker";
@@ -12,8 +10,7 @@ import { AppFabOverlay } from "@/components/ui/AppFabOverlay";
 import { AppFullScreenOverlay } from "@/components/ui/AppFullScreenOverlay";
 import { AppIconButton } from "@/components/ui/AppIconButton";
 import { AppSelect } from "@/components/ui/AppSelect";
-import { AppToggleSelect } from "@/components/ui/AppToggleSelect";
-import { SearchField } from "@/components/ui/SearchField";
+import { FormField } from "@/components/ui/FormField";
 import { useCategories } from "@/hooks/queries/use-categories";
 import { useEntries } from "@/hooks/queries/use-entries";
 import { useAppForm } from "@/hooks/use-app-form";
@@ -22,21 +19,20 @@ import useAppThemeColors from "@/hooks/use-app-theme-colors";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { Entry, EntryTypes } from "@/models/Entry";
 import {
-  CreateEntryBody,
-  CreateEntryReturnType,
-  DeleteEntryReturnType,
-  EntryService,
-  UpdateEntryBody,
-  UpdateEntryReturnType,
+	CreateEntryBody,
+	CreateEntryReturnType,
+	DeleteEntryReturnType,
+	EntryService,
+	UpdateEntryBody,
+	UpdateEntryReturnType,
 } from "@/services/EntryService";
 import { currencyFormatter } from "@/utils/currencyFormatter";
 import { QueryKeys } from "@/utils/QueryKeys";
-import { Button, ButtonIcon, Text, View } from "@gluestack-ui/themed";
-import { Portal } from "@gorhom/portal";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { CopyIcon, DownloadIcon, EditIcon, PlusIcon, SlidersHorizontalIcon, TrashIcon } from "lucide-react-native";
+import { CopyIcon, EditIcon, PlusIcon, TrashIcon } from "lucide-react-native";
 import { useMemo, useState } from "react";
-import { FlatList, Pressable } from "react-native";
+import { FlatList, Pressable, View } from "react-native";
+import { Button, HelperText, Searchbar, SegmentedButtons, Surface, Text, TextInput, useTheme } from "react-native-paper";
 
 interface IEntryForm {
   id?: Entry["id"];
@@ -64,6 +60,7 @@ export default function EntriesScreen() {
   const [selectedEntry, setSelectedEntry] = useState<Entry | undefined>();
 
   const toast = useAppToast();
+  const theme = useTheme();
   const themeColors = useAppThemeColors();
   const queryClient = useQueryClient();
   const categoryQuery = useCategories();
@@ -137,20 +134,10 @@ export default function EntriesScreen() {
         ListHeaderComponent={() => {
           return (
             <View className="flex flex-col gap-4">
-              <View className="flex flex-row gap-4 mb-4">
-                <SearchField
-                  onSearch={(text) => console.log(text)}
-                  containerProps={{
-                    height: "100%",
-                    className: "grow",
-                  }}
-                />
-                <Button className="aspect-square" variant="outline">
-                  <ButtonIcon color="$primary500" as={SlidersHorizontalIcon} />
-                </Button>
-                <Button className="aspect-square" variant="outline">
-                  <ButtonIcon color="$primary500" as={DownloadIcon} />
-                </Button>
+              <View className="flex flex-row mb-4">
+                <Searchbar style={{ flex: 1 }} value="" placeholder="Pesquisar" />
+                {/* <IconButton mode="contained" icon="SlidersHorizontal" size={24} />
+                <IconButton mode="contained" icon="Download" size={24} /> */}
               </View>
             </View>
           );
@@ -166,37 +153,34 @@ export default function EntriesScreen() {
         data={entries}
         renderItem={({ item }) => {
           return (
-            <Pressable
-              key={item.id}
-              onPress={() => {
-                setSelectedEntry(item);
-              }}
-            >
-              <View className="p-4 rounded-lg flex flex-col gap-2" backgroundColor="$background800">
-                <View className="flex flex-row justify-between items-center">
-                  <Text fontSize={16} fontWeight={600} color="$typography0">
-                    {item.category.name || "Sem categoria"}
-                  </Text>
-                  <Text
-                    fontSize={14}
-                    fontWeight={500}
-                    color={item.type === EntryTypes.Income ? themeColors["--color-success-500"] : themeColors["--color-danger-500"]}
-                  >
-                    {currencyFormatter.format(item.amount)}
-                  </Text>
+            <Pressable onPress={() => setSelectedEntry(item)}>
+              <Surface style={{ borderRadius: theme.roundness }}>
+                <View className="rounded-xl p-4 flex gap-2">
+                  <View className="flex flex-row items-center justify-between">
+                    <Text variant="titleMedium">{item.category?.name || "Sem categoria"}</Text>
+                    <Text
+                      style={{
+                        color: item.type === EntryTypes.Expense ? theme.colors.error : theme.colors.success,
+                      }}
+                    >
+                      {currencyFormatter.format(item.amount)}
+                    </Text>
+                  </View>
+                  <View className="flex flex-row items-center justify-between gap-4">
+                    <View style={{ flexShrink: 1 }}>
+                      <Text variant="bodyMedium" ellipsizeMode="tail" numberOfLines={1}>
+                        {item.description || "Sem descrição"}
+                      </Text>
+                    </View>
+                    <Text variant="bodySmall">
+                      {new Date(item.when).toLocaleDateString("pt-BR", {
+                        day: "numeric",
+                        month: "short",
+                      })}
+                    </Text>
+                  </View>
                 </View>
-                <View className="flex flex-row justify-between items-center gap-4">
-                  <Text fontSize={16} fontWeight={400} color="$typography400" ellipsizeMode="tail" numberOfLines={1} flex={1}>
-                    {item.description || "Sem descrição"}
-                  </Text>
-                  <Text fontSize={13} fontWeight={500} color="$typography400">
-                    {new Date(item.when).toLocaleString("pt-BR", {
-                      day: "numeric",
-                      month: "short",
-                    })}
-                  </Text>
-                </View>
-              </View>
+              </Surface>
             </Pressable>
           );
         }}
@@ -222,9 +206,10 @@ export default function EntriesScreen() {
           title={!!entryForm.values.id ? "Editar lançamento" : "Novo lançamento"}
         />
         <View className="p-4 flex flex-col gap-2">
-          <AppToggleSelect<EntryTypes>
+          <SegmentedButtons
             value={entryForm.values.type}
-            options={[
+            onValueChange={entryForm.makeSetter("type")}
+            buttons={[
               {
                 label: "Despesa",
                 value: EntryTypes.Expense,
@@ -234,11 +219,18 @@ export default function EntriesScreen() {
                 value: EntryTypes.Income,
               },
             ]}
-            onChange={entryForm.makeSetter("type")}
+            theme={{
+              colors: {
+                secondaryContainer: theme.colors.surfaceVariant,
+                onSecondaryContainer: theme.colors.onSurfaceVariant,
+              },
+            }}
           />
-          <AppFormField>
-            <AppFormField.Label>Categoria</AppFormField.Label>
+
+          <FormField>
             <AppSelect
+              mode="outlined"
+              label="Categoria"
               value={entryForm.values.category.id}
               onChange={(id) => entryForm.setValue("category", { id })}
               closeOnSelect
@@ -253,40 +245,67 @@ export default function EntriesScreen() {
                   }) || []
               }
             />
-          </AppFormField>
-          <AppFormField isRequired isInvalid={entryForm.hasError("amount")}>
-            <AppFormField.Label>Valor</AppFormField.Label>
-            <AppCurrencyInput value={entryForm.values.amount} placeholder="R$ 7,90" onChange={entryForm.makeSetter("amount")} />
-            <AppFormField.Error error={entryForm.getError("amount")} />
-          </AppFormField>
-          <AppFormField isInvalid={entryForm.hasError("description")}>
-            <AppFormField.Label>Descrição</AppFormField.Label>
-            <AppFormField.TextInput
-              value={entryForm.values.description}
-              placeholder="Descrição"
-              onChangeText={entryForm.makeSetter("description")}
-            />
-            <AppFormField.Error error={entryForm.getError("description")} />
-            <AppFormField.HelperText
-              text={`${entryForm.values.description.length}/60`}
-              color={entryForm.values.description.length > 60 ? "$danger500" : undefined}
-            />
-          </AppFormField>
-          <View className="flex flex-row columns-2 gap-4">
-            <AppFormField className="grow basis-0" isRequired isInvalid={entryForm.hasError("when")}>
-              <AppFormField.Label>Data</AppFormField.Label>
-              <AppDatePicker value={entryForm.values.when} onChange={entryForm.makeSetter("when")} />
-              <AppFormField.Error error={entryForm.getError("when")} />
-            </AppFormField>
+            <HelperText type="error" visible={entryForm.hasError("category")}>
+              {entryForm.getError("category")}
+            </HelperText>
+          </FormField>
+
+          <View className="flex flex-row items-center gap-4">
+            <FormField className="grow basis-0">
+              <AppCurrencyInput
+                mode="outlined"
+                label="Valor"
+                value={entryForm.values.amount}
+                onChange={entryForm.makeSetter("amount")}
+                error={entryForm.hasError("amount")}
+              />
+              <HelperText type="error" visible={entryForm.hasError("amount")}>
+                {entryForm.getError("amount")}
+              </HelperText>
+            </FormField>
+
+            <FormField className="grow basis-0">
+              <AppDatePicker
+                mode="outlined"
+                label="Data"
+                value={entryForm.values.when}
+                onChange={entryForm.makeSetter("when")}
+                error={entryForm.hasError("when")}
+              />
+              <HelperText type="error" visible={entryForm.hasError("when")}>
+                {entryForm.getError("when")}
+              </HelperText>
+            </FormField>
           </View>
-          <AppButton
-            text="Pronto"
-            className="mt-6"
+
+          <FormField>
+            <TextInput
+              mode="outlined"
+              label="Descrição"
+              value={entryForm.values.description}
+              onChangeText={entryForm.makeSetter("description")}
+              right={
+                <TextInput.Affix
+                  textStyle={{
+                    color: entryForm.values.description.length > 60 ? theme.colors.error : theme.colors.onBackground,
+                  }}
+                  text={`${entryForm.values.description.length}/60`}
+                />
+              }
+            />
+            <HelperText type="error" visible={entryForm.hasError("description")}>
+              {entryForm.getError("description")}
+            </HelperText>
+          </FormField>
+
+          <Button
+            mode="contained"
             onPress={() => entryCreateOrUpdateMutation.mutateAsync(entryForm.values)}
             loading={entryCreateOrUpdateMutation.isPending}
             disabled={entryCreateOrUpdateMutation.isPending || entryForm.hasErrors}
-            color="primary"
-          />
+          >
+            Pronto
+          </Button>
         </View>
       </AppFullScreenOverlay>
       <AppBottomSheet isOpen={!!selectedEntry} onClose={() => setSelectedEntry(undefined)}>
@@ -296,7 +315,7 @@ export default function EntriesScreen() {
             return (
               <View className="flex flex-col gap-4">
                 <View className="flex flex-row justify-between items-center gap-4">
-                  <Text fontWeight={600} fontSize={18} color="$typography0" ellipsizeMode="tail" numberOfLines={1}>
+                  <Text ellipsizeMode="tail" numberOfLines={1}>
                     {selectedEntry!.category?.name || "Sem categoria"}
                   </Text>
                   <View className="flex flex-row gap-2">
@@ -352,12 +371,10 @@ export default function EntriesScreen() {
                   </View>
                 </View>
 
-                <Text color="$typography200">{selectedEntry!.description || "Sem descrição"}</Text>
+                <Text>{selectedEntry!.description || "Sem descrição"}</Text>
                 <View className="flex flex-row justify-between items-center">
-                  <Text fontWeight={500} color={selectedEntry!.type === EntryTypes.Income ? "$success500" : "$danger500"}>
-                    {currencyFormatter.format(selectedEntry!.amount)}
-                  </Text>
-                  <Text fontSize={14} fontWeight={600} color="$typography400">
+                  <Text>{currencyFormatter.format(selectedEntry!.amount)}</Text>
+                  <Text>
                     {new Date(selectedEntry!.when).toLocaleString("pt-BR", {
                       day: "numeric",
                       month: "short",

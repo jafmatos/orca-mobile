@@ -1,10 +1,10 @@
-import useAppThemeColors from "@/hooks/use-app-theme-colors";
 import { useStackedBackHandler } from "@/hooks/use-stacked-back-handler";
 import { Portal } from "@gorhom/portal";
 import { ArrowLeft } from "lucide-react-native";
 import React, { useCallback, useEffect } from "react";
 import { Dimensions, Pressable, Text, View } from "react-native";
-import Animated, { useSharedValue, withSpring } from "react-native-reanimated";
+import { useTheme } from "react-native-paper";
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { scheduleOnRN, scheduleOnUI } from "react-native-worklets";
 
@@ -21,24 +21,25 @@ export interface AppFullScreenOverlayHeaderProps extends React.ComponentProps<ty
 }
 
 export function AppFullScreenOverlayHeader(props: AppFullScreenOverlayHeaderProps) {
-  const themeColors = useAppThemeColors();
+  const theme = useTheme();
 
   return (
     <View
       {...props}
       className="px-6 h-[72px] flex flex-row gap-3 items-center"
       style={{
-        boxShadow: `0 1px 3px -2px ${themeColors["--color-outline-600"]}`,
+        backgroundColor: theme.colors.surface,
+        boxShadow: `0 1px 3px -2px ${theme.colors.outlineVariant}`,
       }}
     >
       <Pressable className="p-2" onPress={props.onBack}>
-        <ArrowLeft size={28} color={themeColors["--color-typography-200"]} />
+        <ArrowLeft size={28} color={theme.colors.onBackground} />
       </Pressable>
       <Text
         style={{
           fontWeight: 600,
           fontSize: 20,
-          color: themeColors["--color-typography-200"],
+          color: theme.colors.onBackground,
         }}
       >
         {props.title}
@@ -48,29 +49,37 @@ export function AppFullScreenOverlayHeader(props: AppFullScreenOverlayHeaderProp
 }
 
 export function AppFullScreenOverlay({ backdropOpacity = 0.5, backdropColor = "#000000", ...props }: AppFullScreenOverlayProps) {
-  const themeColors = useAppThemeColors();
   const screenDimensions = Dimensions.get("screen");
   const SCREEN_WIDTH = screenDimensions.width;
   const SCREEN_HEIGHT = screenDimensions.height;
+  const overlayOpenedScale = 1;
+  const overlayClosedScale = 0;
+  const overlayOpenedOpacity = 1;
+  const overlayClosedOpacity = 0;
+
+  const theme = useTheme();
   const insets = useSafeAreaInsets();
-  const translateXSharedValue = useSharedValue(SCREEN_WIDTH);
+  const scaleSharedValue = useSharedValue(overlayClosedScale);
+  const opacitySharedValue = useSharedValue(overlayClosedOpacity);
   const backdropOpacitySharedValue = useSharedValue(0);
 
   const open = useCallback(() => {
     "worklet";
 
-    translateXSharedValue.value = withSpring(0);
+    scaleSharedValue.value = withSpring(overlayOpenedScale);
+    opacitySharedValue.value = withSpring(overlayOpenedOpacity);
     backdropOpacitySharedValue.value = withSpring(backdropOpacity);
-  }, [backdropOpacity, backdropOpacitySharedValue, translateXSharedValue]);
+  }, [backdropOpacity, backdropOpacitySharedValue, opacitySharedValue, scaleSharedValue]);
 
   const close = useCallback(() => {
     "worklet";
 
-    translateXSharedValue.value = withSpring(SCREEN_WIDTH);
+    scaleSharedValue.value = withSpring(overlayClosedScale);
+    opacitySharedValue.value = withSpring(overlayClosedOpacity);
     backdropOpacitySharedValue.value = withSpring(0);
 
     scheduleOnRN(props.onClose);
-  }, [props.onClose, SCREEN_WIDTH, backdropOpacitySharedValue, translateXSharedValue]);
+  }, [scaleSharedValue, opacitySharedValue, backdropOpacitySharedValue, props.onClose]);
 
   const initializeAnimation = useCallback(() => {
     "worklet";
@@ -88,6 +97,14 @@ export function AppFullScreenOverlay({ backdropOpacity = 0.5, backdropColor = "#
     onClose: close,
   });
 
+  const style = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: scaleSharedValue.value }],
+      left: SCREEN_WIDTH * ((1 - scaleSharedValue.value) / 2),
+      opacity: opacitySharedValue.value,
+    };
+  }, []);
+
   return (
     <Portal hostName="fullscreen-overlay">
       <Animated.View
@@ -98,6 +115,7 @@ export function AppFullScreenOverlay({ backdropOpacity = 0.5, backdropColor = "#
           top: 0,
           left: 0,
           pointerEvents: props.isOpen ? "auto" : "none",
+          zIndex: 100,
         }}
       >
         <Animated.View
@@ -112,17 +130,17 @@ export function AppFullScreenOverlay({ backdropOpacity = 0.5, backdropColor = "#
           }}
         />
         <Animated.View
-          style={{
-            position: "absolute",
-            width: SCREEN_WIDTH,
-            height: SCREEN_HEIGHT,
-            top: 0,
-            left: 0,
-            paddingTop: insets.top,
-            paddingBottom: insets.bottom,
-            backgroundColor: themeColors["--color-background-950"],
-            transform: [{ translateX: translateXSharedValue }],
-          }}
+          style={[
+            {
+              position: "absolute",
+              width: SCREEN_WIDTH,
+              height: SCREEN_HEIGHT,
+              paddingTop: insets.top,
+              paddingBottom: insets.bottom,
+              backgroundColor: theme.colors.background,
+            },
+            style,
+          ]}
         >
           {props.children}
         </Animated.View>

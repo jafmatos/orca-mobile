@@ -1,17 +1,18 @@
-import { Input, InputField } from "@gluestack-ui/themed";
 import { useState } from "react";
 import { Pressable, View } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useAppThemeName } from "@/hooks/use-app-theme-name";
 import useAppThemeColors from "@/hooks/use-app-theme-colors";
+import { TextInput } from "react-native-paper";
+import AppFormattedInput from "./AppFormattedInput";
 
-export interface AppDatePickerProps {
+export interface AppDatePickerProps extends Omit<React.ComponentProps<typeof TextInput>, "value" | "onChange"> {
   value: Date;
   emptyLabel?: string;
   onChange?: (date: Date) => void;
 }
 
-export function AppDatePicker(props: AppDatePickerProps) {
+export function AppDatePicker({ value, emptyLabel, onChange, ...props }: AppDatePickerProps) {
   const themeName = useAppThemeName();
   const themeColors = useAppThemeColors();
   const [isPickerOpen, setIsPickerOpen] = useState(false);
@@ -22,18 +23,25 @@ export function AppDatePicker(props: AppDatePickerProps) {
 
   return (
     <>
-      <Input>
-        <Pressable className="grow" onPress={openPicker}>
-          <InputField
-            editable={false}
-            value={props.value.toLocaleString("pt-BR", {
-              year: "numeric",
-              month: "2-digit",
+      <Pressable onPress={openPicker}>
+        <AppFormattedInput
+          {...props}
+          editable={false}
+          value={value}
+          onChange={(date) => onChange?.(date)}
+          format={(date) =>
+            date.toLocaleString("pt-BR", {
               day: "2-digit",
-            })}
-          />
-        </Pressable>
-      </Input>
+              month: "2-digit",
+              year: "numeric",
+            })
+          }
+          transform={(text) => {
+            console.log(text);
+            return new Date();
+          }}
+        />
+      </Pressable>
       {isPickerOpen && (
         <View style={{ backgroundColor: "red" }}>
           <DateTimePicker
@@ -41,11 +49,11 @@ export function AppDatePicker(props: AppDatePickerProps) {
             locale="pt-BR"
             accentColor={themeColors["--color-secondary-500"]}
             themeVariant={themeName}
-            value={props.value}
+            value={value}
             mode={"date"}
             is24Hour={true}
             onValueChange={(_event, selectedDate) => {
-              props.onChange?.(selectedDate);
+              onChange?.(selectedDate);
               closePicker();
             }}
             onDismiss={() => closePicker()}

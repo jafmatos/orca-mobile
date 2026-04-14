@@ -12,7 +12,6 @@ export function CategoryCard(props: CategoryCardProps) {
   return (
     <Box
       className={`pl-4 py-2 rounded-lg flex flex-row items-center justify-between gap-4 border-l-[6px] ${props.category.type === CategoryTypes.Income ? "border-l-success-500" : "border-l-danger-500"}`}
-      backgroundColor="$background800"
     >
       <Text className="grow" ellipsizeMode="tail" numberOfLines={1}>
         {props.category.name}
@@ -30,13 +29,13 @@ export function CategoryCard(props: CategoryCardProps) {
       >
         <MenuItem key="Editar" textValue="Editar" className="flex flex-row gap-3">
           <PencilIcon className="mr-2" color={themeColors["--color-typography-0"]} />
-          <MenuItemLabel size="sm" fontWeight={500}>
+          <MenuItemLabel>
             Editar
           </MenuItemLabel>
         </MenuItem>
         <MenuItem key="Remover" textValue="Remover" className="flex flex-row gap-3">
           <TrashIcon className="mr-2" color={themeColors["--color-danger-500"]} />
-          <MenuItemLabel size="sm" fontWeight={500}>
+          <MenuItemLabel>
             Remover
           </MenuItemLabel>
         </MenuItem>

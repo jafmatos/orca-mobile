@@ -1,42 +1,36 @@
-import { AppFormField } from "@/components/AppFormField";
 import { FullScreenLayout } from "@/components/layouts/FullScreenLayout";
-import { AppButton } from "@/components/ui/AppButton";
+import { FormField } from "@/components/ui/FormField";
 import { websiteUrl } from "@/constants/website-url";
 import { useAppForm } from "@/hooks/use-app-form";
 import { useAppFormWithMutation } from "@/hooks/use-app-form-with-mutation";
+import { useAppRouter } from "@/hooks/use-app-router";
 import {
 	CreateResetPasswordKeyArguments,
 	CreateResetPasswordKeyReturnType,
 	ResetPasswordService,
 } from "@/services/Auth/ResetPasswordService";
-import { Heading, Link, Text, View } from "@gluestack-ui/themed";
-import { useRouter } from "expo-router";
+import { View } from "react-native";
+import { Button, HelperText, Text, TextInput, useTheme } from "react-native-paper";
 
 type ResetPasswordForm = {
   email: string;
 };
 
 export default function ResetPasswordScreen() {
-  const router = useRouter();
+  const theme = useTheme();
+  const router = useAppRouter();
   const form = useAppForm<ResetPasswordForm>({
     email: "",
   });
 
-  const {
-    hasErrors,
-    getError,
-    hasError,
-    setValue,
-    mutation: createResetPasswordKeyMutation,
-  } = useAppFormWithMutation<ResetPasswordForm, CreateResetPasswordKeyArguments, CreateResetPasswordKeyReturnType>(form, {
+  const { mutation: createResetPasswordKeyMutation } = useAppFormWithMutation<
+    ResetPasswordForm,
+    CreateResetPasswordKeyArguments,
+    CreateResetPasswordKeyReturnType
+  >(form, {
     mutationFn: ResetPasswordService.createResetPasswordKey,
     onSuccess: (data) => {
-      router.push({
-        pathname: "/(auth)/reset-password/confirm/[id]",
-        params: {
-          id: data.key.id,
-        },
-      });
+      router.goToResetPasswordConfirm(data.key.id);
     },
   });
 
@@ -44,44 +38,45 @@ export default function ResetPasswordScreen() {
     <FullScreenLayout>
       <View className="w-screen h-full p-6 flex flex-col justify-center">
         <View className="flex flex-col gap-2">
-          <Heading size="3xl" className="!text-typography-100 !font-semibold">
-            Recuperar senha
-          </Heading>
-          <Text marginBottom="$2" className="!text-typography-200">
-            Esqueceu a senha? Acontece. Digite seu e-mail abaixo e te ajudaremos a recuperar o acesso.
-          </Text>
-          <View className="flex" gap="$4">
-            <AppFormField isRequired isInvalid={hasError("email")}>
-              <AppFormField.Label className="!text-typography-200 !font-medium">Email</AppFormField.Label>
-              <AppFormField.TextInput
+          <Text variant="headlineMedium">Recuperar senha</Text>
+          <Text variant="bodyMedium">Esqueceu a senha? Acontece. Digite seu e-mail abaixo e te ajudaremos a recuperar o acesso.</Text>
+          <View className="flex gap-2">
+            <FormField>
+              <TextInput
+                label="Email*"
+                placeholder="Digite seu email"
+                mode="outlined"
+                keyboardType="email-address"
                 value={form.values.email}
-                placeholder="Digite seu e-mail"
-                textContentType="emailAddress"
-                onChangeText={(text) => setValue("email", text)}
-                required
+                onChangeText={form.makeSetter("email")}
+                error={form.hasError("email")}
               />
-              <AppFormField.Error error={getError("email")} />
-            </AppFormField>
+              <HelperText type="error" visible={form.hasError("email")}>
+                {form.getError("email")}
+              </HelperText>
+            </FormField>
 
-            <AppButton
-              text="Enviar"
+            <Button
+              mode="contained"
               onPress={() =>
                 createResetPasswordKeyMutation.mutateAsync({
                   ...form.values,
                   confirmUrl: websiteUrl,
                 })
               }
-              disabled={createResetPasswordKeyMutation.isPending || hasErrors}
+              disabled={createResetPasswordKeyMutation.isPending || form.hasErrors}
               loading={createResetPasswordKeyMutation.isPending}
-              color="primary"
-            />
+            >
+              Enviar
+            </Button>
           </View>
 
-          <Link mt="$2" className="self-center" onPress={() => router.push("/(auth)/sign-in")}>
-            <Text className="flex items-center !text-typography-400" size="sm">
-              Voltar para o login
+          <View className="mt-2 flex flex-row gap-0 self-center">
+            <Text variant="bodyMedium">Voltar para o </Text>
+            <Text variant="bodyMedium" onPress={() => router.goToSignIn()} style={{ color: theme.colors.primary }}>
+              login
             </Text>
-          </Link>
+          </View>
         </View>
       </View>
     </FullScreenLayout>

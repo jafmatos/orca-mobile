@@ -1,16 +1,15 @@
 import { useAppThemeName } from "@/hooks/use-app-theme-name";
-import { Input, InputField, InputIcon, InputSlot, Text } from "@gluestack-ui/themed";
-import { ChevronDownIcon } from "lucide-react-native";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Pressable, View } from "react-native";
 import { AppBottomSheet } from "./AppBottomSheet";
+import { Text, TextInput } from "react-native-paper";
 
 export interface SelectOption {
   label: string;
   value: string;
 }
 
-export interface AppSelectProps {
+export interface AppSelectProps extends Omit<React.ComponentProps<typeof TextInput>, "value" | "onChange"> {
   value: SelectOption["value"];
   emptyLabel?: string;
   closeOnSelect?: boolean;
@@ -18,42 +17,63 @@ export interface AppSelectProps {
   onChange?: (value: string) => void;
 }
 
-export function AppSelect(props: AppSelectProps) {
+export function AppSelect({ value, emptyLabel, closeOnSelect, options, onChange, ...props }: AppSelectProps) {
   const themeName = useAppThemeName();
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
+  const textInputRef = useRef(null);
 
-  const openBottomSheet = () => setIsBottomSheetOpen(true);
+  const onOpen = () => {
+    (textInputRef.current as any)?.focus();
 
-  const closeBottomSheet = () => setIsBottomSheetOpen(false);
-
-  const handleOptionPress = (option: SelectOption) => {
-    props.onChange?.(option.value);
-    props.closeOnSelect && closeBottomSheet();
+    setIsBottomSheetOpen(true);
   };
 
-  const currentOption = props.options.find((option) => option.value === props.value);
-  const emptyLabel = props.emptyLabel || "Nenhuma das opções";
+  const onClose = () => {
+    (textInputRef.current as any)?.blur();
+
+    setIsBottomSheetOpen(false);
+  };
+
+  const handleOptionPress = (option: SelectOption) => {
+    onChange?.(option.value);
+    closeOnSelect && onClose();
+  };
+
+  const currentOption = options.find((option) => option.value === value);
+  const zemptyLabel = emptyLabel || "Nenhuma das opções";
   const selectedOptionBackgroundColor = themeName === "dark" ? "#ffffff15" : "#00000015";
 
   return (
     <>
-      <Input>
-        <Pressable className="grow" onPress={openBottomSheet}>
-          <InputField
-            style={{
-              fontStyle: !currentOption?.value ? "italic" : "normal",
-            }}
-            editable={false}
-            value={currentOption?.label || emptyLabel}
-          />
-        </Pressable>
-        <InputSlot mr="$3">
-          <InputIcon as={ChevronDownIcon} />
-        </InputSlot>
-      </Input>
-      <AppBottomSheet portalHostName="select" fullscreen expandable={false} isOpen={isBottomSheetOpen} onClose={closeBottomSheet}>
+      <Pressable onPress={onOpen}>
+        <TextInput
+          {...props}
+          editable={false}
+          value={currentOption?.label || zemptyLabel}
+          style={{ pointerEvents: "box-none", fontStyle: "italic" }}
+          right={<TextInput.Icon icon="ChevronDown" onPress={onOpen} />}
+          theme={{
+            fonts: {
+              bodyMedium: {
+                fontStyle: !currentOption?.value ? "italic" : "normal",
+              },
+              bodyLarge: {
+                fontStyle: !currentOption?.value ? "italic" : "normal",
+              },
+            },
+          }}
+        />
+      </Pressable>
+      <AppBottomSheet
+        portalHostName="select"
+        fullscreen
+        expandable={false}
+        isOpen={isBottomSheetOpen}
+        onClose={onClose}
+        style={{ zIndex: 101 }}
+      >
         <View>
-          {[{ label: emptyLabel, value: "" }, ...props.options].map((option) => {
+          {[{ label: zemptyLabel, value: "" }, ...options].map((option) => {
             return (
               <Pressable
                 key={option.value}
@@ -63,7 +83,9 @@ export function AppSelect(props: AppSelectProps) {
                   backgroundColor: option.value === currentOption?.value ? selectedOptionBackgroundColor : "transparent",
                 }}
               >
-                <Text italic={!option.value}>{option.label}</Text>
+                <Text variant="bodyLarge" style={{ fontStyle: !option.value ? "italic" : "normal" }}>
+                  {option.label}
+                </Text>
               </Pressable>
             );
           })}
