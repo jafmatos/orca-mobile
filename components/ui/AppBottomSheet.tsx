@@ -4,8 +4,8 @@ import React, { useCallback, useEffect, useState } from "react";
 import { Dimensions, Pressable, ScrollView, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { useKeyboardHandler } from "react-native-keyboard-controller";
-import { useTheme } from "react-native-paper";
-import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
+import { Button, useTheme } from "react-native-paper";
+import Animated, { useAnimatedStyle, useDerivedValue, useSharedValue, withSpring } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { scheduleOnRN, scheduleOnUI } from "react-native-worklets";
 
@@ -20,7 +20,7 @@ export interface AppBottomSheetProps extends React.ComponentProps<typeof Animate
   snapPointsExpanded?: number;
   panSnapPoints?: number;
   backdropOpacity?: number;
-  backdropColor?: string;
+  animationDuration?: number;
   onClose: () => void;
 }
 
@@ -34,8 +34,8 @@ export function AppBottomSheet({
   closeOnBackdropTap = true,
   snapPointsCollapsed = 400,
   panSnapPoints = 100,
-  backdropOpacity = 0.5,
-  backdropColor = "#000000",
+  backdropOpacity = 1,
+  animationDuration = 300,
   ...props
 }: AppBottomSheetProps) {
   const theme = useTheme();
@@ -43,6 +43,8 @@ export function AppBottomSheet({
   const [isScrollViewOnStart, _setIsScrollViewOnStart] = useState(true);
   const [isScrollViewOnEnd, _setIsScrollViewOnEnd] = useState(true);
   const snapPointsScreen = SCREEN_HEIGHT - insets.top;
+  const backdropColor = theme.colors.backdrop;
+  const bottomSheetOpenedTranslateY = 0;
 
   const setIsScrollViewOnStart = (value: boolean) => {
     if (value === isScrollViewOnStart) return;
@@ -58,7 +60,7 @@ export function AppBottomSheet({
 
   if (fullscreen) snapPointsCollapsed = snapPointsScreen;
 
-  const bottomSheetOpenedTranslateY = 0;
+  const isClosingSharedValue = useSharedValue(false);
   const isExpandedSharedValue = useSharedValue(false);
   const isKeyboardOpenedSharedValue = useSharedValue(false);
   const isKeyboardOpeningSharedValue = useSharedValue(false);
@@ -94,9 +96,9 @@ export function AppBottomSheet({
     (height: number) => {
       "worklet";
 
-      bottomSheetHeightSharedValue.value = withSpring(calculateAvailableHeight(height));
+      bottomSheetHeightSharedValue.value = withSpring(calculateAvailableHeight(height), { duration: animationDuration });
     },
-    [bottomSheetHeightSharedValue, calculateAvailableHeight],
+    [animationDuration, bottomSheetHeightSharedValue, calculateAvailableHeight],
   );
 
   const open = useCallback(() => {
@@ -104,37 +106,44 @@ export function AppBottomSheet({
 
     setBottomSheetHeight(snapPointsCollapsed);
 
-    backdropOpacitySharedValue.value = withSpring(backdropOpacity);
-    bottomSheetTranslateYSharedValue.value = withSpring(bottomSheetOpenedTranslateY);
-  }, [backdropOpacity, backdropOpacitySharedValue, bottomSheetTranslateYSharedValue, setBottomSheetHeight, snapPointsCollapsed]);
+    backdropOpacitySharedValue.value = withSpring(backdropOpacity, { duration: animationDuration });
+    bottomSheetTranslateYSharedValue.value = withSpring(bottomSheetOpenedTranslateY, { duration: animationDuration });
+  }, [setBottomSheetHeight, snapPointsCollapsed, backdropOpacitySharedValue, backdropOpacity, animationDuration, bottomSheetTranslateYSharedValue]);
 
   const close = useCallback(() => {
     "worklet";
-
-    bottomSheetTranslateYSharedValue.value = withSpring(SCREEN_HEIGHT);
-    backdropOpacitySharedValue.value = withSpring(0);
+		
     isExpandedSharedValue.value = false;
 
-    scheduleOnRN(props.onClose);
-  }, [backdropOpacitySharedValue, bottomSheetTranslateYSharedValue, isExpandedSharedValue, props.onClose]);
+    backdropOpacitySharedValue.value = withSpring(0, { duration: animationDuration });
+    bottomSheetTranslateYSharedValue.value = withSpring(
+      bottomSheetHeightSharedValue.value,
+      { duration: animationDuration },
+      (isFinished) => {
+        if (!isFinished) return;
+
+        scheduleOnRN(props.onClose);
+      },
+    );
+  }, [isExpandedSharedValue, backdropOpacitySharedValue, animationDuration, bottomSheetTranslateYSharedValue, bottomSheetHeightSharedValue.value, props.onClose]);
 
   const collapse = useCallback(() => {
     "worklet";
 
     setBottomSheetHeightAnimated(snapPointsCollapsed);
 
-    bottomSheetTranslateYSharedValue.value = withSpring(bottomSheetOpenedTranslateY);
+    bottomSheetTranslateYSharedValue.value = withSpring(bottomSheetOpenedTranslateY, { duration: animationDuration });
     isExpandedSharedValue.value = false;
-  }, [bottomSheetTranslateYSharedValue, isExpandedSharedValue, setBottomSheetHeightAnimated, snapPointsCollapsed]);
+  }, [animationDuration, bottomSheetTranslateYSharedValue, isExpandedSharedValue, setBottomSheetHeightAnimated, snapPointsCollapsed]);
 
   const expand = useCallback(() => {
     "worklet";
 
     setBottomSheetHeightAnimated(snapPointsScreen);
 
-    bottomSheetTranslateYSharedValue.value = withSpring(bottomSheetOpenedTranslateY);
+    bottomSheetTranslateYSharedValue.value = withSpring(bottomSheetOpenedTranslateY, { duration: animationDuration });
     isExpandedSharedValue.value = true;
-  }, [bottomSheetTranslateYSharedValue, isExpandedSharedValue, setBottomSheetHeightAnimated, snapPointsScreen]);
+  }, [animationDuration, bottomSheetTranslateYSharedValue, isExpandedSharedValue, setBottomSheetHeightAnimated, snapPointsScreen]);
 
   const initializeAnimation = useCallback(() => {
     "worklet";
@@ -200,19 +209,19 @@ export function AppBottomSheet({
   const panDownGestureOnChangeCallback: NonNullable<Parameters<ReturnType<typeof Gesture.Pan>["onChange"]>[0]> = (event) => {
     "worklet";
 
-    if (event.translationY < 0) return;
+    if (event.translationY < 0 || isClosingSharedValue.value) return;
 
-    bottomSheetTranslateYSharedValue.value = withSpring(bottomSheetOpenedTranslateY + event.translationY);
+    bottomSheetTranslateYSharedValue.value = withSpring(bottomSheetOpenedTranslateY + event.translationY, { duration: animationDuration });
   };
 
   const panDownGestureOnFinalizeCallback: NonNullable<Parameters<ReturnType<typeof Gesture.Pan>["onFinalize"]>[0]> = (event) => {
     "worklet";
-    if (event.translationY < 0) return;
+    if (event.translationY < 0 || isClosingSharedValue.value) return;
 
     if (event.translationY < panSnapPoints) {
       setBottomSheetHeightAnimated(isExpandedSharedValue.value ? snapPointsScreen : snapPointsCollapsed);
 
-      bottomSheetTranslateYSharedValue.value = withSpring(bottomSheetOpenedTranslateY);
+      bottomSheetTranslateYSharedValue.value = withSpring(bottomSheetOpenedTranslateY, { duration: animationDuration });
     }
 
     if (event.translationY >= snapPointsCollapsed / 2 + panSnapPoints) close();
@@ -229,7 +238,7 @@ export function AppBottomSheet({
   const panUpGestureOnChangeCallback: NonNullable<Parameters<ReturnType<typeof Gesture.Pan>["onChange"]>[0]> = (event) => {
     "worklet";
 
-    if (event.translationY > 0 || fullscreen) return;
+    if (event.translationY > 0 || fullscreen || isClosingSharedValue.value) return;
 
     if (!expandable) {
       setBottomSheetHeightAnimated(snapPointsCollapsed + Math.abs(event.translationY / 5));
@@ -243,7 +252,7 @@ export function AppBottomSheet({
   const panUpGestureOnFinalizeCallback: NonNullable<Parameters<ReturnType<typeof Gesture.Pan>["onFinalize"]>[0]> = (event) => {
     "worklet";
 
-    if (event.translationY > 0 || isExpandedSharedValue.value || fullscreen) return;
+    if (event.translationY > 0 || isExpandedSharedValue.value || fullscreen || isClosingSharedValue.value) return;
 
     if (event.translationY > -panSnapPoints) collapse();
 
@@ -315,9 +324,9 @@ export function AppBottomSheet({
             <Pressable
               className="w-full h-full"
               onPress={() => {
-                if (closeOnBackdropTap) close();
+                if (!closeOnBackdropTap) return;
 
-                close();
+                // close();
               }}
             />
           </Animated.View>

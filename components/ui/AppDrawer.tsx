@@ -24,12 +24,13 @@ export function AppDrawer({ panSnapPoints = 100, snapPoints = 0.8 * SCREEN_WIDTH
   const drawerOpenedTranslateX = 0;
   const drawerTranslateX = useSharedValue(-snapPoints);
   const backdropOpacity = useSharedValue(0);
+  const backdropColor = theme.colors.backdrop;
 
   const open = useCallback(() => {
     "worklet";
 
     drawerTranslateX.value = withSpring(0);
-    backdropOpacity.value = withSpring(0.5);
+    backdropOpacity.value = withSpring(1);
   }, [backdropOpacity, drawerTranslateX]);
 
   const close = useCallback(() => {
@@ -100,7 +101,7 @@ export function AppDrawer({ panSnapPoints = 100, snapPoints = 0.8 * SCREEN_WIDTH
             inset: 0,
             width: SCREEN_WIDTH,
             height: SCREEN_HEIGHT,
-            backgroundColor: "black",
+            backgroundColor: backdropColor,
             opacity: backdropOpacity,
           }}
         >

@@ -43,4 +43,12 @@ export const paperDarkThemeColors = {
   onSuccess: "rgb(0, 57, 13)",
   successContainer: "rgb(0, 83, 23)",
   onSuccessContainer: "rgb(168, 245, 165)",
+  info: "rgb(165, 200, 255)",
+  onInfo: "rgb(0, 49, 94)",
+  infoContainer: "rgb(0, 71, 133)",
+  onInfoContainer: "rgb(212, 227, 255)",
+  warning: "rgb(255, 185, 81)",
+  onWarning: "rgb(69, 43, 0)",
+  warningContainer: "rgb(99, 63, 0)",
+  onWarningContainer: "rgb(255, 221, 179)",
 };

@@ -19,17 +19,17 @@ import { Link, usePathname } from "expo-router";
 import { useAuthUser } from "@/hooks/queries/use-auth-user";
 import { Pressable, View } from "react-native";
 import { AppAuthenticationTokenStore } from "@/utils/AuthenticationTokenStore";
-import { Button, Divider, Text, useTheme } from "react-native-paper";
+import { Button, Divider, Icon, IconButton, Text, useTheme } from "react-native-paper";
 import { useAppRouter } from "@/hooks/use-app-router";
 
 interface DrawerNavigationItemProps {
-  icon?: LucideIcon;
+  icon?: string;
   onPressCallback?: () => void;
   text: string;
   to: React.ComponentProps<typeof Link>["href"];
 }
 
-function DrawerNavigationItem({ icon: Icon, ...props }: DrawerNavigationItemProps) {
+function DrawerNavigationItem(props: DrawerNavigationItemProps) {
   const router = useAppRouter();
   const theme = useTheme();
   const pathname = usePathname();
@@ -44,7 +44,7 @@ function DrawerNavigationItem({ icon: Icon, ...props }: DrawerNavigationItemProp
       }}
     >
       <View className={`relative w-full p-4 flex flex-row items-center gap-3`}>
-        {Icon ? <Icon size={18} color={isActive ? theme.colors.primary : theme.colors.onBackground} /> : <></>}
+        {props.icon ? <Icon size={18} source={props.icon} color={isActive ? theme.colors.primary : theme.colors.onBackground} /> : <></>}
         <Text
           variant="labelLarge"
           style={{
@@ -80,9 +80,7 @@ export function Navigation() {
         }}
       >
         <AppAvatar />
-        <Pressable onPress={() => setIsDrawerOpen(true)}>
-          <MenuIcon size={32} color={themeColors["--color-typography-0"]} />
-        </Pressable>
+        <IconButton icon="menu" onPress={() => setIsDrawerOpen(true)} size={32} />
       </View>
       <Portal hostName="drawer">
         <AppDrawer
@@ -110,17 +108,17 @@ export function Navigation() {
           </View>
           <Divider />
           <View className="grow flex flex-col">
-            <DrawerNavigationItem onPressCallback={closeDrawer} to={"/"} icon={HomeIcon} text="Início" />
-            <DrawerNavigationItem onPressCallback={closeDrawer} to={"/entries"} icon={ReceiptTextIcon} text="Lançamentos" />
-            <DrawerNavigationItem onPressCallback={closeDrawer} to={"/schedules"} icon={ClockIcon} text="Agendamentos" />
-            <DrawerNavigationItem onPressCallback={closeDrawer} to={"/categories"} icon={BookmarkIcon} text="Categorias" />
-            <DrawerNavigationItem onPressCallback={closeDrawer} to={"/limits"} icon={OctagonAlertIcon} text="Limites" />
-            <DrawerNavigationItem onPressCallback={closeDrawer} to={"/dashboard"} icon={ChartPieIcon} text="Visão Geral" />
-            <DrawerNavigationItem onPressCallback={closeDrawer} to={"/analyses"} icon={SparklesIcon} text="Análises" />
-            <DrawerNavigationItem onPressCallback={closeDrawer} to={"/profile"} icon={UserIcon} text="Meu Perfil" />
+            <DrawerNavigationItem onPressCallback={closeDrawer} to={"/"} icon="home" text="Início" />
+            <DrawerNavigationItem onPressCallback={closeDrawer} to={"/entries"} icon="receipt-text" text="Lançamentos" />
+            <DrawerNavigationItem onPressCallback={closeDrawer} to={"/schedules"} icon="clock" text="Agendamentos" />
+            <DrawerNavigationItem onPressCallback={closeDrawer} to={"/categories"} icon="bookmark" text="Categorias" />
+            <DrawerNavigationItem onPressCallback={closeDrawer} to={"/limits"} icon="alert-octagon" text="Limites" />
+            <DrawerNavigationItem onPressCallback={closeDrawer} to={"/dashboard"} icon="chart-donut" text="Visão Geral" />
+            <DrawerNavigationItem onPressCallback={closeDrawer} to={"/analyses"} icon="creation" text="Análises" />
+            <DrawerNavigationItem onPressCallback={closeDrawer} to={"/profile"} icon="account" text="Meu Perfil" />
           </View>
           <Button
-            icon="LogOut"
+            icon="logout"
             mode="contained-tonal"
             buttonColor={theme.colors.error}
             textColor={theme.colors.onError}

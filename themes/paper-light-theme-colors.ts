@@ -43,4 +43,12 @@ export const paperLightThemeColors = {
   onSuccess: "rgb(255, 255, 255)",
   successContainer: "rgb(168, 245, 165)",
   onSuccessContainer: "rgb(0, 33, 5)",
+  info: "rgb(0, 95, 174)",
+  onInfo: "rgb(255, 255, 255)",
+  infoContainer: "rgb(212, 227, 255)",
+  onInfoContainer: "rgb(0, 28, 58)",
+  warning: "rgb(130, 85, 0)",
+  onWarning: "rgb(255, 255, 255)",
+  warningContainer: "rgb(255, 221, 179)",
+  onWarningContainer: "rgb(41, 24, 0)",
 };

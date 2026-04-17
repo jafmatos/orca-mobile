@@ -60,6 +60,7 @@
     "react-native-reanimated": "~4.1.0",
     "react-native-safe-area-context": "^5.7.0",
     "react-native-screens": "~4.16.0",
+    "react-native-share": "^12.2.6",
     "react-native-svg": "^14.1.0",
     "react-native-toast-message": "^2.3.3",
     "react-native-use-in-view": "^0.4.2",

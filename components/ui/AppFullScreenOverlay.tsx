@@ -12,7 +12,6 @@ export interface AppFullScreenOverlayProps extends React.ComponentProps<typeof A
   isOpen: boolean;
   onClose: () => void;
   backdropOpacity?: number;
-  backdropColor?: string;
 }
 
 export interface AppFullScreenOverlayHeaderProps extends React.ComponentProps<typeof View> {
@@ -48,12 +47,12 @@ export function AppFullScreenOverlayHeader(props: AppFullScreenOverlayHeaderProp
   );
 }
 
-export function AppFullScreenOverlay({ backdropOpacity = 0.5, backdropColor = "#000000", ...props }: AppFullScreenOverlayProps) {
+export function AppFullScreenOverlay({ backdropOpacity = 0.5, ...props }: AppFullScreenOverlayProps) {
   const screenDimensions = Dimensions.get("screen");
   const SCREEN_WIDTH = screenDimensions.width;
   const SCREEN_HEIGHT = screenDimensions.height;
   const overlayOpenedScale = 1;
-  const overlayClosedScale = 0;
+  const overlayClosedScale = 0.8;
   const overlayOpenedOpacity = 1;
   const overlayClosedOpacity = 0;
 
@@ -62,6 +61,7 @@ export function AppFullScreenOverlay({ backdropOpacity = 0.5, backdropColor = "#
   const scaleSharedValue = useSharedValue(overlayClosedScale);
   const opacitySharedValue = useSharedValue(overlayClosedOpacity);
   const backdropOpacitySharedValue = useSharedValue(0);
+  const backdropColor = theme.colors.backdrop;
 
   const open = useCallback(() => {
     "worklet";
@@ -97,14 +97,6 @@ export function AppFullScreenOverlay({ backdropOpacity = 0.5, backdropColor = "#
     onClose: close,
   });
 
-  const style = useAnimatedStyle(() => {
-    return {
-      transform: [{ scale: scaleSharedValue.value }],
-      left: SCREEN_WIDTH * ((1 - scaleSharedValue.value) / 2),
-      opacity: opacitySharedValue.value,
-    };
-  }, []);
-
   return (
     <Portal hostName="fullscreen-overlay">
       <Animated.View
@@ -130,17 +122,16 @@ export function AppFullScreenOverlay({ backdropOpacity = 0.5, backdropColor = "#
           }}
         />
         <Animated.View
-          style={[
-            {
-              position: "absolute",
-              width: SCREEN_WIDTH,
-              height: SCREEN_HEIGHT,
-              paddingTop: insets.top,
-              paddingBottom: insets.bottom,
-              backgroundColor: theme.colors.background,
-            },
-            style,
-          ]}
+          style={{
+            position: "absolute",
+            width: SCREEN_WIDTH,
+            height: SCREEN_HEIGHT,
+            paddingTop: insets.top,
+            paddingBottom: insets.bottom,
+            backgroundColor: theme.colors.background,
+            transform: [{ scale: scaleSharedValue }],
+            opacity: opacitySharedValue,
+          }}
         >
           {props.children}
         </Animated.View>

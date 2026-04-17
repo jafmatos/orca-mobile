@@ -9,8 +9,6 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 import { paperDarkThemeColors } from "@/themes/paper-dark-theme-colors";
 import { paperLightThemeColors } from "@/themes/paper-light-theme-colors";
 import { MD3DarkTheme, MD3LightTheme, PaperProvider } from "react-native-paper";
-import * as LucideIcons from "lucide-react-native";
-import { IconProps } from "react-native-paper/lib/typescript/components/MaterialCommunityIcon";
 import { PortalProvider } from "@gorhom/portal";
 
 configureReanimatedLogger({
@@ -24,12 +22,6 @@ export const unstable_settings = {
 
 const queryClient = new QueryClient();
 
-function LucideIconAdapter({ name, color, size }: IconProps) {
-  const IconComponent = (LucideIcons as any)[name];
-
-  return IconComponent ? <IconComponent color={color} size={size} /> : null;
-}
-
 export default function RootLayout() {
   useAxiosInterceptors();
 
@@ -39,11 +31,9 @@ export default function RootLayout() {
 
   return (
     <PaperProvider
-      settings={{
-        icon: (props) => <LucideIconAdapter {...props} />,
-      }}
       theme={{
         ...paperTheme,
+        dark: appThemeName === "dark",
         colors: paperColors,
       }}
     >

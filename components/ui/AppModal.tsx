@@ -1,5 +1,5 @@
-import useAppThemeColors from "@/hooks/use-app-theme-colors";
 import { useStackedBackHandler } from "@/hooks/use-stacked-back-handler";
+import { useAppTheme } from "@/hooks/useAppTheme";
 import { Portal } from "@gorhom/portal";
 import React, { useCallback, useEffect } from "react";
 import { Dimensions, Pressable } from "react-native";
@@ -9,17 +9,17 @@ import { scheduleOnRN, scheduleOnUI } from "react-native-worklets";
 export interface AppModalProps extends React.ComponentProps<typeof Animated.View> {
   isOpen: boolean;
   backdropOpacity?: number;
-  backdropColor?: string;
   onClose: () => void;
 }
 
-export function AppModal({ backdropColor = "#000000", backdropOpacity = 0.5, ...props }: AppModalProps) {
-  const themeColors = useAppThemeColors();
+export function AppModal({ backdropOpacity = 0.5, ...props }: AppModalProps) {
+  const theme = useAppTheme();
   const screenDimensions = Dimensions.get("screen");
   const SCREEN_WIDTH = screenDimensions.width;
   const SCREEN_HEIGHT = screenDimensions.height;
   const backdropOpacitySharedValue = useSharedValue(0);
   const modalOpacitySharedValue = useSharedValue(0);
+  const backdropColor = theme.colors.backdrop;
 
   const open = useCallback(() => {
     "worklet";
@@ -86,9 +86,9 @@ export function AppModal({ backdropColor = "#000000", backdropOpacity = 0.5, ...
               opacity: modalOpacitySharedValue,
               width: SCREEN_WIDTH * 0.85,
               maxWidth: 384,
-              borderRadius: 8,
+              borderRadius: theme.roundness,
               boxShadow: `0 3px 7px 0 rgba(0, 0, 0, 0.5)`,
-              backgroundColor: themeColors["--color-background-800"],
+              backgroundColor: theme.colors.background,
             },
             props.style,
           ]}

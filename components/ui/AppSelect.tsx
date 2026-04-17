@@ -1,8 +1,8 @@
-import { useAppThemeName } from "@/hooks/use-app-theme-name";
 import { useRef, useState } from "react";
 import { Pressable, View } from "react-native";
 import { AppBottomSheet } from "./AppBottomSheet";
 import { Text, TextInput } from "react-native-paper";
+import { useAppTheme } from "@/hooks/useAppTheme";
 
 export interface SelectOption {
   label: string;
@@ -18,7 +18,7 @@ export interface AppSelectProps extends Omit<React.ComponentProps<typeof TextInp
 }
 
 export function AppSelect({ value, emptyLabel, closeOnSelect, options, onChange, ...props }: AppSelectProps) {
-  const themeName = useAppThemeName();
+  const theme = useAppTheme();
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
   const textInputRef = useRef(null);
 
@@ -41,7 +41,6 @@ export function AppSelect({ value, emptyLabel, closeOnSelect, options, onChange,
 
   const currentOption = options.find((option) => option.value === value);
   const zemptyLabel = emptyLabel || "Nenhuma das opções";
-  const selectedOptionBackgroundColor = themeName === "dark" ? "#ffffff15" : "#00000015";
 
   return (
     <>
@@ -51,7 +50,7 @@ export function AppSelect({ value, emptyLabel, closeOnSelect, options, onChange,
           editable={false}
           value={currentOption?.label || zemptyLabel}
           style={{ pointerEvents: "box-none", fontStyle: "italic" }}
-          right={<TextInput.Icon icon="ChevronDown" onPress={onOpen} />}
+          right={<TextInput.Icon icon="chevron-down" onPress={onOpen} />}
           theme={{
             fonts: {
               bodyMedium: {
@@ -80,7 +79,7 @@ export function AppSelect({ value, emptyLabel, closeOnSelect, options, onChange,
                 onPress={() => handleOptionPress(option)}
                 className="rounded-lg w-full py-4 px-6"
                 style={{
-                  backgroundColor: option.value === currentOption?.value ? selectedOptionBackgroundColor : "transparent",
+                  backgroundColor: option.value === currentOption?.value ? theme.colors.surfaceVariant : "transparent",
                 }}
               >
                 <Text variant="bodyLarge" style={{ fontStyle: !option.value ? "italic" : "normal" }}>

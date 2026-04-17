@@ -24,6 +24,20 @@ export type GetEntriesArguments = {
   };
 };
 
+export type ExportEntriesArguments = {
+  query?: {
+    filter?: {
+      type?: EntryTypes;
+      text?: string;
+      category?: string;
+      when?: {
+        ge?: Date;
+        le?: Date;
+      };
+    };
+  };
+};
+
 export type CreateEntryBody = {
   category?: {
     id: string;
@@ -64,6 +78,15 @@ export class EntryService {
     return data;
   }
 
+  private static async _exportEntries(options: ExportEntriesArguments): Promise<string> {
+    const query = qs.stringify(options.query);
+    const { data } = await $axios.get(`${this.path}/export/csv?${query}`);
+
+		console.log(data)
+
+    return data;
+  }
+
   private static async _create(body: CreateEntryBody): Promise<CreateEntryReturnType> {
     const { data } = await $axios.post(`${this.path}`, body);
 
@@ -83,6 +106,7 @@ export class EntryService {
   }
 
   public static readonly getEntries = EntryService._getEntries.bind(EntryService);
+  public static readonly exportEntries = EntryService._exportEntries.bind(EntryService);
   public static readonly create = EntryService._create.bind(EntryService);
   public static readonly update = EntryService._update.bind(EntryService);
   public static readonly delete = EntryService._delete.bind(EntryService);

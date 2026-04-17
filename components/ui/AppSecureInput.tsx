@@ -9,7 +9,7 @@ export function AppSecureInput(props: AppSecureInputProps) {
   return (
     <TextInput
       secureTextEntry={!isContentVisible}
-      right={<TextInput.Icon icon={isContentVisible ? "Eye" : "EyeOff"} onPress={() => setIsContentVisible(!isContentVisible)} />}
+      right={<TextInput.Icon icon={isContentVisible ? "eye" : "eye-off"} onPress={() => setIsContentVisible(!isContentVisible)} />}
       {...props}
     />
   );

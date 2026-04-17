@@ -22,7 +22,6 @@ export const useAppForm = <Form>(initialState: Form): AppForm<Form> => {
 
   const makeSetter = <Key extends keyof Form>(key: Key) => {
     return (value: Form[Key]) => {
-      console.log(value);
       setForm({
         ...form,
         [key]: value,

@@ -1,8 +1,12 @@
-import { EntryService } from "@/services/EntryService";
+import { EntryService, GetEntriesArguments } from "@/services/EntryService";
 import { QueryKeys } from "@/utils/QueryKeys";
 import { useInfiniteQuery } from "@tanstack/react-query";
 
-export const useEntries = () => {
+export interface UseEntriesOptions {
+  filter?: NonNullable<NonNullable<GetEntriesArguments>["query"]>["filter"];
+}
+
+export const useEntries = (options?: UseEntriesOptions) => {
   const entriesQuery = useInfiniteQuery({
     queryKey: QueryKeys.Entry.getEntries(),
     queryFn: async ({ pageParam }) => {
@@ -10,11 +14,12 @@ export const useEntries = () => {
         query: {
           page: pageParam,
           perPage: 10,
+          filter: options?.filter,
         },
       });
     },
     getNextPageParam: (lastPage) => {
-      if (lastPage.meta.page === lastPage.meta.pages) return;
+      if (lastPage.meta.page >= lastPage.meta.pages) return;
 
       return lastPage.meta.page + 1;
     },

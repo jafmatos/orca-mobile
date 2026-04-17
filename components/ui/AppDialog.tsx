@@ -3,7 +3,7 @@ import Animated from "react-native-reanimated";
 import { AppModal } from "./AppModal";
 import { View } from "react-native";
 import useAppThemeColors from "@/hooks/use-app-theme-colors";
-import { AppText } from "./AppText";
+import { Text } from "react-native-paper";
 
 export interface AppDialogProps extends React.ComponentProps<typeof Animated.View> {
   isOpen: boolean;
@@ -11,25 +11,19 @@ export interface AppDialogProps extends React.ComponentProps<typeof Animated.Vie
   modalProps?: React.ComponentProps<typeof AppModal>;
 }
 
-function AppDialogTitle(props: React.ComponentProps<typeof AppText>) {
-  const themeColors = useAppThemeColors();
-
+function AppDialogTitle(props: React.ComponentProps<typeof Text>) {
   return (
-    <AppText className="px-6" style={{ fontSize: 18, fontWeight: 600, color: themeColors["--color-typography-0"] }}>
+    <Text className="px-6" variant="titleMedium">
       {props.children}
-    </AppText>
+    </Text>
   );
 }
 
 function AppDialogContent(props: React.ComponentProps<typeof View>) {
-  const themeColors = useAppThemeColors();
-
   return (
-    <View>
-      <AppText className="px-6" style={{ fontSize: 15, fontWeight: 400, color: themeColors["--color-typography-200"] }}>
-        {props.children}
-      </AppText>
-    </View>
+    <Text className="px-6" variant="bodyMedium">
+      {props.children}
+    </Text>
   );
 }
 

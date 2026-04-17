@@ -6,7 +6,7 @@ import { Navigation } from "@/components/Navigation";
 import { KeyboardAvoidingComponent } from "@/components/KeyboardAvoindingComponent";
 import { PortalHost } from "@gorhom/portal";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { useTheme } from "react-native-paper";
+import { Icon, useTheme } from "react-native-paper";
 import { SafeAreaComponent } from "@/components/SafeAreaComponent";
 
 export default function TabLayout() {
@@ -51,35 +51,35 @@ export default function TabLayout() {
               name="index"
               options={{
                 title: "Início",
-                tabBarIcon: ({ color }) => <HomeIcon size={24} color={color} />,
+                tabBarIcon: ({ color }) => <Icon source="home" size={24} color={color} />,
               }}
             />
             <Tabs.Screen
               name="entries"
               options={{
                 title: "Lançamentos",
-                tabBarIcon: ({ color }) => <ReceiptTextIcon size={24} color={color} />,
+                tabBarIcon: ({ color }) => <Icon source="receipt-text" size={24} color={color} />,
               }}
             />
             <Tabs.Screen
               name="categories"
               options={{
                 title: "Categorias",
-                tabBarIcon: ({ color }) => <BookmarkIcon size={24} color={color} />,
+                tabBarIcon: ({ color }) => <Icon source="bookmark" size={24} color={color} />,
               }}
             />
             <Tabs.Screen
               name="dashboard"
               options={{
                 title: "Visão Geral",
-                tabBarIcon: ({ color }) => <ChartPieIcon size={24} color={color} />,
+                tabBarIcon: ({ color }) => <Icon source="chart-donut" size={24} color={color} />,
               }}
             />
             <Tabs.Screen
               name="profile"
               options={{
                 title: "Meu Perfil",
-                tabBarIcon: ({ color }) => <UserIcon size={24} color={color} />,
+                tabBarIcon: ({ color }) => <Icon source="account" size={24} color={color} />,
               }}
             />
             <Tabs.Screen

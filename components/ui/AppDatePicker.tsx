@@ -10,6 +10,7 @@ export interface AppDatePickerProps extends Omit<React.ComponentProps<typeof Tex
   value: Date;
   emptyLabel?: string;
   onChange?: (date: Date) => void;
+  containerClassName?: React.ComponentProps<typeof Pressable>["className"];
 }
 
 export function AppDatePicker({ value, emptyLabel, onChange, ...props }: AppDatePickerProps) {
@@ -23,7 +24,7 @@ export function AppDatePicker({ value, emptyLabel, onChange, ...props }: AppDate
 
   return (
     <>
-      <Pressable onPress={openPicker}>
+      <Pressable onPress={openPicker} className={props.containerClassName}>
         <AppFormattedInput
           {...props}
           editable={false}
