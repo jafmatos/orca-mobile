@@ -2,11 +2,14 @@ import { currencyFormatter } from "@/utils/currencyFormatter";
 import React from "react";
 import AppFormattedInput from "./AppFormattedInput";
 
-export type AppCurrencyInputProps = Omit<React.ComponentProps<typeof AppFormattedInput<number>>, "format" | "transform">;
+export interface AppCurrencyInputProps extends Omit<
+  React.ComponentProps<typeof AppFormattedInput<number>>,
+  "format" | "transform" | "defaultValue"
+> {
+  defaultValue?: number;
+}
 
 export function AppCurrencyInput(props: AppCurrencyInputProps) {
-  const defaultValue = 0;
-
   const handleOnChangeText = (text: string) => {
     const sanitizedText = text.replace(/\D/g, "");
     const valueInCents = parseInt(sanitizedText);
@@ -19,10 +22,10 @@ export function AppCurrencyInput(props: AppCurrencyInputProps) {
     <AppFormattedInput<number>
       {...props}
       maxLength={28}
-      value={props.value || defaultValue}
+      value={props.value}
       onChange={(value) => props.onChange?.(value)}
       format={(value) => {
-        return currencyFormatter.format(value || defaultValue);
+        return currencyFormatter.format(value);
       }}
       transform={(text) => (text ? handleOnChangeText(text) : 0)}
     />

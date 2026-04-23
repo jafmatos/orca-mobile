@@ -1,4 +1,6 @@
-export const paperLightThemeColors = {
+import { AppPaperTheme } from "./app-paper-theme";
+
+export const paperLightThemeColors: AppPaperTheme["colors"] = {
   primary: "rgb(145, 77, 0)",
   onPrimary: "rgb(255, 255, 255)",
   primaryContainer: "rgb(255, 220, 195)",
@@ -51,4 +53,16 @@ export const paperLightThemeColors = {
   onWarning: "rgb(255, 255, 255)",
   warningContainer: "rgb(255, 221, 179)",
   onWarningContainer: "rgb(41, 24, 0)",
+  chart: [
+    "rgba(25, 118, 210, 0.8)",
+    "rgba(79, 195, 247, 0.8)",
+    "rgba(56, 142, 60, 0.8)",
+    "rgba(129, 199, 132, 0.8)",
+    "rgba(245, 124, 0, 0.8)",
+    "rgba(255, 183, 77, 0.8)",
+    "rgba(198, 40, 40, 0.8)",
+    "rgba(225, 89, 89, 0.8)",
+    "rgba(106, 27, 154, 0.8)",
+    "rgba(186, 104, 200, 0.8)",
+  ],
 };

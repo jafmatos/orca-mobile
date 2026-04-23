@@ -14,5 +14,6 @@ export interface AppPaperTheme extends MD3Theme {
     onWarning: string;
     warningContainer: string;
     onWarningContainer: string;
+    chart: string[];
   };
 }

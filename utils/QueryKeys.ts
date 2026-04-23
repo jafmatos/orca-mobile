@@ -22,8 +22,25 @@ export class CategoryQueryKeys {
   }
 }
 
+export class OverviewQueryKeys {
+  private static readonly baseKey = "overview";
+
+  public static getExpenseByCategory() {
+    return [this.baseKey, "expense-by-category"];
+  }
+
+  public static getMonthlyEvolution() {
+    return [this.baseKey, "monthly-evolution"];
+  }
+
+  public static getKpis() {
+    return [this.baseKey, "kpis"];
+  }
+}
+
 export class QueryKeys {
   public static readonly User = UserQueryKeys;
   public static readonly Entry = EntryQueryKeys;
   public static readonly Category = CategoryQueryKeys;
+  public static readonly Overview = OverviewQueryKeys;
 }

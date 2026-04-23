@@ -6,7 +6,7 @@ export const useCategories = () => {
   const categoriesQuery = useQuery({
     queryKey: QueryKeys.Category.getCategories(),
     queryFn: async () => {
-      return await CategoryService.getCategories({
+      return await CategoryService.list({
         query: {
           paginated: false,
         },

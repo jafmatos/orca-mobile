@@ -1,18 +1,17 @@
-import { useStackedBackHandler } from "@/hooks/use-stacked-back-handler";
-import { Portal } from "@gorhom/portal";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useImperativeHandle, useState } from "react";
 import { Dimensions, Pressable, ScrollView, View } from "react-native";
+import Animated, { useAnimatedReaction, useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { useKeyboardHandler } from "react-native-keyboard-controller";
-import { Button, useTheme } from "react-native-paper";
-import Animated, { useAnimatedStyle, useDerivedValue, useSharedValue, withSpring } from "react-native-reanimated";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { scheduleOnRN, scheduleOnUI } from "react-native-worklets";
+import { scheduleOnRN } from "react-native-worklets";
+import { Portal } from "@gorhom/portal";
+import { useTheme } from "react-native-paper";
+import { useStackedBackHandler } from "@/hooks/use-stacked-back-handler";
 
 export interface AppBottomSheetProps extends React.ComponentProps<typeof Animated.View> {
   children: React.ReactNode;
   portalHostName?: string;
-  isOpen: boolean;
   expandable?: boolean;
   fullscreen?: boolean;
   closeOnBackdropTap?: boolean;
@@ -21,27 +20,36 @@ export interface AppBottomSheetProps extends React.ComponentProps<typeof Animate
   panSnapPoints?: number;
   backdropOpacity?: number;
   animationDuration?: number;
-  onClose: () => void;
+  onClose?: () => void;
+}
+
+export interface AppBottomSheetRef {
+  open: () => void;
+  close: () => void;
 }
 
 const screenDimensions = Dimensions.get("screen");
 const SCREEN_HEIGHT = screenDimensions.height;
 const SCREEN_WIDTH = screenDimensions.width;
 
-export function AppBottomSheet({
-  expandable = false,
-  fullscreen = false,
-  closeOnBackdropTap = true,
-  snapPointsCollapsed = 400,
-  panSnapPoints = 100,
-  backdropOpacity = 1,
-  animationDuration = 300,
-  ...props
-}: AppBottomSheetProps) {
+export const AppBottomSheet = React.forwardRef<AppBottomSheetRef, AppBottomSheetProps>(function AppBottomSheet(
+  {
+    expandable = false,
+    fullscreen = false,
+    closeOnBackdropTap = true,
+    snapPointsCollapsed = 400,
+    panSnapPoints = 100,
+    backdropOpacity = 1,
+    animationDuration = 300,
+    ...props
+  },
+  ref,
+) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const [isScrollViewOnStart, _setIsScrollViewOnStart] = useState(true);
   const [isScrollViewOnEnd, _setIsScrollViewOnEnd] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const snapPointsScreen = SCREEN_HEIGHT - insets.top;
   const backdropColor = theme.colors.backdrop;
   const bottomSheetOpenedTranslateY = 0;
@@ -60,7 +68,7 @@ export function AppBottomSheet({
 
   if (fullscreen) snapPointsCollapsed = snapPointsScreen;
 
-  const isClosingSharedValue = useSharedValue(false);
+  const isOpenSharedValue = useSharedValue(false);
   const isExpandedSharedValue = useSharedValue(false);
   const isKeyboardOpenedSharedValue = useSharedValue(false);
   const isKeyboardOpeningSharedValue = useSharedValue(false);
@@ -104,28 +112,41 @@ export function AppBottomSheet({
   const open = useCallback(() => {
     "worklet";
 
+    isOpenSharedValue.value = true;
+
     setBottomSheetHeight(snapPointsCollapsed);
 
     backdropOpacitySharedValue.value = withSpring(backdropOpacity, { duration: animationDuration });
     bottomSheetTranslateYSharedValue.value = withSpring(bottomSheetOpenedTranslateY, { duration: animationDuration });
-  }, [setBottomSheetHeight, snapPointsCollapsed, backdropOpacitySharedValue, backdropOpacity, animationDuration, bottomSheetTranslateYSharedValue]);
+  }, [
+    isOpenSharedValue,
+    setBottomSheetHeight,
+    snapPointsCollapsed,
+    backdropOpacitySharedValue,
+    backdropOpacity,
+    animationDuration,
+    bottomSheetTranslateYSharedValue,
+  ]);
 
   const close = useCallback(() => {
     "worklet";
-		
+
+    isOpenSharedValue.value = false;
     isExpandedSharedValue.value = false;
 
     backdropOpacitySharedValue.value = withSpring(0, { duration: animationDuration });
-    bottomSheetTranslateYSharedValue.value = withSpring(
-      bottomSheetHeightSharedValue.value,
-      { duration: animationDuration },
-      (isFinished) => {
-        if (!isFinished) return;
-
-        scheduleOnRN(props.onClose);
-      },
-    );
-  }, [isExpandedSharedValue, backdropOpacitySharedValue, animationDuration, bottomSheetTranslateYSharedValue, bottomSheetHeightSharedValue.value, props.onClose]);
+    bottomSheetTranslateYSharedValue.value = withSpring(bottomSheetHeightSharedValue.value, { duration: animationDuration }, () => {
+      props.onClose && scheduleOnRN(props.onClose);
+    });
+  }, [
+    isOpenSharedValue,
+    isExpandedSharedValue,
+    backdropOpacitySharedValue,
+    animationDuration,
+    bottomSheetTranslateYSharedValue,
+    bottomSheetHeightSharedValue.value,
+    props.onClose,
+  ]);
 
   const collapse = useCallback(() => {
     "worklet";
@@ -145,19 +166,23 @@ export function AppBottomSheet({
     isExpandedSharedValue.value = true;
   }, [animationDuration, bottomSheetTranslateYSharedValue, isExpandedSharedValue, setBottomSheetHeightAnimated, snapPointsScreen]);
 
-  const initializeAnimation = useCallback(() => {
+  useImperativeHandle(ref, () => {
     "worklet";
 
-    if (props.isOpen) open();
-    else close();
-  }, [close, open, props.isOpen]);
+    return {
+      open: () => scheduleOnRN(open),
+      close: () => scheduleOnRN(close),
+    };
+  }, [open, close]);
 
-  useEffect(() => {
-    scheduleOnUI(initializeAnimation);
-  }, [initializeAnimation]);
+  useAnimatedReaction(
+    () => isOpenSharedValue.value,
+    (isOpen) => scheduleOnRN(setIsOpen, isOpen),
+    [isOpenSharedValue],
+  );
 
   useStackedBackHandler({
-    isOpen: props.isOpen,
+    isOpen,
     onClose: close,
   });
 
@@ -209,14 +234,17 @@ export function AppBottomSheet({
   const panDownGestureOnChangeCallback: NonNullable<Parameters<ReturnType<typeof Gesture.Pan>["onChange"]>[0]> = (event) => {
     "worklet";
 
-    if (event.translationY < 0 || isClosingSharedValue.value) return;
+    if (event.translationY < 0) return;
 
-    bottomSheetTranslateYSharedValue.value = withSpring(bottomSheetOpenedTranslateY + event.translationY, { duration: animationDuration });
+    bottomSheetTranslateYSharedValue.value = withSpring(bottomSheetOpenedTranslateY + event.translationY, {
+      duration: animationDuration,
+    });
   };
 
   const panDownGestureOnFinalizeCallback: NonNullable<Parameters<ReturnType<typeof Gesture.Pan>["onFinalize"]>[0]> = (event) => {
     "worklet";
-    if (event.translationY < 0 || isClosingSharedValue.value) return;
+
+    if (event.translationY < 0) return;
 
     if (event.translationY < panSnapPoints) {
       setBottomSheetHeightAnimated(isExpandedSharedValue.value ? snapPointsScreen : snapPointsCollapsed);
@@ -238,7 +266,7 @@ export function AppBottomSheet({
   const panUpGestureOnChangeCallback: NonNullable<Parameters<ReturnType<typeof Gesture.Pan>["onChange"]>[0]> = (event) => {
     "worklet";
 
-    if (event.translationY > 0 || fullscreen || isClosingSharedValue.value) return;
+    if (event.translationY > 0 || fullscreen) return;
 
     if (!expandable) {
       setBottomSheetHeightAnimated(snapPointsCollapsed + Math.abs(event.translationY / 5));
@@ -252,7 +280,7 @@ export function AppBottomSheet({
   const panUpGestureOnFinalizeCallback: NonNullable<Parameters<ReturnType<typeof Gesture.Pan>["onFinalize"]>[0]> = (event) => {
     "worklet";
 
-    if (event.translationY > 0 || isExpandedSharedValue.value || fullscreen || isClosingSharedValue.value) return;
+    if (event.translationY > 0 || isExpandedSharedValue.value || fullscreen) return;
 
     if (event.translationY > -panSnapPoints) collapse();
 
@@ -296,19 +324,29 @@ export function AppBottomSheet({
     };
   });
 
+  const containerAnimatedStyles = useAnimatedStyle(() => {
+    "worklet";
+
+    return {
+      pointerEvents: isOpenSharedValue.value ? "auto" : "none",
+    };
+  }, [isOpenSharedValue]);
+
   return (
     <Portal hostName={props.portalHostName || "bottomsheet"}>
       <GestureDetector gesture={pan}>
-        <View
-          style={{
-            pointerEvents: props.isOpen ? "auto" : "none",
-            width: SCREEN_WIDTH,
-            height: SCREEN_HEIGHT,
-            position: "absolute",
-            top: 0,
-            left: 0,
-            zIndex: 100,
-          }}
+        <Animated.View
+          style={[
+            {
+              width: SCREEN_WIDTH,
+              height: SCREEN_HEIGHT,
+              position: "absolute",
+              top: 0,
+              left: 0,
+              zIndex: 100,
+            },
+            containerAnimatedStyles,
+          ]}
         >
           <Animated.View
             style={{
@@ -326,7 +364,7 @@ export function AppBottomSheet({
               onPress={() => {
                 if (!closeOnBackdropTap) return;
 
-                // close();
+                close();
               }}
             />
           </Animated.View>
@@ -399,8 +437,8 @@ export function AppBottomSheet({
               </ScrollView>
             </GestureDetector>
           </Animated.View>
-        </View>
+        </Animated.View>
       </GestureDetector>
     </Portal>
   );
-}
+});

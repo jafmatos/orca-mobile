@@ -6,6 +6,7 @@ export function AppFabOverlay(props: React.ComponentProps<typeof View>) {
     <View
       style={{
         position: "absolute",
+        zIndex: 50,
         right: 0,
         bottom: 0,
         margin: 16,

@@ -1,4 +1,4 @@
-import { AppPaperTheme } from "@/themes/AppPaperTheme";
+import { AppPaperTheme } from "@/themes/app-paper-theme";
 import { useTheme } from "react-native-paper";
 
 export const useAppTheme = () => {

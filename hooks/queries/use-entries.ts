@@ -1,16 +1,16 @@
-import { EntryService, GetEntriesArguments } from "@/services/EntryService";
+import { EntryService, ListEntriesArguments } from "@/services/EntryService";
 import { QueryKeys } from "@/utils/QueryKeys";
 import { useInfiniteQuery } from "@tanstack/react-query";
 
 export interface UseEntriesOptions {
-  filter?: NonNullable<NonNullable<GetEntriesArguments>["query"]>["filter"];
+  filter?: NonNullable<NonNullable<ListEntriesArguments>["query"]>["filter"];
 }
 
 export const useEntries = (options?: UseEntriesOptions) => {
   const entriesQuery = useInfiniteQuery({
     queryKey: QueryKeys.Entry.getEntries(),
     queryFn: async ({ pageParam }) => {
-      return await EntryService.getEntries({
+      return await EntryService.list({
         query: {
           page: pageParam,
           perPage: 10,

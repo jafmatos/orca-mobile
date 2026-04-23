@@ -2,21 +2,21 @@
 import { Conditional } from "@/components/Conditional";
 import { EndOfListWithLoading } from "@/components/EndOfListWithLoading";
 import { TabbedLayout } from "@/components/layouts/TabbedLayout";
-import { AppBottomSheet } from "@/components/ui/AppBottomSheet";
+import { AppBottomSheet, AppBottomSheetRef } from "@/components/ui/AppBottomSheet";
 import { AppChipSelect } from "@/components/ui/AppChipSelect";
 import { AppConfirmationDialog } from "@/components/ui/AppConfirmationDialog";
 import { AppCurrencyInput } from "@/components/ui/AppCurrencyInput";
 import { AppDatePicker } from "@/components/ui/AppDatePicker";
 import { AppFabOverlay } from "@/components/ui/AppFabOverlay";
-import { AppFullScreenOverlay } from "@/components/ui/AppFullScreenOverlay";
+import { AppFullScreenOverlay, AppFullScreenOverlayHeader, AppFullScreenOverlayRef } from "@/components/ui/AppFullScreenOverlay";
 import { AppSelect } from "@/components/ui/AppSelect";
 import { FormField } from "@/components/ui/FormField";
 import { useCategories } from "@/hooks/queries/use-categories";
 import { useEntries } from "@/hooks/queries/use-entries";
 import { useAppForm } from "@/hooks/use-app-form";
 import { useAppFormWithMutation } from "@/hooks/use-app-form-with-mutation";
+import { useAppTheme } from "@/hooks/use-app-theme";
 import { useAppToast } from "@/hooks/use-app-toast";
-import { useAppTheme } from "@/hooks/useAppTheme";
 import { Entry, EntryTypes } from "@/models/Entry";
 import {
   CreateEntryBody,
@@ -30,7 +30,7 @@ import {
 import { currencyFormatter } from "@/utils/currencyFormatter";
 import { QueryKeys } from "@/utils/QueryKeys";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FlatList, Pressable, View } from "react-native";
 import {
   Button,
@@ -45,7 +45,6 @@ import {
   Text,
   TextInput,
 } from "react-native-paper";
-import Share from "react-native-share";
 
 interface IEntryForm {
   id?: Entry["id"];
@@ -92,11 +91,19 @@ export default function EntriesScreen() {
     when: undefined,
   };
 
-  const [isEntryFormOpen, setIsEntryFormOpen] = useState(false);
-  const [isEntryFilterOpen, setIsEntryFilterOpen] = useState(false);
   const [isEntryExportOpen, setIsEntryExportOpen] = useState(false);
+  const filterBottomSheetRef = useRef<AppBottomSheetRef>(null);
+  const detailBottomSheetRef = useRef<AppBottomSheetRef>(null);
+  const formOverlayRef = useRef<AppFullScreenOverlayRef>(null);
   const [filterDateOption, setFilterDateOption] = useState<FilterDateOptions>(FilterDateOptions.Period);
   const [selectedEntry, setSelectedEntry] = useState<Entry | undefined>();
+
+  const openFilterBottomSheet = () => filterBottomSheetRef.current!.open();
+  const closeFilterBottomSheet = () => filterBottomSheetRef.current!.close();
+  const openDetailBottomSheet = () => detailBottomSheetRef.current!.open();
+  const closeDetailBottomSheet = () => detailBottomSheetRef.current!.close();
+  const openFormOverlay = () => formOverlayRef.current!.open();
+  const closeFormOverlay = () => formOverlayRef.current!.close();
 
   const toast = useAppToast();
   const theme = useAppTheme();
@@ -124,10 +131,12 @@ export default function EntriesScreen() {
       if (entryForm.values.id) return EntryService.update(entryForm.values.id!, body);
       else return EntryService.create(body);
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       entryForm.clear();
 
       if (entryForm.values.id) {
+        setSelectedEntry(data.entry);
+
         toast.success({
           title: "Lançamento editado!",
           description: "Atualize a lista para ver as modificações.",
@@ -139,7 +148,7 @@ export default function EntriesScreen() {
         });
       }
 
-      setIsEntryFormOpen(false);
+      closeFormOverlay();
 
       refreshList();
     },
@@ -153,13 +162,13 @@ export default function EntriesScreen() {
         description: error.message || "Erro desconhecido",
       });
     },
-    onSuccess: (data, entry) => {
-      console.log(entry);
+    onSuccess: () => {
       toast.success({
         title: "Lançamento removido!",
         description: "Atualize a lista para ver as modificações.",
       });
 
+      closeDetailBottomSheet();
       setSelectedEntry(undefined);
 
       refreshList();
@@ -168,7 +177,9 @@ export default function EntriesScreen() {
 
   const entryExportMutation = useMutation({
     mutationFn: async (options: ExportEntriesArguments) => {
-      // const data = await EntryService.exportEntries(options);
+      const data = await EntryService.exportEntries(options);
+
+      return data;
       // const base64Content = `data:text/csv;charset=utf-8;base64,${Buffer.from(data).toString("base64")}`;
       // await Share.open({
       //   url: base64Content,
@@ -214,7 +225,7 @@ export default function EntriesScreen() {
             }}
           />
           <View className="flex flex-row">
-            <IconButton mode="contained" icon="tune" size={24} onPress={() => setIsEntryFilterOpen(true)} />
+            <IconButton mode="contained" icon="tune" size={24} onPress={openFilterBottomSheet} />
             <IconButton mode="contained" icon="download" size={24} onPress={() => setIsEntryExportOpen(true)} />
           </View>
         </View>
@@ -225,7 +236,12 @@ export default function EntriesScreen() {
   const renderItem = useCallback(
     ({ item }: { item: Entry }) => {
       return (
-        <Pressable onPress={() => setSelectedEntry(item)}>
+        <Pressable
+          onPress={() => {
+            setSelectedEntry(item);
+            openDetailBottomSheet();
+          }}
+        >
           <Surface style={{ borderRadius: theme.roundness }}>
             <View className="rounded-xl p-4 flex gap-2">
               <View className="flex flex-row items-center justify-between">
@@ -288,21 +304,14 @@ export default function EntriesScreen() {
         onEndReached={() => entryQuery.fetchNextPage()}
         onEndReachedThreshold={1}
       />
-      <AppFabOverlay>
-        <FAB
-          icon="plus"
-          onPress={() => {
-            entryForm.clear();
 
-            setIsEntryFormOpen(true);
-          }}
-        />
+      <AppFabOverlay>
+        <FAB icon="plus" onPress={openFormOverlay} />
       </AppFabOverlay>
-      <AppFullScreenOverlay isOpen={isEntryFormOpen} onClose={() => setIsEntryFormOpen(false)}>
-        <AppFullScreenOverlay.Header
-          onBack={() => setIsEntryFormOpen(false)}
-          title={!!entryForm.values.id ? "Editar lançamento" : "Novo lançamento"}
-        />
+
+      <AppFullScreenOverlay ref={formOverlayRef}>
+        <AppFullScreenOverlayHeader onBack={closeFormOverlay} title={!!entryForm.values.id ? "Editar lançamento" : "Novo lançamento"} />
+
         <View className="p-4 flex flex-col gap-2">
           <FormField className="mb-6">
             <SegmentedButtons
@@ -408,7 +417,8 @@ export default function EntriesScreen() {
           </Button>
         </View>
       </AppFullScreenOverlay>
-      <AppBottomSheet isOpen={!!selectedEntry} onClose={() => setSelectedEntry(undefined)}>
+
+      <AppBottomSheet ref={detailBottomSheetRef} id="entry-detail">
         <Conditional
           if={!!selectedEntry}
           then={() => {
@@ -425,7 +435,7 @@ export default function EntriesScreen() {
                       icon="content-copy"
                       iconColor={theme.colors.primary}
                       onPress={() => {
-                        setIsEntryFormOpen(true);
+                        openFormOverlay();
 
                         entryForm.setForm({
                           id: undefined,
@@ -443,7 +453,7 @@ export default function EntriesScreen() {
                       icon="pencil"
                       iconColor={theme.colors.primary}
                       onPress={() => {
-                        setIsEntryFormOpen(true);
+                        openFormOverlay();
 
                         entryForm.setForm({
                           id: selectedEntry!.id,
@@ -500,10 +510,8 @@ export default function EntriesScreen() {
           }}
         />
       </AppBottomSheet>
-      <AppBottomSheet fullscreen isOpen={isEntryFilterOpen} onClose={() => {
-				setIsEntryFilterOpen(false)
-				console.log("changing state")
-			}}>
+
+      <AppBottomSheet ref={filterBottomSheetRef} fullscreen id="entry-filter">
         <View className="flex flex-col gap-4">
           <View className="flex flex-row items-center justify-between">
             <Text variant="headlineSmall">Filtros</Text>
@@ -511,6 +519,8 @@ export default function EntriesScreen() {
               mode="elevated"
               icon="close"
               onPress={() => {
+                setFilterDateOption(FilterDateOptions.Period);
+
                 entryFilter.clear();
               }}
             >
@@ -660,7 +670,7 @@ export default function EntriesScreen() {
           <Button
             mode="contained"
             onPress={() => {
-              setIsEntryFilterOpen(false);
+              closeFilterBottomSheet();
 
               refreshList();
             }}
@@ -669,6 +679,7 @@ export default function EntriesScreen() {
           </Button>
         </View>
       </AppBottomSheet>
+
       <Portal>
         <Dialog visible={isEntryExportOpen} onDismiss={() => setIsEntryExportOpen(false)}>
           <Dialog.Title>Exportar</Dialog.Title>

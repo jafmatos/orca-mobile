@@ -1,22 +1,27 @@
-import { Box, Button, ButtonIcon, Menu, MenuItem, MenuItemLabel, Text } from "@gluestack-ui/themed";
+import { useAppTheme } from "@/hooks/use-app-theme";
 import { Category, CategoryTypes } from "@/models/Category";
-import { MoreVerticalIcon, PencilIcon, TrashIcon } from "lucide-react-native";
-import useAppThemeColors from "@/hooks/use-app-theme-colors";
+import { IconButton, Surface, Text } from "react-native-paper";
 
 export type CategoryCardProps = {
   category: Category;
 };
 
 export function CategoryCard(props: CategoryCardProps) {
-  const themeColors = useAppThemeColors();
+  const theme = useAppTheme();
+
   return (
-    <Box
-      className={`pl-4 py-2 rounded-lg flex flex-row items-center justify-between gap-4 border-l-[6px] ${props.category.type === CategoryTypes.Income ? "border-l-success-500" : "border-l-danger-500"}`}
+    <Surface
+      className={`pl-4 py-1 rounded-lg flex flex-row items-center justify-between gap-4 border-l-[6px]`}
+      style={{
+        borderRadius: theme.roundness,
+        borderLeftColor: props.category.type === CategoryTypes.Income ? theme.colors.success : theme.colors.error,
+      }}
     >
       <Text className="grow" ellipsizeMode="tail" numberOfLines={1}>
         {props.category.name}
       </Text>
-      <Menu
+      <IconButton icon="menu" />
+      {/* <Menu
         placement={"bottom end" as any}
         offset={3}
         trigger={({ ...triggerProps }) => {
@@ -39,7 +44,7 @@ export function CategoryCard(props: CategoryCardProps) {
             Remover
           </MenuItemLabel>
         </MenuItem>
-      </Menu>
-    </Box>
+      </Menu> */}
+    </Surface>
   );
 }

@@ -1,4 +1,6 @@
-export const paperDarkThemeColors = {
+import { AppPaperTheme } from "./app-paper-theme";
+
+export const paperDarkThemeColors: AppPaperTheme["colors"] = {
   primary: "rgb(255, 183, 125)",
   onPrimary: "rgb(77, 38, 0)",
   primaryContainer: "rgb(110, 57, 0)",
@@ -51,4 +53,16 @@ export const paperDarkThemeColors = {
   onWarning: "rgb(69, 43, 0)",
   warningContainer: "rgb(99, 63, 0)",
   onWarningContainer: "rgb(255, 221, 179)",
+  chart: [
+    "rgba(40, 100, 150, 0.8)",
+    "rgba(68, 152, 210, 0.8)",
+    "rgba(60, 110, 60, 0.8)",
+    "rgba(103, 159, 102, 0.8)",
+    "rgba(200, 120, 30, 0.8)",
+    "rgba(240, 157, 50, 0.8)",
+    "rgba(170, 50, 45, 0.8)",
+    "rgba(215, 83, 78, 0.8)",
+    "rgba(120, 60, 140, 0.8)",
+    "rgba(164, 95, 179, 0.8)",
+  ],
 };

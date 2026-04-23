@@ -1,8 +1,8 @@
-import { useRef, useState } from "react";
+import { useAppTheme } from "@/hooks/use-app-theme";
+import { useRef } from "react";
 import { Pressable, View } from "react-native";
-import { AppBottomSheet } from "./AppBottomSheet";
 import { Text, TextInput } from "react-native-paper";
-import { useAppTheme } from "@/hooks/useAppTheme";
+import { AppBottomSheet, AppBottomSheetRef } from "./AppBottomSheet";
 
 export interface SelectOption {
   label: string;
@@ -17,30 +17,31 @@ export interface AppSelectProps extends Omit<React.ComponentProps<typeof TextInp
   onChange?: (value: string) => void;
 }
 
-export function AppSelect({ value, emptyLabel, closeOnSelect, options, onChange, ...props }: AppSelectProps) {
+export function AppSelect({ value, emptyLabel = "Nenhuma das opções", closeOnSelect, options, onChange, ...props }: AppSelectProps) {
   const theme = useAppTheme();
-  const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
   const textInputRef = useRef(null);
+  const bottomSheetRef = useRef<AppBottomSheetRef>(null);
+
+  const openBottomSheet = () => bottomSheetRef.current?.open();
+  const closeBottomSheet = () => bottomSheetRef.current?.close();
 
   const onOpen = () => {
     (textInputRef.current as any)?.focus();
 
-    setIsBottomSheetOpen(true);
+    openBottomSheet();
   };
 
   const onClose = () => {
     (textInputRef.current as any)?.blur();
-
-    setIsBottomSheetOpen(false);
   };
 
   const handleOptionPress = (option: SelectOption) => {
     onChange?.(option.value);
-    closeOnSelect && onClose();
+
+    closeOnSelect && closeBottomSheet();
   };
 
   const currentOption = options.find((option) => option.value === value);
-  const zemptyLabel = emptyLabel || "Nenhuma das opções";
 
   return (
     <>
@@ -48,7 +49,7 @@ export function AppSelect({ value, emptyLabel, closeOnSelect, options, onChange,
         <TextInput
           {...props}
           editable={false}
-          value={currentOption?.label || zemptyLabel}
+          value={currentOption?.label || emptyLabel}
           style={{ pointerEvents: "box-none", fontStyle: "italic" }}
           right={<TextInput.Icon icon="chevron-down" onPress={onOpen} />}
           theme={{
@@ -63,16 +64,9 @@ export function AppSelect({ value, emptyLabel, closeOnSelect, options, onChange,
           }}
         />
       </Pressable>
-      <AppBottomSheet
-        portalHostName="select"
-        fullscreen
-        expandable={false}
-        isOpen={isBottomSheetOpen}
-        onClose={onClose}
-        style={{ zIndex: 101 }}
-      >
+      <AppBottomSheet portalHostName="select" style={{ zIndex: 101 }} fullscreen expandable={false} onClose={onClose} ref={bottomSheetRef}>
         <View>
-          {[{ label: zemptyLabel, value: "" }, ...options].map((option) => {
+          {[{ label: emptyLabel, value: "" }, ...options].map((option) => {
             return (
               <Pressable
                 key={option.value}

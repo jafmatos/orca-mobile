@@ -1,6 +1,7 @@
-import { useAppTheme } from "@/hooks/useAppTheme";
-import React, { useState } from "react";
+import { useAppTheme } from "@/hooks/use-app-theme";
+import React, { forwardRef, useCallback, useImperativeHandle, useState } from "react";
 import { Button, Dialog, Portal, Text } from "react-native-paper";
+import { Conditional } from "../Conditional";
 
 type TriggerProps = {
   open?: () => void;
@@ -17,23 +18,55 @@ export interface AppConfirmationDialogProps {
   confirmButtonProps?: Partial<React.ComponentProps<typeof Button>>;
   closeOnCancel?: boolean;
   closeOnConfirm?: boolean;
-  trigger: (props: TriggerProps) => React.JSX.Element;
+  trigger?: (props: TriggerProps) => React.JSX.Element;
 }
 
-export function AppConfirmationDialog({ confirmText = "Confirmar", cancelText = "Cancelar", ...props }: AppConfirmationDialogProps) {
+export interface AppConfirmationDialogRef {
+  open: () => void;
+  close: () => void;
+}
+
+export const AppConfirmationDialog = forwardRef<AppConfirmationDialogRef, AppConfirmationDialogProps>(function AppConfirmationDialog(
+  { confirmText = "Confirmar", cancelText = "Cancelar", closeOnCancel = true, ...props },
+  ref,
+) {
   const theme = useAppTheme();
-  const Trigger = props.trigger;
   const [isOpen, setIsOpen] = useState(false);
 
-  const open = () => setIsOpen(true);
+  const open = useCallback(() => {
+    setIsOpen(true);
+  }, []);
 
-  const close = () => setIsOpen(false);
+  const close = useCallback(() => {
+    setIsOpen(false);
+  }, []);
+
+  useImperativeHandle(ref, () => {
+    return {
+      open,
+      close,
+    };
+  }, [open, close]);
 
   return (
     <>
-      <Trigger open={open} />
+      <Conditional
+        if={!!props.trigger}
+        then={() => {
+          const Trigger = props.trigger!;
+
+          return <Trigger open={open} />;
+        }}
+      />
       <Portal>
-        <Dialog visible={isOpen} onDismiss={close}>
+        <Dialog
+          visible={isOpen}
+          onDismiss={() => {
+            console.log("dismiss");
+
+            close();
+          }}
+        >
           <Dialog.Title>{props.title}</Dialog.Title>
           <Dialog.Content>
             <Text variant="bodyMedium">{props.description}</Text>
@@ -45,7 +78,7 @@ export function AppConfirmationDialog({ confirmText = "Confirmar", cancelText = 
               onPress={() => {
                 props.onCancel?.();
 
-                props.closeOnCancel && close();
+                closeOnCancel && close();
               }}
             >
               {cancelText}
@@ -66,4 +99,4 @@ export function AppConfirmationDialog({ confirmText = "Confirmar", cancelText = 
       </Portal>
     </>
   );
-}
+});

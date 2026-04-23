@@ -1,5 +1,3 @@
-import useAppThemeColors from "@/hooks/use-app-theme-colors";
-import { HomeIcon, ReceiptTextIcon, BookmarkIcon, ChartPieIcon, UserIcon, View } from "lucide-react-native";
 import { Tabs } from "expo-router";
 import React from "react";
 import { Navigation } from "@/components/Navigation";
@@ -11,7 +9,6 @@ import { SafeAreaComponent } from "@/components/SafeAreaComponent";
 
 export default function TabLayout() {
   const theme = useTheme();
-  const colors = useAppThemeColors();
 
   return (
     <GestureHandlerRootView>
@@ -26,21 +23,20 @@ export default function TabLayout() {
 
           <Tabs
             screenOptions={{
-              tabBarActiveTintColor: colors["--color-primary-400"],
-              tabBarInactiveTintColor: colors["--color-typography-0"],
+              tabBarActiveTintColor: theme.colors.primary,
+              tabBarInactiveTintColor: theme.colors.onBackground,
               headerShown: false,
               tabBarPosition: "bottom",
               tabBarStyle: {
                 backgroundColor: theme.colors.background,
                 height: 80,
                 paddingBottom: 0,
-                borderTopWidth: 0,
+								borderTopWidth: 0,
                 boxShadow: `0 -1px 1px -1px ${theme.colors.outlineVariant}`,
                 elevation: 0,
                 shadowOpacity: 0,
                 shadowOffset: { height: 0, width: 0 },
               },
-
               tabBarItemStyle: {
                 alignItems: "center",
                 flexDirection: "row",

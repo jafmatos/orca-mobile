@@ -1,10 +1,10 @@
 import Toast, { BaseToast, ToastConfigParams } from "react-native-toast-message";
 import { CircleCheckIcon, CircleAlertIcon, CircleXIcon } from "lucide-react-native";
 import { View } from "react-native";
-import useAppThemeColors from "@/hooks/use-app-theme-colors";
+import { useAppTheme } from "@/hooks/use-app-theme";
 
 export function AppToast(props: React.ComponentProps<typeof Toast>) {
-  const appThemeColors = useAppThemeColors();
+  const theme = useAppTheme();
 
   const makeToast = (color: string, icon?: React.ReactNode) => {
     // eslint-disable-next-line react/display-name
@@ -14,7 +14,7 @@ export function AppToast(props: React.ComponentProps<typeof Toast>) {
           {...props}
           style={{
             borderLeftColor: color,
-            backgroundColor: appThemeColors["--color-background-900"],
+            backgroundColor: theme.colors.surface,
             height: "auto",
             paddingVertical: 10,
           }}
@@ -22,12 +22,12 @@ export function AppToast(props: React.ComponentProps<typeof Toast>) {
           text1Style={{
             fontSize: 16,
             fontWeight: "600",
-            color: appThemeColors["--color-typography-0"],
+            color: theme.colors.onSurface,
           }}
           text2Style={{
             fontSize: 14,
             fontWeight: "400",
-            color: appThemeColors["--color-typography-200"],
+            color: theme.colors.onSurfaceVariant,
           }}
           renderTrailingIcon={() => {
             return <View className="mx-4 flex items-center justify-center">{icon}</View>;
@@ -46,15 +46,9 @@ export function AppToast(props: React.ComponentProps<typeof Toast>) {
       swipeable
       visibilityTime={5000}
       config={{
-        success: makeToast(
-          appThemeColors["--color-success-500"],
-          <CircleCheckIcon size={20} color={appThemeColors["--color-success-500"]} />,
-        ),
-        warning: makeToast(
-          appThemeColors["--color-warning-500"],
-          <CircleAlertIcon size={20} color={appThemeColors["--color-warning-500"]} />,
-        ),
-        error: makeToast(appThemeColors["--color-danger-500"], <CircleXIcon size={20} color={appThemeColors["--color-danger-500"]} />),
+        success: makeToast(theme.colors.success, <CircleCheckIcon size={20} color={theme.colors.success} />),
+        warning: makeToast(theme.colors.warning, <CircleAlertIcon size={20} color={theme.colors.warning} />),
+        error: makeToast(theme.colors.error, <CircleXIcon size={20} color={theme.colors.error} />),
       }}
     />
   );

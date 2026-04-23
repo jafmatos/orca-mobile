@@ -1,16 +1,14 @@
 import { useStackedBackHandler } from "@/hooks/use-stacked-back-handler";
 import { Portal } from "@gorhom/portal";
-import { ArrowLeft } from "lucide-react-native";
-import React, { useCallback, useEffect } from "react";
-import { Dimensions, Pressable, Text, View } from "react-native";
-import { useTheme } from "react-native-paper";
-import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
+import React, { useCallback, useImperativeHandle, useState } from "react";
+import { Dimensions,  View } from "react-native";
+import { IconButton, Text, useTheme } from "react-native-paper";
+import Animated, { useAnimatedReaction, useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { scheduleOnRN, scheduleOnUI } from "react-native-worklets";
+import { scheduleOnRN } from "react-native-worklets";
 
 export interface AppFullScreenOverlayProps extends React.ComponentProps<typeof Animated.View> {
-  isOpen: boolean;
-  onClose: () => void;
+  onClose?: () => void;
   backdropOpacity?: number;
 }
 
@@ -19,27 +17,26 @@ export interface AppFullScreenOverlayHeaderProps extends React.ComponentProps<ty
   title: string;
 }
 
+export interface AppFullScreenOverlayRef {
+  open: () => void;
+  close: () => void;
+}
+
 export function AppFullScreenOverlayHeader(props: AppFullScreenOverlayHeaderProps) {
   const theme = useTheme();
 
   return (
     <View
       {...props}
-      className="px-6 h-[72px] flex flex-row gap-3 items-center"
+      className="px-4 h-[72px] flex flex-row gap-2 items-center"
       style={{
         backgroundColor: theme.colors.surface,
         boxShadow: `0 1px 3px -2px ${theme.colors.outlineVariant}`,
       }}
     >
-      <Pressable className="p-2" onPress={props.onBack}>
-        <ArrowLeft size={28} color={theme.colors.onBackground} />
-      </Pressable>
+      <IconButton icon="arrow-left" onPress={props.onBack} />
       <Text
-        style={{
-          fontWeight: 600,
-          fontSize: 20,
-          color: theme.colors.onBackground,
-        }}
+        variant="titleLarge"
       >
         {props.title}
       </Text>
@@ -47,7 +44,10 @@ export function AppFullScreenOverlayHeader(props: AppFullScreenOverlayHeaderProp
   );
 }
 
-export function AppFullScreenOverlay({ backdropOpacity = 0.5, ...props }: AppFullScreenOverlayProps) {
+export const AppFullScreenOverlay = React.forwardRef<AppFullScreenOverlayRef, AppFullScreenOverlayProps>(function AppFullScreenOverlay(
+  { backdropOpacity = 1, ...props },
+  ref,
+) {
   const screenDimensions = Dimensions.get("screen");
   const SCREEN_WIDTH = screenDimensions.width;
   const SCREEN_HEIGHT = screenDimensions.height;
@@ -56,8 +56,11 @@ export function AppFullScreenOverlay({ backdropOpacity = 0.5, ...props }: AppFul
   const overlayOpenedOpacity = 1;
   const overlayClosedOpacity = 0;
 
+  const [isOpen, setIsOpen] = useState(false);
+
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const isOpenSharedValue = useSharedValue(false);
   const scaleSharedValue = useSharedValue(overlayClosedScale);
   const opacitySharedValue = useSharedValue(overlayClosedOpacity);
   const backdropOpacitySharedValue = useSharedValue(0);
@@ -66,49 +69,62 @@ export function AppFullScreenOverlay({ backdropOpacity = 0.5, ...props }: AppFul
   const open = useCallback(() => {
     "worklet";
 
+    isOpenSharedValue.value = true;
     scaleSharedValue.value = withSpring(overlayOpenedScale);
     opacitySharedValue.value = withSpring(overlayOpenedOpacity);
     backdropOpacitySharedValue.value = withSpring(backdropOpacity);
-  }, [backdropOpacity, backdropOpacitySharedValue, opacitySharedValue, scaleSharedValue]);
+  }, [backdropOpacity, backdropOpacitySharedValue, isOpenSharedValue, opacitySharedValue, scaleSharedValue]);
 
   const close = useCallback(() => {
     "worklet";
 
+    isOpenSharedValue.value = false;
     scaleSharedValue.value = withSpring(overlayClosedScale);
     opacitySharedValue.value = withSpring(overlayClosedOpacity);
-    backdropOpacitySharedValue.value = withSpring(0);
+    backdropOpacitySharedValue.value = withSpring(0, undefined, (isFinished) => {
+      if (!isFinished) return;
 
-    scheduleOnRN(props.onClose);
-  }, [scaleSharedValue, opacitySharedValue, backdropOpacitySharedValue, props.onClose]);
+      props.onClose && scheduleOnRN(props.onClose);
+    });
+  }, [isOpenSharedValue, scaleSharedValue, opacitySharedValue, backdropOpacitySharedValue, props.onClose]);
 
-  const initializeAnimation = useCallback(() => {
-    "worklet";
+  useImperativeHandle(ref, () => {
+    return { open, close };
+  });
 
-    if (props.isOpen) open();
-    else close();
-  }, [props.isOpen, open, close]);
-
-  useEffect(() => {
-    scheduleOnUI(initializeAnimation);
-  }, [initializeAnimation]);
+  useAnimatedReaction(
+    () => isOpenSharedValue.value,
+    (isOpen) => scheduleOnRN(setIsOpen, isOpen),
+    [isOpenSharedValue],
+  );
 
   useStackedBackHandler({
-    isOpen: props.isOpen,
+    isOpen,
     onClose: close,
   });
+
+  const containerAnimatedStyles = useAnimatedStyle(() => {
+    "worklet";
+
+    return {
+      pointerEvents: isOpenSharedValue.value ? "auto" : "none",
+    };
+  }, [isOpenSharedValue]);
 
   return (
     <Portal hostName="fullscreen-overlay">
       <Animated.View
-        style={{
-          position: "absolute",
-          width: SCREEN_WIDTH,
-          height: SCREEN_HEIGHT,
-          top: 0,
-          left: 0,
-          pointerEvents: props.isOpen ? "auto" : "none",
-          zIndex: 100,
-        }}
+        style={[
+          {
+            width: SCREEN_WIDTH,
+            height: SCREEN_HEIGHT,
+            position: "absolute",
+            top: 0,
+            left: 0,
+            zIndex: 100,
+          },
+          containerAnimatedStyles,
+        ]}
       >
         <Animated.View
           style={{
@@ -138,6 +154,4 @@ export function AppFullScreenOverlay({ backdropOpacity = 0.5, ...props }: AppFul
       </Animated.View>
     </Portal>
   );
-}
-
-AppFullScreenOverlay.Header = AppFullScreenOverlayHeader;
+});

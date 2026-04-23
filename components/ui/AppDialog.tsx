@@ -2,7 +2,6 @@ import React from "react";
 import Animated from "react-native-reanimated";
 import { AppModal } from "./AppModal";
 import { View } from "react-native";
-import useAppThemeColors from "@/hooks/use-app-theme-colors";
 import { Text } from "react-native-paper";
 
 export interface AppDialogProps extends React.ComponentProps<typeof Animated.View> {

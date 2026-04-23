@@ -1,26 +1,14 @@
-import { AppAvatar } from "./ui/AppAvatar";
-import {
-  LucideIcon,
-  MenuIcon,
-  HomeIcon,
-  ReceiptTextIcon,
-  BookmarkIcon,
-  ChartPieIcon,
-  UserIcon,
-  OctagonAlertIcon,
-  ClockIcon,
-  SparklesIcon,
-} from "lucide-react-native";
-import useAppThemeColors from "@/hooks/use-app-theme-colors";
-import { AppDrawer } from "./ui/AppDrawer";
-import { useState } from "react";
+import { useAuthUser } from "@/hooks/queries/use-auth-user";
+import { useAppRouter } from "@/hooks/use-app-router";
+import { useAppTheme } from "@/hooks/use-app-theme";
+import { AppAuthenticationTokenStore } from "@/utils/AuthenticationTokenStore";
 import { Portal } from "@gorhom/portal";
 import { Link, usePathname } from "expo-router";
-import { useAuthUser } from "@/hooks/queries/use-auth-user";
+import { useState } from "react";
 import { Pressable, View } from "react-native";
-import { AppAuthenticationTokenStore } from "@/utils/AuthenticationTokenStore";
-import { Button, Divider, Icon, IconButton, Text, useTheme } from "react-native-paper";
-import { useAppRouter } from "@/hooks/use-app-router";
+import { Button, Divider, Icon, IconButton, Text } from "react-native-paper";
+import { AppAvatar } from "./ui/AppAvatar";
+import { AppDrawer } from "./ui/AppDrawer";
 
 interface DrawerNavigationItemProps {
   icon?: string;
@@ -31,7 +19,7 @@ interface DrawerNavigationItemProps {
 
 function DrawerNavigationItem(props: DrawerNavigationItemProps) {
   const router = useAppRouter();
-  const theme = useTheme();
+  const theme = useAppTheme();
   const pathname = usePathname();
   const isActive = pathname === props.to;
 
@@ -59,10 +47,9 @@ function DrawerNavigationItem(props: DrawerNavigationItemProps) {
 }
 
 export function Navigation() {
-  const theme = useTheme();
+  const theme = useAppTheme();
   const router = useAppRouter();
   const user = useAuthUser();
-  const themeColors = useAppThemeColors();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const closeDrawer = () => setIsDrawerOpen(false);
@@ -73,8 +60,6 @@ export function Navigation() {
         className="h-[72px] px-4 flex flex-row justify-between items-center"
         style={{
           backgroundColor: theme.colors.background,
-          borderBottomWidth: 0,
-          borderBottomColor: theme.colors.outlineVariant,
           boxShadow: `0 1px 1px -1px ${theme.colors.outlineVariant}`,
           zIndex: 1,
         }}

@@ -1,7 +1,7 @@
-import { GetEntriesArguments } from "@/services/EntryService";
+import { ListEntriesArguments } from "@/services/EntryService";
 import zustand from "zustand";
 
-type EntryQuery = NonNullable<GetEntriesArguments["query"]>;
+type EntryQuery = NonNullable<ListEntriesArguments["query"]>;
 
 type EntryQueryStore = {
   filter: EntryQuery["filter"];
