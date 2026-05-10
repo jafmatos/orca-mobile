@@ -1,8 +1,11 @@
 // import { Buffer } from "@craftzdog/react-native-buffer";
-import { Conditional } from "@/components/Conditional";
+import { InfiniteData, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { FlatList, Pressable, View } from "react-native";
+import { Button, Dialog, FAB, HelperText, IconButton, Searchbar, SegmentedButtons, Surface, Text, TextInput } from "react-native-paper";
+import { BottomSheet, BottomSheetRef } from "jam-bottomsheet";
 import { EndOfListWithLoading } from "@/components/EndOfListWithLoading";
 import { TabbedLayout } from "@/components/layouts/TabbedLayout";
-import { AppBottomSheet, AppBottomSheetRef } from "@/components/ui/AppBottomSheet";
 import { AppChipSelect } from "@/components/ui/AppChipSelect";
 import { AppConfirmationDialog } from "@/components/ui/AppConfirmationDialog";
 import { AppCurrencyInput } from "@/components/ui/AppCurrencyInput";
@@ -11,6 +14,7 @@ import { AppFabOverlay } from "@/components/ui/AppFabOverlay";
 import { AppFullScreenOverlay, AppFullScreenOverlayHeader, AppFullScreenOverlayRef } from "@/components/ui/AppFullScreenOverlay";
 import { AppSelect } from "@/components/ui/AppSelect";
 import { FormField } from "@/components/ui/FormField";
+import { Conditional } from "@/components/utils/Conditional";
 import { useCategories } from "@/hooks/queries/use-categories";
 import { useEntries } from "@/hooks/queries/use-entries";
 import { useAppForm } from "@/hooks/use-app-form";
@@ -29,22 +33,9 @@ import {
 } from "@/services/EntryService";
 import { currencyFormatter } from "@/utils/currencyFormatter";
 import { QueryKeys } from "@/utils/QueryKeys";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { FlatList, Pressable, View } from "react-native";
-import {
-  Button,
-  Dialog,
-  FAB,
-  HelperText,
-  IconButton,
-  Portal,
-  Searchbar,
-  SegmentedButtons,
-  Surface,
-  Text,
-  TextInput,
-} from "react-native-paper";
+import { AppBottomSheet } from "@/components/ui/AppBottomSheet";
+import { Portal } from "@gorhom/portal";
+import { PaginatedData } from "@/models/PaginatedData";
 
 interface IEntryForm {
   id?: Entry["id"];
@@ -92,18 +83,20 @@ export default function EntriesScreen() {
   };
 
   const [isEntryExportOpen, setIsEntryExportOpen] = useState(false);
-  const filterBottomSheetRef = useRef<AppBottomSheetRef>(null);
-  const detailBottomSheetRef = useRef<AppBottomSheetRef>(null);
+  const filterBottomSheetRef = useRef<BottomSheetRef>(null);
+  const detailBottomSheetRef = useRef<BottomSheetRef>(null);
   const formOverlayRef = useRef<AppFullScreenOverlayRef>(null);
   const [filterDateOption, setFilterDateOption] = useState<FilterDateOptions>(FilterDateOptions.Period);
   const [selectedEntry, setSelectedEntry] = useState<Entry | undefined>();
+  const [needsRefresh, setNeedsRefresh] = useState(false);
+  const [wasQueryResetted, setWasQueryResetted] = useState(false);
 
-  const openFilterBottomSheet = () => filterBottomSheetRef.current!.open();
-  const closeFilterBottomSheet = () => filterBottomSheetRef.current!.close();
-  const openDetailBottomSheet = () => detailBottomSheetRef.current!.open();
-  const closeDetailBottomSheet = () => detailBottomSheetRef.current!.close();
-  const openFormOverlay = () => formOverlayRef.current!.open();
-  const closeFormOverlay = () => formOverlayRef.current!.close();
+  const openFilterBottomSheet = () => filterBottomSheetRef.current?.open();
+  const closeFilterBottomSheet = () => filterBottomSheetRef.current?.close();
+  const openDetailBottomSheet = () => detailBottomSheetRef.current?.open();
+  const closeDetailBottomSheet = () => detailBottomSheetRef.current?.close();
+  const openFormOverlay = () => formOverlayRef.current?.open();
+  const closeFormOverlay = () => formOverlayRef.current?.close();
 
   const toast = useAppToast();
   const theme = useAppTheme();
@@ -113,13 +106,28 @@ export default function EntriesScreen() {
   const categoryQuery = useCategories();
   const entryQuery = useEntries({
     filter: entryFilter.values,
+    onSuccess: () => {
+      if (wasQueryResetted && needsRefresh) {
+        setNeedsRefresh(false);
+        setWasQueryResetted(false);
+      }
+    },
+  });
+
+  useEffect(() => {
+    if (selectedEntry) openDetailBottomSheet();
+    // else closeDetailBottomSheet();
   });
 
   const refreshList = useCallback(() => {
-    queryClient.resetQueries({
-      queryKey: QueryKeys.Entry.getEntries(),
-      exact: true,
-    });
+    setWasQueryResetted(true);
+
+    setTimeout(() => {
+      queryClient.resetQueries({
+        queryKey: QueryKeys.Entry.getEntries(),
+        exact: true,
+      });
+    }, 0);
   }, [queryClient]);
 
   const { mutation: entryCreateOrUpdateMutation } = useAppFormWithMutation<
@@ -148,9 +156,20 @@ export default function EntriesScreen() {
         });
       }
 
+      queryClient.setQueryData(QueryKeys.Entry.getEntries(), (oldData: InfiniteData<PaginatedData<Entry>>) => {
+        return {
+          ...oldData,
+          pages: [
+            {
+              ...oldData.pages[0],
+              data: [data.entry, ...oldData.pages[0].data],
+            },
+            ...oldData.pages.slice(1).map((page) => ({ ...page, data: page.data.filter((entry) => entry.id !== data.entry.id) })),
+          ],
+        };
+      });
       closeFormOverlay();
-
-      refreshList();
+      setNeedsRefresh(true);
     },
   });
 
@@ -168,10 +187,15 @@ export default function EntriesScreen() {
         description: "Atualize a lista para ver as modificações.",
       });
 
+      queryClient.setQueryData(QueryKeys.Entry.getEntries(), (oldData: InfiniteData<PaginatedData<Entry>>) => {
+        return {
+          ...oldData,
+          pages: oldData.pages.map((page) => ({ ...page, data: page.data.filter((entry) => entry.id !== selectedEntry?.id) })),
+        };
+      });
       closeDetailBottomSheet();
       setSelectedEntry(undefined);
-
-      refreshList();
+      setNeedsRefresh(true);
     },
   });
 
@@ -239,7 +263,6 @@ export default function EntriesScreen() {
         <Pressable
           onPress={() => {
             setSelectedEntry(item);
-            openDetailBottomSheet();
           }}
         >
           <Surface style={{ borderRadius: theme.roundness }}>
@@ -306,7 +329,13 @@ export default function EntriesScreen() {
       />
 
       <AppFabOverlay>
-        <FAB icon="plus" onPress={openFormOverlay} />
+        <Conditional
+          if={needsRefresh}
+          _then={() => {
+            return <FAB icon="refresh" size="medium" variant="secondary" onPress={refreshList} />;
+          }}
+        />
+        <FAB icon="plus" customSize={80} onPress={openFormOverlay} />
       </AppFabOverlay>
 
       <AppFullScreenOverlay ref={formOverlayRef}>
@@ -418,10 +447,10 @@ export default function EntriesScreen() {
         </View>
       </AppFullScreenOverlay>
 
-      <AppBottomSheet ref={detailBottomSheetRef} id="entry-detail">
+      <AppBottomSheet ref={detailBottomSheetRef} id="entry-detail" onClose={() => setSelectedEntry(undefined)}>
         <Conditional
           if={!!selectedEntry}
-          then={() => {
+          _then={() => {
             return (
               <View className="flex flex-col gap-4">
                 <View className="flex flex-row justify-between items-center gap-4">
@@ -588,7 +617,7 @@ export default function EntriesScreen() {
 
             <Conditional
               if={filterDateOption === FilterDateOptions.Custom}
-              then={() => {
+              _then={() => {
                 return (
                   <View className="mt-2 flex flex-row gap-4">
                     <AppDatePicker
@@ -680,7 +709,7 @@ export default function EntriesScreen() {
         </View>
       </AppBottomSheet>
 
-      <Portal>
+      <Portal hostName="modal">
         <Dialog visible={isEntryExportOpen} onDismiss={() => setIsEntryExportOpen(false)}>
           <Dialog.Title>Exportar</Dialog.Title>
           <Dialog.Content>

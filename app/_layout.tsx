@@ -10,6 +10,7 @@ import { paperDarkThemeColors } from "@/themes/paper-dark-theme-colors";
 import { paperLightThemeColors } from "@/themes/paper-light-theme-colors";
 import { MD3DarkTheme, MD3LightTheme, PaperProvider } from "react-native-paper";
 import { PortalProvider } from "@gorhom/portal";
+import { BottomSheetProvider } from "jam-bottomsheet";
 
 configureReanimatedLogger({
   level: ReanimatedLogLevel.warn,
@@ -39,22 +40,24 @@ export default function RootLayout() {
     >
       <KeyboardProvider>
         <PortalProvider>
-          <QueryClientProvider client={queryClient}>
-            <Stack
-              screenOptions={{
-                headerShown: false,
-              }}
-            >
-              <Stack.Screen name="(tabs)" />
-              <Stack.Screen name="(auth)/sign-in" />
-              <Stack.Screen name="(auth)/sign-up/index" />
-              <Stack.Screen name="(auth)/sign-up/confirm/[id]" />
-              <Stack.Screen name="(auth)/reset-password/index" />
-              <Stack.Screen name="(auth)/reset-password/confirm/[id]" />
-            </Stack>
+          <BottomSheetProvider>
+            <QueryClientProvider client={queryClient}>
+              <Stack
+                screenOptions={{
+                  headerShown: false,
+                }}
+              >
+                <Stack.Screen name="(tabs)" />
+                <Stack.Screen name="(auth)/sign-in" />
+                <Stack.Screen name="(auth)/sign-up/index" />
+                <Stack.Screen name="(auth)/sign-up/confirm/[id]" />
+                <Stack.Screen name="(auth)/reset-password/index" />
+                <Stack.Screen name="(auth)/reset-password/confirm/[id]" />
+              </Stack>
 
-            <SystemBars style={appThemeName === "dark" ? "light" : "dark"} />
-          </QueryClientProvider>
+              <SystemBars style={appThemeName === "dark" ? "light" : "dark"} />
+            </QueryClientProvider>
+          </BottomSheetProvider>
         </PortalProvider>
       </KeyboardProvider>
     </PaperProvider>

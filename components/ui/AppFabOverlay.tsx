@@ -14,7 +14,7 @@ export function AppFabOverlay(props: React.ComponentProps<typeof View>) {
         flexDirection: "column",
         justifyContent: "flex-end",
         alignItems: "flex-end",
-        gap: 8,
+        gap: 16,
       }}
     >
       {props.children}

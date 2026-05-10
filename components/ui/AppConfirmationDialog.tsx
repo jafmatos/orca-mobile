@@ -1,7 +1,7 @@
 import { useAppTheme } from "@/hooks/use-app-theme";
 import React, { forwardRef, useCallback, useImperativeHandle, useState } from "react";
 import { Button, Dialog, Portal, Text } from "react-native-paper";
-import { Conditional } from "../Conditional";
+import { Conditional } from "../utils/Conditional";
 
 type TriggerProps = {
   open?: () => void;
@@ -52,7 +52,7 @@ export const AppConfirmationDialog = forwardRef<AppConfirmationDialogRef, AppCon
     <>
       <Conditional
         if={!!props.trigger}
-        then={() => {
+        _then={() => {
           const Trigger = props.trigger!;
 
           return <Trigger open={open} />;
@@ -61,11 +61,7 @@ export const AppConfirmationDialog = forwardRef<AppConfirmationDialogRef, AppCon
       <Portal>
         <Dialog
           visible={isOpen}
-          onDismiss={() => {
-            console.log("dismiss");
-
-            close();
-          }}
+          onDismiss={close}
         >
           <Dialog.Title>{props.title}</Dialog.Title>
           <Dialog.Content>

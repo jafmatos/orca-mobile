@@ -21,6 +21,7 @@ export function AppChipSelect<T = string>(props: AppChipSelectProps<T>) {
       {props.options.map((option) => {
         return (
           <Chip
+            compact
             mode="outlined"
             key={option.key || String(option.value)}
             onPress={() => {

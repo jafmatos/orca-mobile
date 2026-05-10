@@ -22,6 +22,7 @@ export function AppCurrencyInput(props: AppCurrencyInputProps) {
     <AppFormattedInput<number>
       {...props}
       maxLength={28}
+			keyboardType="numeric"
       value={props.value}
       onChange={(value) => props.onChange?.(value)}
       format={(value) => {

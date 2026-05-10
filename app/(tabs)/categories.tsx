@@ -6,6 +6,7 @@ import { AppCurrencyInput } from "@/components/ui/AppCurrencyInput";
 import { AppFabOverlay } from "@/components/ui/AppFabOverlay";
 import { AppFullScreenOverlay, AppFullScreenOverlayHeader, AppFullScreenOverlayRef } from "@/components/ui/AppFullScreenOverlay";
 import { FormField } from "@/components/ui/FormField";
+import { Conditional } from "@/components/utils/Conditional";
 import { useCategories } from "@/hooks/queries/use-categories";
 import { useAppForm } from "@/hooks/use-app-form";
 import { useAppFormWithMutation } from "@/hooks/use-app-form-with-mutation";
@@ -13,6 +14,7 @@ import { useAppTheme } from "@/hooks/use-app-theme";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { Category, CategoryTypes } from "@/models/Category";
 import { CategoryService, CreateCategoryBody, CreateCategoryReturnType, UpdateCategoryBody } from "@/services/CategoryService";
+import { currencyFormatter } from "@/utils/currencyFormatter";
 import { QueryKeys } from "@/utils/QueryKeys";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo, useRef, useState } from "react";
@@ -40,15 +42,24 @@ function CategoryCard(props: CategoryCardProps) {
 
   return (
     <Surface
-      className={`relative pl-4 rounded-lg flex flex-row items-center justify-between gap-4 border-l-[6px]`}
+      className={`relative py-1 pl-4 rounded-lg flex flex-row items-center justify-between gap-0 border-l-[6px]`}
       style={{
         borderRadius: theme.roundness,
         borderLeftColor: props.category.type === CategoryTypes.Income ? theme.colors.success : theme.colors.error,
       }}
     >
-      <Text variant="titleMedium" ellipsizeMode="tail" numberOfLines={1}>
-        {props.category.name}
-      </Text>
+      <View className="grow flex" style={{ flexShrink: 1 }}>
+        <Text variant="titleMedium" ellipsizeMode="tail" numberOfLines={1}>
+          {props.category.name}
+        </Text>
+      </View>
+
+      <Conditional
+        if={!!props.category.limit}
+        _then={() => {
+          return <Text className="ml-4" variant="bodySmall">{currencyFormatter.format(props.category.limit?.amount || 0)}</Text>;
+        }}
+      />
 
       <Menu
         style={{ transform: [{ translateX: -7 }, { translateY: 56 }] }}
@@ -172,7 +183,7 @@ export default function CategoriesScreen() {
   return (
     <TabbedLayout>
       <AppFabOverlay>
-        <FAB icon="plus" onPress={openCategoryForm} />
+        <FAB icon="plus" customSize={80} onPress={openCategoryForm} />
       </AppFabOverlay>
 
       <AppConfirmationDialog

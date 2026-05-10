@@ -11,4 +11,5 @@ export interface Category {
   name: string;
   userId: string;
   limit?: Limit;
+  spent: number;
 }

@@ -1,7 +1,7 @@
 import { useStackedBackHandler } from "@/hooks/use-stacked-back-handler";
 import { Portal } from "@gorhom/portal";
 import React, { useCallback, useImperativeHandle, useState } from "react";
-import { Dimensions,  View } from "react-native";
+import { Dimensions, Keyboard, View } from "react-native";
 import { IconButton, Text, useTheme } from "react-native-paper";
 import Animated, { useAnimatedReaction, useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -35,11 +35,7 @@ export function AppFullScreenOverlayHeader(props: AppFullScreenOverlayHeaderProp
       }}
     >
       <IconButton icon="arrow-left" onPress={props.onBack} />
-      <Text
-        variant="titleLarge"
-      >
-        {props.title}
-      </Text>
+      <Text variant="titleLarge">{props.title}</Text>
     </View>
   );
 }
@@ -66,6 +62,8 @@ export const AppFullScreenOverlay = React.forwardRef<AppFullScreenOverlayRef, Ap
   const backdropOpacitySharedValue = useSharedValue(0);
   const backdropColor = theme.colors.backdrop;
 
+  const dismissKeyboard = () => Keyboard.dismiss();
+
   const open = useCallback(() => {
     "worklet";
 
@@ -77,6 +75,8 @@ export const AppFullScreenOverlay = React.forwardRef<AppFullScreenOverlayRef, Ap
 
   const close = useCallback(() => {
     "worklet";
+
+    scheduleOnRN(dismissKeyboard);
 
     isOpenSharedValue.value = false;
     scaleSharedValue.value = withSpring(overlayClosedScale);

@@ -1,7 +1,7 @@
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { Pressable, View } from "react-native";
 import { Text } from "react-native-paper";
-import { Conditional } from "./Conditional";
+import { Conditional } from "./utils/Conditional";
 
 interface SubNavigationItemProps extends React.ComponentProps<typeof Pressable> {
   isActive: boolean;
@@ -22,7 +22,7 @@ function SubNavigationItem({ isActive, label, ...props }: SubNavigationItemProps
       <View className="h-full flex flex-row justify-center items-center">
         <Conditional
           if={isActive}
-          then={() => {
+          _then={() => {
             return (
               <View
                 className="absolute bottom-0 w-full"
