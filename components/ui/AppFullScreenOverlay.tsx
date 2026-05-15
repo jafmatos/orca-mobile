@@ -7,42 +7,31 @@ import Animated, { useAnimatedReaction, useAnimatedStyle, useSharedValue, withSp
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { scheduleOnRN } from "react-native-worklets";
 
+export type AnimationCallback = () => void;
+
+export type AnimationHooks = {
+  onStarted: AnimationCallback;
+  onFinished: AnimationCallback;
+};
+
 export interface AppFullScreenOverlayProps extends React.ComponentProps<typeof Animated.View> {
   onClose?: () => void;
   backdropOpacity?: number;
-}
-
-export interface AppFullScreenOverlayHeaderProps extends React.ComponentProps<typeof View> {
-  onBack?: () => void;
-  title: string;
+	title?: string;
+  onOpenAnimationStarted?: AnimationCallback;
+  onOpenAnimationFinished?: AnimationCallback;
+  onCloseAnimationStarted?: AnimationCallback;
+  onCloseAnimationFinished?: AnimationCallback;
 }
 
 export interface AppFullScreenOverlayRef {
-  open: () => void;
-  close: () => void;
-}
-
-export function AppFullScreenOverlayHeader(props: AppFullScreenOverlayHeaderProps) {
-  const theme = useTheme();
-
-  return (
-    <View
-      {...props}
-      className="px-4 h-[72px] flex flex-row gap-2 items-center"
-      style={{
-        backgroundColor: theme.colors.surface,
-        boxShadow: `0 1px 3px -2px ${theme.colors.outlineVariant}`,
-      }}
-    >
-      <IconButton icon="arrow-left" onPress={props.onBack} />
-      <Text variant="titleLarge">{props.title}</Text>
-    </View>
-  );
+  open: (hooks?: AnimationHooks) => void;
+  close: (hooks?: AnimationHooks) => void;
 }
 
 export const AppFullScreenOverlay = React.forwardRef<AppFullScreenOverlayRef, AppFullScreenOverlayProps>(function AppFullScreenOverlay(
   { backdropOpacity = 1, ...props },
-  ref,
+  ref
 ) {
   const screenDimensions = Dimensions.get("screen");
   const SCREEN_WIDTH = screenDimensions.width;
@@ -64,29 +53,47 @@ export const AppFullScreenOverlay = React.forwardRef<AppFullScreenOverlayRef, Ap
 
   const dismissKeyboard = () => Keyboard.dismiss();
 
-  const open = useCallback(() => {
-    "worklet";
+  const open = useCallback(
+    (hooks?: AnimationHooks) => {
+      "worklet";
 
-    isOpenSharedValue.value = true;
-    scaleSharedValue.value = withSpring(overlayOpenedScale);
-    opacitySharedValue.value = withSpring(overlayOpenedOpacity);
-    backdropOpacitySharedValue.value = withSpring(backdropOpacity);
-  }, [backdropOpacity, backdropOpacitySharedValue, isOpenSharedValue, opacitySharedValue, scaleSharedValue]);
+      if (hooks?.onStarted) scheduleOnRN(hooks.onStarted);
+      if (props.onOpenAnimationStarted) scheduleOnRN(props.onOpenAnimationStarted);
 
-  const close = useCallback(() => {
-    "worklet";
+      isOpenSharedValue.value = true;
+      scaleSharedValue.value = withSpring(overlayOpenedScale);
+      opacitySharedValue.value = withSpring(overlayOpenedOpacity);
+      backdropOpacitySharedValue.value = withSpring(backdropOpacity, undefined, (finished) => {
+        if (!finished) return;
 
-    scheduleOnRN(dismissKeyboard);
+        if (hooks?.onFinished) scheduleOnRN(hooks.onFinished);
+        if (props.onOpenAnimationFinished) scheduleOnRN(props.onOpenAnimationFinished);
+      });
+    },
+    [backdropOpacity, backdropOpacitySharedValue, isOpenSharedValue, opacitySharedValue, scaleSharedValue]
+  );
 
-    isOpenSharedValue.value = false;
-    scaleSharedValue.value = withSpring(overlayClosedScale);
-    opacitySharedValue.value = withSpring(overlayClosedOpacity);
-    backdropOpacitySharedValue.value = withSpring(0, undefined, (isFinished) => {
-      if (!isFinished) return;
+  const close = useCallback(
+    (hooks?: AnimationHooks) => {
+      "worklet";
 
-      props.onClose && scheduleOnRN(props.onClose);
-    });
-  }, [isOpenSharedValue, scaleSharedValue, opacitySharedValue, backdropOpacitySharedValue, props.onClose]);
+      scheduleOnRN(dismissKeyboard);
+
+      if (hooks?.onStarted) scheduleOnRN(hooks.onStarted);
+      if (props.onCloseAnimationStarted) scheduleOnRN(props.onCloseAnimationStarted);
+
+      isOpenSharedValue.value = false;
+      scaleSharedValue.value = withSpring(overlayClosedScale);
+      opacitySharedValue.value = withSpring(overlayClosedOpacity);
+      backdropOpacitySharedValue.value = withSpring(0, undefined, (isFinished) => {
+        if (!isFinished) return;
+
+        if (hooks?.onFinished) scheduleOnRN(hooks.onFinished);
+        if (props.onCloseAnimationFinished) scheduleOnRN(props.onCloseAnimationFinished);
+      });
+    },
+    [isOpenSharedValue, scaleSharedValue, opacitySharedValue, backdropOpacitySharedValue, props.onClose]
+  );
 
   useImperativeHandle(ref, () => {
     return { open, close };
@@ -95,7 +102,7 @@ export const AppFullScreenOverlay = React.forwardRef<AppFullScreenOverlayRef, Ap
   useAnimatedReaction(
     () => isOpenSharedValue.value,
     (isOpen) => scheduleOnRN(setIsOpen, isOpen),
-    [isOpenSharedValue],
+    [isOpenSharedValue]
   );
 
   useStackedBackHandler({
@@ -149,7 +156,20 @@ export const AppFullScreenOverlay = React.forwardRef<AppFullScreenOverlayRef, Ap
             opacity: opacitySharedValue,
           }}
         >
-          {props.children}
+          <>
+            <View
+              className="px-4 h-[72px] flex flex-row gap-2 items-center"
+              style={{
+                backgroundColor: theme.colors.surface,
+                boxShadow: `0 1px 3px -2px ${theme.colors.outlineVariant}`,
+              }}
+            >
+              <IconButton icon="arrow-left" onPress={() => scheduleOnRN(close)} />
+              <Text variant="titleLarge">{props.title}</Text>
+            </View>
+
+            {props.children}
+          </>
         </Animated.View>
       </Animated.View>
     </Portal>
