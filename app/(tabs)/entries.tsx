@@ -4,6 +4,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FlatList, Pressable, View } from "react-native";
 import { Button, Dialog, FAB, HelperText, IconButton, Searchbar, SegmentedButtons, Surface, Text, TextInput } from "react-native-paper";
 import { BottomSheet, BottomSheetRef } from "jam-bottomsheet";
+import ExpoFileSystem from "expo-file-system";
+import ExpoPermissions from "expo-permissions";
+import ExpoMediaLibrary from "expo-media-library";
 import { EndOfListWithLoading } from "@/components/EndOfListWithLoading";
 import { TabbedLayout } from "@/components/layouts/TabbedLayout";
 import { AppChipSelect } from "@/components/ui/AppChipSelect";
@@ -11,7 +14,7 @@ import { AppConfirmationDialog } from "@/components/ui/AppConfirmationDialog";
 import { AppCurrencyInput } from "@/components/ui/AppCurrencyInput";
 import { AppDatePicker } from "@/components/ui/AppDatePicker";
 import { AppFabOverlay } from "@/components/ui/AppFabOverlay";
-import { AppFullScreenOverlay, AppFullScreenOverlayHeader, AppFullScreenOverlayRef } from "@/components/ui/AppFullScreenOverlay";
+import { AppFullScreenOverlay, AppFullScreenOverlayRef } from "@/components/ui/AppFullScreenOverlay";
 import { AppSelect } from "@/components/ui/AppSelect";
 import { FormField } from "@/components/ui/FormField";
 import { Conditional } from "@/components/utils/Conditional";
@@ -201,17 +204,20 @@ export default function EntriesScreen() {
 
   const entryExportMutation = useMutation({
     mutationFn: async (options: ExportEntriesArguments) => {
-      const data = await EntryService.exportEntries(options);
+      const permission = await ExpoPermissions.askAsync(ExpoPermissions.MEDIA_LIBRARY);
 
-      return data;
-      // const base64Content = `data:text/csv;charset=utf-8;base64,${Buffer.from(data).toString("base64")}`;
-      // await Share.open({
-      //   url: base64Content,
-      //   type: "text/csv",
-      //   filename: "lancamentos.csv",
-      //   title: "Exportar lançamentos",
-      //   message: "Salvar CSV em:",
-      // });
+      if (!permission.granted) {
+        return;
+      }
+
+      const { data, headers } = await EntryService.exportEntries(options);
+      const fileName = headers["Content-Disposition"] || "lancamentos.csv";
+      const destination = new ExpoFileSystem.Directory(ExpoFileSystem.Paths.cache, "orca/downloads");
+      const file = new ExpoFileSystem.File(destination, fileName);
+
+      destination.create();
+      file.create();
+      file.write(data);
     },
     onError: (error) => {
       toast.error({
@@ -295,7 +301,7 @@ export default function EntriesScreen() {
         </Pressable>
       );
     },
-    [theme.colors.error, theme.colors.success, theme.roundness],
+    [theme.colors.error, theme.colors.success, theme.roundness]
   );
 
   useEffect(() => {
@@ -338,9 +344,7 @@ export default function EntriesScreen() {
         <FAB icon="plus" customSize={80} onPress={openFormOverlay} />
       </AppFabOverlay>
 
-      <AppFullScreenOverlay ref={formOverlayRef}>
-        <AppFullScreenOverlayHeader onBack={closeFormOverlay} title={!!entryForm.values.id ? "Editar lançamento" : "Novo lançamento"} />
-
+      <AppFullScreenOverlay ref={formOverlayRef} title={!!entryForm.values.id ? "Editar lançamento" : "Novo lançamento"}>
         <View className="p-4 flex flex-col gap-2">
           <FormField className="mb-6">
             <SegmentedButtons

@@ -1,6 +1,7 @@
 import { Entry, EntryTypes } from "@/models/Entry";
 import { PaginatedData } from "@/models/PaginatedData";
 import { $axios } from "@/utils/$axios";
+import { AxiosResponse } from "axios";
 import qs from "qs";
 
 export type ListEntriesArguments = {
@@ -78,13 +79,13 @@ export class EntryService {
     return data;
   }
 
-  private static async _exportEntries(options: ExportEntriesArguments): Promise<string> {
+  private static async _exportEntries(
+    options: ExportEntriesArguments
+  ): Promise<AxiosResponse<string, any, { "Content-Disposition": string }>> {
     const query = qs.stringify(options.query);
-    const { data } = await $axios.get(`${this.path}/export/csv?${query}`);
+    const response = await $axios.get(`${this.path}/export/csv?${query}`);
 
-    console.log(data);
-
-    return data;
+    return response as unknown as AxiosResponse<string, any, { "Content-Disposition": string }>;
   }
 
   private static async _create(body: CreateEntryBody): Promise<CreateEntryReturnType> {

@@ -53,6 +53,13 @@
             "enforceNavigationBarContrast": false
           }
         }
+      ],
+      [
+        "expo-file-system",
+        {
+          "supportsOpeningDocumentsInPlace": true,
+          "enableFileSharing": true
+        }
       ]
     ],
     "experiments": {
