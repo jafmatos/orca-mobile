@@ -29,15 +29,15 @@ export function AppDrawer({ panSnapPoints = 100, snapPoints = 0.8 * SCREEN_WIDTH
   const open = useCallback(() => {
     "worklet";
 
-    drawerTranslateX.value = withSpring(0);
-    backdropOpacity.value = withSpring(1);
+    drawerTranslateX.value = withSpring(0, { duration: 300 });
+    backdropOpacity.value = withSpring(1, { duration: 300 });
   }, [backdropOpacity, drawerTranslateX]);
 
   const close = useCallback(() => {
     "worklet";
 
-    drawerTranslateX.value = withSpring(-snapPoints);
-    backdropOpacity.value = withSpring(0);
+    drawerTranslateX.value = withSpring(-snapPoints, { duration: 300 });
+    backdropOpacity.value = withSpring(0, { duration: 300 });
 
     scheduleOnRN(props.onClose);
   }, [props.onClose, backdropOpacity, drawerTranslateX, snapPoints]);
@@ -67,13 +67,13 @@ export function AppDrawer({ panSnapPoints = 100, snapPoints = 0.8 * SCREEN_WIDTH
 
       if (event.translationX > 0) return;
 
-      drawerTranslateX.value = withSpring(event.translationX);
+      drawerTranslateX.value = withSpring(event.translationX, { duration: 300 });
     })
     .onFinalize((event) => {
       "worklet";
 
       if (event.translationX > -panSnapPoints) {
-        drawerTranslateX.value = withSpring(drawerOpenedTranslateX);
+        drawerTranslateX.value = withSpring(drawerOpenedTranslateX, { duration: 300 });
 
         return;
       }

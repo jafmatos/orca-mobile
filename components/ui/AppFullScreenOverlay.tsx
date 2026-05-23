@@ -49,12 +49,15 @@ export const AppFullScreenOverlay = React.forwardRef<AppFullScreenOverlayRef, Ap
   const translateXSharedValue = useSharedValue(overlayClosedTranslateX);
   const backdropOpacitySharedValue = useSharedValue(0);
   const backdropColor = theme.colors.backdrop;
+  const isVisibleSharedValue = useSharedValue(false);
 
   const dismissKeyboard = () => Keyboard.dismiss();
 
   const open = useCallback(
     (hooks?: AnimationHooks) => {
       "worklet";
+
+      isVisibleSharedValue.value = true;
 
       if (hooks?.onStarted) scheduleOnRN(hooks.onStarted);
       if (props.onOpenAnimationStarted) scheduleOnRN(props.onOpenAnimationStarted);
@@ -73,6 +76,7 @@ export const AppFullScreenOverlay = React.forwardRef<AppFullScreenOverlayRef, Ap
       backdropOpacity,
       backdropOpacitySharedValue,
       isOpenSharedValue,
+      isVisibleSharedValue,
       props.onOpenAnimationFinished,
       props.onOpenAnimationStarted,
       translateXSharedValue,
@@ -93,14 +97,17 @@ export const AppFullScreenOverlay = React.forwardRef<AppFullScreenOverlayRef, Ap
       backdropOpacitySharedValue.value = withSpring(0, { duration: animationDuration }, (isFinished) => {
         if (!isFinished) return;
 
-        if (hooks?.onFinished) scheduleOnRN(hooks.onFinished);
+        if (hooks?.onFinished) scheduleOnRN(hooks?.onFinished);
         if (props.onCloseAnimationFinished) scheduleOnRN(props.onCloseAnimationFinished);
+        
+        isVisibleSharedValue.value = false;
       });
     },
     [
       props.onCloseAnimationStarted,
       props.onCloseAnimationFinished,
       isOpenSharedValue,
+      isVisibleSharedValue,
       translateXSharedValue,
       overlayClosedTranslateX,
       animationDuration,
@@ -131,8 +138,25 @@ export const AppFullScreenOverlay = React.forwardRef<AppFullScreenOverlayRef, Ap
 
     return {
       pointerEvents: isOpenSharedValue.value ? "auto" : "none",
+      display: isVisibleSharedValue.value ? "flex" : "none",
     };
-  }, [isOpenSharedValue]);
+  }, [isOpenSharedValue, isVisibleSharedValue]);
+
+  const backdropAnimatedStyles = useAnimatedStyle(() => {
+    "worklet";
+
+    return {
+      opacity: backdropOpacitySharedValue.value,
+    };
+  }, [backdropOpacitySharedValue]);
+
+  const contentAnimatedStyles = useAnimatedStyle(() => {
+    "worklet";
+
+    return {
+      transform: [{ translateX: translateXSharedValue.value }],
+    };
+  }, [translateXSharedValue]);
 
   return (
     <Portal hostName="fullscreen-overlay">
@@ -143,30 +167,37 @@ export const AppFullScreenOverlay = React.forwardRef<AppFullScreenOverlayRef, Ap
             height: SCREEN_HEIGHT,
             position: "absolute",
             zIndex: 100,
+            display: "none",
           },
           containerAnimatedStyles,
         ]}
       >
         <Animated.View
-          style={{
-            position: "absolute",
-            width: SCREEN_WIDTH,
-            height: SCREEN_HEIGHT,
-            backgroundColor: backdropColor,
-            opacity: backdropOpacitySharedValue,
-          }}
+          style={[
+            {
+              position: "absolute",
+              width: SCREEN_WIDTH,
+              height: SCREEN_HEIGHT,
+              backgroundColor: backdropColor,
+              opacity: 0,
+            },
+            backdropAnimatedStyles,
+          ]}
         />
 
         <Animated.View
-          style={{
-            position: "absolute",
-            width: SCREEN_WIDTH,
-            height: SCREEN_HEIGHT,
-            paddingTop: insets.top,
-            paddingBottom: insets.bottom,
-            backgroundColor: theme.colors.background,
-            transform: [{ translateX: translateXSharedValue }],
-          }}
+          style={[
+            {
+              position: "absolute",
+              width: SCREEN_WIDTH,
+              height: SCREEN_HEIGHT,
+              paddingTop: insets.top,
+              paddingBottom: insets.bottom,
+              backgroundColor: theme.colors.background,
+              transform: [{ translateX: SCREEN_WIDTH }],
+            },
+            contentAnimatedStyles,
+          ]}
         >
           <View
             className="px-4 h-[72px] flex flex-row gap-2 items-center"

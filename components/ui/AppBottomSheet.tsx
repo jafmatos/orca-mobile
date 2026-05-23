@@ -1,8 +1,9 @@
 import { Portal } from "@gorhom/portal";
-import React, { useImperativeHandle, useRef, useState } from "react";
+import React, { useImperativeHandle, useRef, useState, useEffect } from "react";
 import { useTheme } from "react-native-paper";
 import { BottomSheet, BottomSheetControlledProps, BottomSheetImperativeProps, BottomSheetRef } from "jam-bottomsheet";
 import { View } from "react-native";
+import Animated, { useAnimatedStyle, useSharedValue } from "react-native-reanimated";
 import { useBackHandlerQueue } from "@/hooks/use-back-handler-queue";
 
 export interface AppBottomSheetComplementaryProps {
@@ -21,12 +22,37 @@ export const AppBottomSheet = React.forwardRef<AppBottomSheetRef, AppBottomSheet
   const [isOpen, setIsOpen] = useState(!!bottomSheetProps.isOpen);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
+  // UI-thread visibility controller to shield against first-frame portal flashes
+  const isVisibleSharedValue = useSharedValue(!!bottomSheetProps.isOpen);
+
   useImperativeHandle(ref, () => {
     return {
-      open: (...args: Parameters<BottomSheetRef["open"]>) => bottomSheetRef.current?.open(...args),
-      close: (...args: Parameters<BottomSheetRef["close"]>) => bottomSheetRef.current?.close(...args),
+      open: (hooks) => {
+        "worklet";
+        // Synchronously toggle display on the UI thread with zero delay
+        isVisibleSharedValue.value = true;
+        bottomSheetRef.current?.open(hooks);
+      },
+      close: (hooks) => {
+        "worklet";
+        bottomSheetRef.current?.close(hooks);
+      },
     };
   });
+
+  const wrapperAnimatedStyle = useAnimatedStyle(() => {
+    "worklet";
+    return {
+      display: isVisibleSharedValue.value ? "flex" : "none",
+    };
+  }, [isVisibleSharedValue]);
+
+  // Handle controlled visibility changes
+  useEffect(() => {
+    if (!bottomSheetProps.imperative) {
+      isVisibleSharedValue.value = !!bottomSheetProps.isOpen;
+    }
+  }, [bottomSheetProps.imperative, bottomSheetProps.isOpen, isVisibleSharedValue]);
 
   useBackHandlerQueue({
     isOpen,
@@ -35,32 +61,46 @@ export const AppBottomSheet = React.forwardRef<AppBottomSheetRef, AppBottomSheet
 
   return (
     <Portal hostName={portalHostName || "bottomsheet"}>
-      <BottomSheet
-        {...bottomSheetProps}
-        ref={bottomSheetRef}
-        backgroundColor={theme.colors.background}
-        handleColor={theme.colors.onBackground}
-        backdropColor={theme.colors.backdrop}
-        backdropOpacity={1}
+      <Animated.View
         style={[
           {
-            zIndex: 100,
+            position: "absolute",
+            width: "100%",
+            height: "100%",
+            display: "none", // Statically hidden to shield the first frame!
           },
-          bottomSheetProps.style,
+          wrapperAnimatedStyle,
         ]}
-        onOpenAnimationStarted={() => {
-          setIsOpen(true);
-
-          bottomSheetProps.onOpenAnimationFinished?.();
-        }}
-        onCloseAnimationStarted={() => {
-          setIsOpen(false);
-
-          bottomSheetProps.onCloseAnimationStarted?.();
-        }}
       >
-        <View className="p-4">{children}</View>
-      </BottomSheet>
+        <BottomSheet
+          {...bottomSheetProps}
+          ref={bottomSheetRef}
+          backgroundColor={theme.colors.background}
+          handleColor={theme.colors.onBackground}
+          backdropColor={theme.colors.backdrop}
+          backdropOpacity={1}
+          style={[
+            {
+              zIndex: 100,
+            },
+            bottomSheetProps.style,
+          ]}
+          onOpenAnimationStarted={() => {
+            setIsOpen(true);
+            bottomSheetProps.onOpenAnimationStarted?.();
+          }}
+          onCloseAnimationStarted={() => {
+            setIsOpen(false);
+            bottomSheetProps.onCloseAnimationStarted?.();
+          }}
+          onCloseAnimationFinished={() => {
+            isVisibleSharedValue.value = false;
+            bottomSheetProps.onCloseAnimationFinished?.();
+          }}
+        >
+          <View className="p-4">{children}</View>
+        </BottomSheet>
+      </Animated.View>
     </Portal>
   );
 });
