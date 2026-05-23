@@ -39,7 +39,10 @@ export function AppSelect({ value, emptyLabel = "Nenhuma das opções", closeOnS
   const handleOptionPress = (option: SelectOption) => {
     onChange?.(option.value);
 
-    closeOnSelect && closeBottomSheet();
+    closeOnSelect &&
+      setTimeout(() => {
+        closeBottomSheet();
+      }, 300);
   };
 
   const currentOption = options.find((option) => option.value === value);

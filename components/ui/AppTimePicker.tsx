@@ -1,42 +1,39 @@
 import { useState } from "react";
-import { Pressable, View } from "react-native";
+import { Keyboard, Pressable, View } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useAppThemeName } from "@/hooks/use-app-theme-name";
-import AppFormattedInput from "./AppFormattedInput";
+import { TextInput } from "react-native-paper";
 
-export interface AppDatePickerProps {
+export interface AppTimePickerProps extends Omit<React.ComponentProps<typeof TextInput>, "value" | "onChange"> {
   value: Date;
-  emptyLabel?: string;
   onChange?: (date: Date) => void;
   containerClassName?: React.ComponentProps<typeof Pressable>["className"];
 }
 
-export function AppTimePicker({ value, onChange, ...props }: AppDatePickerProps) {
+export function AppTimePicker({ value, onChange, ...props }: AppTimePickerProps) {
   const themeName = useAppThemeName();
   const [isPickerOpen, setIsPickerOpen] = useState(false);
 
-  const openPicker = () => setIsPickerOpen(true);
+  const openPicker = () => {
+    Keyboard.dismiss();
+    setIsPickerOpen(true);
+  };
 
   const closePicker = () => setIsPickerOpen(false);
+
+  const formattedValue = value.toLocaleString("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 
   return (
     <>
       <Pressable onPress={openPicker} className={props.containerClassName}>
-        <AppFormattedInput
+        <TextInput
           {...props}
           editable={false}
-          value={value}
-          onChange={(date) => onChange?.(date)}
-          format={(date) =>
-            date.toLocaleString("pt-BR", {
-              day: "2-digit",
-              month: "2-digit",
-              year: "numeric",
-            })
-          }
-          transform={(text) => {
-            return new Date();
-          }}
+          style={[{ pointerEvents: "box-none" }, props.style]}
+          value={formattedValue}
         />
       </Pressable>
       {isPickerOpen && (
@@ -50,8 +47,7 @@ export function AppTimePicker({ value, onChange, ...props }: AppDatePickerProps)
             display="spinner"
             is24Hour={true}
             onValueChange={(_event, selectedDate) => {
-              onChange?.(selectedDate);
-
+              if (selectedDate) onChange?.(selectedDate);
               closePicker();
             }}
             onDismiss={() => closePicker()}
