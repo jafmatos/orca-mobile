@@ -2,7 +2,7 @@ import { useAuthUser } from "@/hooks/queries/use-auth-user";
 import { useAppRouter } from "@/hooks/use-app-router";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { AppAuthenticationTokenStore } from "@/utils/AuthenticationTokenStore";
-import { Portal } from "@gorhom/portal";
+import { Portal, PortalHost } from "@gorhom/portal";
 import { Link, usePathname } from "expo-router";
 import { useState } from "react";
 import { Pressable, View } from "react-native";
@@ -10,7 +10,7 @@ import { Button, Divider, Icon, IconButton, Text } from "react-native-paper";
 import { AppAvatar } from "./ui/AppAvatar";
 import { AppDrawer } from "./ui/AppDrawer";
 
-interface DrawerNavigationItemProps {
+export interface DrawerNavigationItemProps {
   icon?: string;
   onPressCallback?: () => void;
   text: string;
@@ -57,16 +57,21 @@ export function Navigation() {
   return (
     <>
       <View
-        className="h-[72px] px-4 flex flex-row justify-between items-center"
+        className="flex"
         style={{
           backgroundColor: theme.colors.background,
           boxShadow: `0 1px 1px -1px ${theme.colors.outlineVariant}`,
           zIndex: 1,
         }}
       >
-        <AppAvatar />
-        <IconButton icon="menu" onPress={() => setIsDrawerOpen(true)} size={32} />
+        <View className="h-[72px] px-4 flex flex-row justify-between items-center">
+          <AppAvatar />
+          <IconButton icon="menu" onPress={() => setIsDrawerOpen(true)} size={32} />
+        </View>
+
+        <PortalHost name="sub-navigation" />
       </View>
+
       <Portal hostName="drawer">
         <AppDrawer
           className="p-6 flex flex-col gap-4"

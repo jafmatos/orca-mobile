@@ -172,49 +172,45 @@ export default function ExpenseByCategoryChart() {
         <View className="w-full flex gap-2">
           <Conditional
             if={!!expenseByCategoryQuery.data && !expenseByCategoryQuery.isPending && !expenseByCategoryQuery.isFetching}
-            _then={() => {
-              return (
-                <View className="w-full flex gap-2">
-                  {expenseByCategoryQuery.data?.categories.map((category, index) => {
-                    return (
+            _then={
+              <View className="w-full flex gap-2">
+                {expenseByCategoryQuery.data?.categories.map((category, index) => {
+                  return (
+                    <View
+                      key={index}
+                      className="w-full flex flex-row items-center gap-2"
+                      style={{
+                        height: 24,
+                      }}
+                    >
                       <View
-                        key={index}
-                        className="w-full flex flex-row items-center gap-2"
                         style={{
-                          height: 24,
+                          width: 16,
+                          aspectRatio: "1/1",
+                          borderRadius: "50%",
+                          backgroundColor: theme.colors.chart[index % theme.colors.chart.length],
                         }}
-                      >
-                        <View
-                          style={{
-                            width: 16,
-                            aspectRatio: "1/1",
-                            borderRadius: "50%",
-                            backgroundColor: theme.colors.chart[index % theme.colors.chart.length],
-                          }}
-                        />
-                        <Text className="grow" variant="bodyMedium">
-                          {category.name}
-                        </Text>
+                      />
+                      <Text className="grow" variant="bodyMedium">
+                        {category.name}
+                      </Text>
 
-                        <Text variant="bodyMedium">{currencyFormatter.format(category.spent)}</Text>
-                      </View>
-                    );
-                  })}
-                </View>
-              );
-            }}
-            _else={() => {
-              return (
-                <FlatList
-                  scrollEnabled={false}
-                  ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
-                  data={Array.from({ length: 10 })}
-                  renderItem={() => {
-                    return <AppSkeleton height={24} />;
-                  }}
-                />
-              );
-            }}
+                      <Text variant="bodyMedium">{currencyFormatter.format(category.spent)}</Text>
+                    </View>
+                  );
+                })}
+              </View>
+            }
+            _else={
+              <FlatList
+                scrollEnabled={false}
+                ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
+                data={Array.from({ length: 10 })}
+                renderItem={() => {
+                  return <AppSkeleton height={24} />;
+                }}
+              />
+            }
           />
         </View>
       </AppChartContainer.Content>

@@ -4,8 +4,8 @@ import Animated, { useSharedValue, withSpring } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { scheduleOnRN, scheduleOnUI } from "react-native-worklets";
-import { useStackedBackHandler } from "@/hooks/use-stacked-back-handler";
 import { useTheme } from "react-native-paper";
+import { useBackHandlerQueue } from "@/hooks/use-back-handler-queue";
 
 export interface AppDrawerProps extends React.ComponentProps<typeof Animated.View> {
   isOpen: boolean;
@@ -53,9 +53,9 @@ export function AppDrawer({ panSnapPoints = 100, snapPoints = 0.8 * SCREEN_WIDTH
     scheduleOnUI(initializeAnimation);
   }, [initializeAnimation]);
 
-  useStackedBackHandler({
+  useBackHandlerQueue({
     isOpen: props.isOpen,
-    onClose: close,
+    close: () => scheduleOnUI(close),
   });
 
   const pan = Gesture.Pan()

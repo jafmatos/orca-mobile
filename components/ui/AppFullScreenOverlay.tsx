@@ -1,27 +1,29 @@
-import { useStackedBackHandler } from "@/hooks/use-stacked-back-handler";
+import { useBackHandlerQueue } from "@/hooks/use-back-handler-queue";
 import { Portal } from "@gorhom/portal";
-import React, { useCallback, useImperativeHandle, useState } from "react";
-import { Dimensions, Keyboard, View } from "react-native";
+import React, { PropsWithChildren, useCallback, useImperativeHandle, useState } from "react";
+import { Dimensions, Keyboard, TouchableWithoutFeedback, View } from "react-native";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { IconButton, Text, useTheme } from "react-native-paper";
 import Animated, { useAnimatedReaction, useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { scheduleOnRN } from "react-native-worklets";
+import { scheduleOnRN, scheduleOnUI } from "react-native-worklets";
 
 export type AnimationCallback = () => void;
 
 export type AnimationHooks = {
-  onStarted: AnimationCallback;
-  onFinished: AnimationCallback;
+  onStarted?: AnimationCallback;
+  onFinished?: AnimationCallback;
 };
 
-export interface AppFullScreenOverlayProps extends React.ComponentProps<typeof Animated.View> {
-  onClose?: () => void;
+export interface AppFullScreenOverlayProps extends Omit<React.ComponentProps<typeof Animated.View>, "children"> {
+  title: string;
   backdropOpacity?: number;
-	title?: string;
+  animationDuration?: number;
   onOpenAnimationStarted?: AnimationCallback;
   onOpenAnimationFinished?: AnimationCallback;
   onCloseAnimationStarted?: AnimationCallback;
   onCloseAnimationFinished?: AnimationCallback;
+  children?: PropsWithChildren["children"];
 }
 
 export interface AppFullScreenOverlayRef {
@@ -30,24 +32,21 @@ export interface AppFullScreenOverlayRef {
 }
 
 export const AppFullScreenOverlay = React.forwardRef<AppFullScreenOverlayRef, AppFullScreenOverlayProps>(function AppFullScreenOverlay(
-  { backdropOpacity = 1, ...props },
-  ref
+  { backdropOpacity = 1, animationDuration = 300, ...props },
+  ref,
 ) {
   const screenDimensions = Dimensions.get("screen");
   const SCREEN_WIDTH = screenDimensions.width;
   const SCREEN_HEIGHT = screenDimensions.height;
-  const overlayOpenedScale = 1;
-  const overlayClosedScale = 0.8;
-  const overlayOpenedOpacity = 1;
-  const overlayClosedOpacity = 0;
+  const overlayOpenedTranslateX = 0;
+  const overlayClosedTranslateX = SCREEN_WIDTH;
 
   const [isOpen, setIsOpen] = useState(false);
 
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const isOpenSharedValue = useSharedValue(false);
-  const scaleSharedValue = useSharedValue(overlayClosedScale);
-  const opacitySharedValue = useSharedValue(overlayClosedOpacity);
+  const translateXSharedValue = useSharedValue(overlayClosedTranslateX);
   const backdropOpacitySharedValue = useSharedValue(0);
   const backdropColor = theme.colors.backdrop;
 
@@ -61,16 +60,23 @@ export const AppFullScreenOverlay = React.forwardRef<AppFullScreenOverlayRef, Ap
       if (props.onOpenAnimationStarted) scheduleOnRN(props.onOpenAnimationStarted);
 
       isOpenSharedValue.value = true;
-      scaleSharedValue.value = withSpring(overlayOpenedScale);
-      opacitySharedValue.value = withSpring(overlayOpenedOpacity);
-      backdropOpacitySharedValue.value = withSpring(backdropOpacity, undefined, (finished) => {
+      translateXSharedValue.value = withSpring(overlayOpenedTranslateX, { duration: animationDuration });
+      backdropOpacitySharedValue.value = withSpring(backdropOpacity, { duration: animationDuration }, (finished) => {
         if (!finished) return;
 
         if (hooks?.onFinished) scheduleOnRN(hooks.onFinished);
         if (props.onOpenAnimationFinished) scheduleOnRN(props.onOpenAnimationFinished);
       });
     },
-    [backdropOpacity, backdropOpacitySharedValue, isOpenSharedValue, opacitySharedValue, scaleSharedValue]
+    [
+      animationDuration,
+      backdropOpacity,
+      backdropOpacitySharedValue,
+      isOpenSharedValue,
+      props.onOpenAnimationFinished,
+      props.onOpenAnimationStarted,
+      translateXSharedValue,
+    ],
   );
 
   const close = useCallback(
@@ -83,32 +89,42 @@ export const AppFullScreenOverlay = React.forwardRef<AppFullScreenOverlayRef, Ap
       if (props.onCloseAnimationStarted) scheduleOnRN(props.onCloseAnimationStarted);
 
       isOpenSharedValue.value = false;
-      scaleSharedValue.value = withSpring(overlayClosedScale);
-      opacitySharedValue.value = withSpring(overlayClosedOpacity);
-      backdropOpacitySharedValue.value = withSpring(0, undefined, (isFinished) => {
+      translateXSharedValue.value = withSpring(overlayClosedTranslateX, { duration: animationDuration });
+      backdropOpacitySharedValue.value = withSpring(0, { duration: animationDuration }, (isFinished) => {
         if (!isFinished) return;
 
         if (hooks?.onFinished) scheduleOnRN(hooks.onFinished);
         if (props.onCloseAnimationFinished) scheduleOnRN(props.onCloseAnimationFinished);
       });
     },
-    [isOpenSharedValue, scaleSharedValue, opacitySharedValue, backdropOpacitySharedValue, props.onClose]
+    [
+      props.onCloseAnimationStarted,
+      props.onCloseAnimationFinished,
+      isOpenSharedValue,
+      translateXSharedValue,
+      overlayClosedTranslateX,
+      animationDuration,
+      backdropOpacitySharedValue,
+    ],
   );
-
-  useImperativeHandle(ref, () => {
-    return { open, close };
-  });
 
   useAnimatedReaction(
     () => isOpenSharedValue.value,
     (isOpen) => scheduleOnRN(setIsOpen, isOpen),
-    [isOpenSharedValue]
+    [isOpenSharedValue],
   );
 
-  useStackedBackHandler({
-    isOpen,
-    onClose: close,
+  useBackHandlerQueue({
+    isOpen: isOpen,
+    close: () => scheduleOnUI(close),
   });
+
+  useImperativeHandle(ref, () => {
+    return {
+      open: (...args: Parameters<typeof open>) => scheduleOnUI(() => open(...args)),
+      close: (...args: Parameters<typeof close>) => scheduleOnUI(() => close(...args)),
+    };
+  }, [open, close]);
 
   const containerAnimatedStyles = useAnimatedStyle(() => {
     "worklet";
@@ -126,8 +142,6 @@ export const AppFullScreenOverlay = React.forwardRef<AppFullScreenOverlayRef, Ap
             width: SCREEN_WIDTH,
             height: SCREEN_HEIGHT,
             position: "absolute",
-            top: 0,
-            left: 0,
             zIndex: 100,
           },
           containerAnimatedStyles,
@@ -138,12 +152,11 @@ export const AppFullScreenOverlay = React.forwardRef<AppFullScreenOverlayRef, Ap
             position: "absolute",
             width: SCREEN_WIDTH,
             height: SCREEN_HEIGHT,
-            top: 0,
-            left: 0,
             backgroundColor: backdropColor,
             opacity: backdropOpacitySharedValue,
           }}
         />
+
         <Animated.View
           style={{
             position: "absolute",
@@ -152,24 +165,26 @@ export const AppFullScreenOverlay = React.forwardRef<AppFullScreenOverlayRef, Ap
             paddingTop: insets.top,
             paddingBottom: insets.bottom,
             backgroundColor: theme.colors.background,
-            transform: [{ scale: scaleSharedValue }],
-            opacity: opacitySharedValue,
+            transform: [{ translateX: translateXSharedValue }],
           }}
         >
-          <>
-            <View
-              className="px-4 h-[72px] flex flex-row gap-2 items-center"
-              style={{
-                backgroundColor: theme.colors.surface,
-                boxShadow: `0 1px 3px -2px ${theme.colors.outlineVariant}`,
-              }}
-            >
-              <IconButton icon="arrow-left" onPress={() => scheduleOnRN(close)} />
-              <Text variant="titleLarge">{props.title}</Text>
-            </View>
+          <View
+            className="px-4 h-[72px] flex flex-row gap-2 items-center"
+            style={{
+              pointerEvents: "auto",
+              backgroundColor: theme.colors.surface,
+              boxShadow: `0 1px 3px -2px ${theme.colors.outlineVariant}`,
+            }}
+          >
+            <IconButton icon="arrow-left" onPress={() => scheduleOnRN(close)} />
+            <Text variant="titleLarge">{props.title}</Text>
+          </View>
 
-            {props.children}
-          </>
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+            <View style={{ flex: 1 }}>
+              {props.children}
+            </View>
+          </TouchableWithoutFeedback>
         </Animated.View>
       </Animated.View>
     </Portal>

@@ -30,6 +30,7 @@ export const AppConfirmationDialog = forwardRef<AppConfirmationDialogRef, AppCon
   { confirmText = "Confirmar", cancelText = "Cancelar", closeOnCancel = true, ...props },
   ref,
 ) {
+  const Trigger = props.trigger!;
   const theme = useAppTheme();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -50,19 +51,10 @@ export const AppConfirmationDialog = forwardRef<AppConfirmationDialogRef, AppCon
 
   return (
     <>
-      <Conditional
-        if={!!props.trigger}
-        _then={() => {
-          const Trigger = props.trigger!;
+      {Trigger && <Trigger open={open} />}
 
-          return <Trigger open={open} />;
-        }}
-      />
       <Portal>
-        <Dialog
-          visible={isOpen}
-          onDismiss={close}
-        >
+        <Dialog visible={isOpen} onDismiss={close}>
           <Dialog.Title>{props.title}</Dialog.Title>
           <Dialog.Content>
             <Text variant="bodyMedium">{props.description}</Text>

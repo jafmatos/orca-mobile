@@ -18,18 +18,21 @@ export interface AppChipSelectProps<T> {
 export function AppChipSelect<T = string>(props: AppChipSelectProps<T>) {
   return (
     <View className="flex flex-row flex-wrap gap-2">
-      {props.options.map((option) => {
+      {props.options.map((option, index) => {
+        const isSelected =
+          props.value instanceof Object ? JSON.stringify(props.value) === JSON.stringify(option.value) : props.value === option.value;
+
         return (
           <Chip
             compact
             mode="outlined"
-            key={option.key || String(option.value)}
+            key={index}
             onPress={() => {
               option.onSelect?.();
 
               props.onChange?.(option.value);
             }}
-            selected={props.value === option.value}
+            selected={isSelected}
             showSelectedCheck
             showSelectedOverlay
           >

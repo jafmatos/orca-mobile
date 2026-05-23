@@ -56,15 +56,13 @@ export function AppChartContainer(props: AppChartContainerProps) {
     >
       <Conditional
         if={!!props.HeaderComponent}
-        _then={() => {
-          return (
-            <>
-              {props.HeaderComponent}
+        _then={
+          <>
+            {props.HeaderComponent}
 
-              <Divider className="w-full" horizontalInset style={{ backgroundColor: theme.colors.outlineVariant }} />
-            </>
-          );
-        }}
+            <Divider className="w-full" horizontalInset style={{ backgroundColor: theme.colors.outlineVariant }} />
+          </>
+        }
       />
       {props.children}
     </Surface>

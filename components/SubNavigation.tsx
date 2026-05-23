@@ -22,18 +22,16 @@ function SubNavigationItem({ isActive, label, ...props }: SubNavigationItemProps
       <View className="h-full flex flex-row justify-center items-center">
         <Conditional
           if={isActive}
-          _then={() => {
-            return (
-              <View
-                className="absolute bottom-0 w-full"
-                style={{
-                  height: 4,
-                  borderRadius: 2,
-                  backgroundColor: theme.colors.primary,
-                }}
-              />
-            );
-          }}
+          _then={
+            <View
+              className="absolute bottom-0 w-full"
+              style={{
+                height: 4,
+                borderRadius: 2,
+                backgroundColor: theme.colors.primary,
+              }}
+            />
+          }
         />
 
         <Text variant="bodyMedium" className="text-center">

@@ -40,6 +40,7 @@ export type ExportEntriesArguments = {
 };
 
 export type CreateEntryBody = {
+  type: EntryTypes;
   category?: {
     id: string;
   };
@@ -53,6 +54,7 @@ export type CreateEntryReturnType = {
 };
 
 export type UpdateEntryBody = {
+  type: EntryTypes;
   category?: {
     id: string;
   };
@@ -80,7 +82,7 @@ export class EntryService {
   }
 
   private static async _exportEntries(
-    options: ExportEntriesArguments
+    options: ExportEntriesArguments,
   ): Promise<AxiosResponse<string, any, { "Content-Disposition": string }>> {
     const query = qs.stringify(options.query);
     const response = await $axios.get(`${this.path}/export/csv?${query}`);

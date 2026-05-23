@@ -1,34 +1,38 @@
 import { currencyFormatter } from "@/utils/currencyFormatter";
-import React from "react";
-import AppFormattedInput from "./AppFormattedInput";
+import React, { useEffect } from "react";
+import { TextInput } from "react-native-paper";
 
-export interface AppCurrencyInputProps extends Omit<
-  React.ComponentProps<typeof AppFormattedInput<number>>,
-  "format" | "transform" | "defaultValue"
-> {
+export interface AppCurrencyInputProps extends Omit<React.ComponentProps<typeof TextInput>, "value" | "defaultValue" | "onChange"> {
+  value?: number;
   defaultValue?: number;
+  onChange?: (value: number) => void;
 }
 
-export function AppCurrencyInput(props: AppCurrencyInputProps) {
-  const handleOnChangeText = (text: string) => {
-    const sanitizedText = text.replace(/\D/g, "");
-    const valueInCents = parseInt(sanitizedText);
-    const valueInBRL = valueInCents / 100;
+export function AppCurrencyInput({ value, defaultValue, onChange, ...props }: AppCurrencyInputProps) {
+  const [_value, _setValue] = React.useState(value || defaultValue);
 
-    return valueInBRL;
-  };
+  useEffect(() => {
+    _setValue(value);
+  }, [value]);
 
   return (
-    <AppFormattedInput<number>
+    <TextInput
       {...props}
-      maxLength={28}
-			keyboardType="numeric"
-      value={props.value}
-      onChange={(value) => props.onChange?.(value)}
-      format={(value) => {
-        return currencyFormatter.format(value);
+      value={_value !== undefined ? currencyFormatter.format(_value) : ""}
+      onChangeText={(text) => {
+        const sanitizedText = text.replace(/\D/g, "");
+        const valueInCents = parseInt(sanitizedText);
+
+        if (!isNaN(valueInCents)) {
+          const newValue = valueInCents / 100;
+
+          _setValue(newValue);
+          onChange?.(newValue);
+        }
       }}
-      transform={(text) => (text ? handleOnChangeText(text) : 0)}
+      mode="outlined"
+      maxLength={23}
+      keyboardType="numeric"
     />
   );
 }

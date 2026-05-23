@@ -2,7 +2,8 @@ import { useAppTheme } from "@/hooks/use-app-theme";
 import { useRef } from "react";
 import { Pressable, View } from "react-native";
 import { Text, TextInput } from "react-native-paper";
-import { AppBottomSheet, AppBottomSheetRef } from "./AppBottomSheet";
+import { AppBottomSheet } from "./AppBottomSheet";
+import { BottomSheetRef } from "jam-bottomsheet";
 
 export interface SelectOption {
   label: string;
@@ -20,7 +21,7 @@ export interface AppSelectProps extends Omit<React.ComponentProps<typeof TextInp
 export function AppSelect({ value, emptyLabel = "Nenhuma das opções", closeOnSelect, options, onChange, ...props }: AppSelectProps) {
   const theme = useAppTheme();
   const textInputRef = useRef(null);
-  const bottomSheetRef = useRef<AppBottomSheetRef>(null);
+  const bottomSheetRef = useRef<BottomSheetRef>(null);
 
   const openBottomSheet = () => bottomSheetRef.current?.open();
   const closeBottomSheet = () => bottomSheetRef.current?.close();
@@ -64,7 +65,7 @@ export function AppSelect({ value, emptyLabel = "Nenhuma das opções", closeOnS
           }}
         />
       </Pressable>
-      <AppBottomSheet portalHostName="select" style={{ zIndex: 101 }} fullscreen expandable={false} onClose={onClose} ref={bottomSheetRef}>
+      <AppBottomSheet imperative portalHostName="select" style={{ zIndex: 101 }} fullscreen expandable={false} ref={bottomSheetRef}>
         <View>
           {[{ label: emptyLabel, value: "" }, ...options].map((option) => {
             return (

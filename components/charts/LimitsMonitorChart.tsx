@@ -56,28 +56,24 @@ export function LimitsMonitorChart() {
 
         <Conditional
           if={!expenseByCategoryData.isPending && !expenseByCategoryData.isFetching}
-          _then={() => {
-            return (
-              <FlatList
-                className="w-full"
-                data={categoriesWithLimit}
-                renderItem={renderListItem}
-                scrollEnabled={false}
-                ItemSeparatorComponent={() => <View className="h-4" />}
-              />
-            );
-          }}
-          _else={() => {
-            return (
-              <View className="w-full flex gap-4">
-                {Array.from({ length: categoriesWithLimit.length || 10 })
-                  .fill(false)
-                  .map((_, index) => {
-                    return <AppSkeleton key={index} height={32} />;
-                  })}
-              </View>
-            );
-          }}
+          _then={
+            <FlatList
+              className="w-full"
+              data={categoriesWithLimit}
+              renderItem={renderListItem}
+              scrollEnabled={false}
+              ItemSeparatorComponent={() => <View className="h-4" />}
+            />
+          }
+          _else={
+            <View className="w-full flex gap-4">
+              {Array.from({ length: categoriesWithLimit.length || 10 })
+                .fill(false)
+                .map((_, index) => {
+                  return <AppSkeleton key={index} height={32} />;
+                })}
+            </View>
+          }
         />
       </AppChartContainer.Content>
     </AppChartContainer>

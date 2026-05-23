@@ -7,7 +7,7 @@ import { ScrollView } from "react-native";
 export default function DashboardScreen() {
   return (
     <TabbedLayout>
-      <ScrollView contentContainerClassName="p-4 flex gap-4">
+      <ScrollView style={{ flex: 1 }} contentContainerClassName="p-4 flex gap-4">
         <MonthlyEvolutionChart />
         <LimitsMonitorChart />
         <ExpenseByCategoryChart />

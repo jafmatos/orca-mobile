@@ -1,11 +1,11 @@
 import { Tabs } from "expo-router";
 import React from "react";
-import { Navigation } from "@/components/Navigation";
 import { KeyboardAvoidingComponent } from "@/components/KeyboardAvoindingComponent";
 import { PortalHost } from "@gorhom/portal";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Icon, useTheme } from "react-native-paper";
 import { SafeAreaComponent } from "@/components/SafeAreaComponent";
+import { Navigation } from "@/components/Navigation";
 
 export default function TabLayout() {
   const theme = useTheme();
@@ -31,7 +31,7 @@ export default function TabLayout() {
                 backgroundColor: theme.colors.background,
                 height: 80,
                 paddingBottom: 0,
-								borderTopWidth: 0,
+                borderTopWidth: 0,
                 boxShadow: `0 -1px 1px -1px ${theme.colors.outlineVariant}`,
                 elevation: 0,
                 shadowOpacity: 0,

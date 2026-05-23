@@ -5,7 +5,7 @@ import { useAppThemeName } from "@/hooks/use-app-theme-name";
 import { TextInput } from "react-native-paper";
 import AppFormattedInput from "./AppFormattedInput";
 
-export interface AppDatePickerProps extends Omit<React.ComponentProps<typeof TextInput>, "value" | "onChange"> {
+export interface AppDatePickerProps extends Omit<React.ComponentProps<typeof TextInput>, "value" | "defaultValue" | "onChange"> {
   value: Date;
   emptyLabel?: string;
   onChange?: (date: Date) => void;

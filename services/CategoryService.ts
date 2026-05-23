@@ -1,4 +1,4 @@
-import { Category } from "@/models/Category";
+import { Category, CategoryTypes } from "@/models/Category";
 import { PaginatedData } from "@/models/PaginatedData";
 import { $axios } from "@/utils/$axios";
 import qs from "qs";
@@ -13,6 +13,7 @@ export type ListCategoriesArguments = {
 
 export type CreateCategoryBody = {
   name: string;
+  type: CategoryTypes;
   limit?: {
     amount: number;
   } | null;
@@ -24,6 +25,7 @@ export type CreateCategoryReturnType = {
 
 export type UpdateCategoryBody = {
   name?: string;
+  type?: CategoryTypes;
   limit?: {
     amount: number;
   } | null;

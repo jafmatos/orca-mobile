@@ -1,5 +1,5 @@
 import { useAppTheme } from "@/hooks/use-app-theme";
-import { useStackedBackHandler } from "@/hooks/use-stacked-back-handler";
+import { useBackHandlerQueue } from "@/hooks/use-back-handler-queue";
 import { Portal } from "@gorhom/portal";
 import React, { useCallback, useEffect } from "react";
 import { Dimensions, Pressable } from "react-native";
@@ -48,9 +48,9 @@ export function AppModal({ backdropOpacity = 0.5, ...props }: AppModalProps) {
     scheduleOnUI(initializeAnimation);
   }, [initializeAnimation]);
 
-  useStackedBackHandler({
+  useBackHandlerQueue({
     isOpen: props.isOpen,
-    onClose: close,
+    close: () => scheduleOnUI(close),
   });
 
   return (
