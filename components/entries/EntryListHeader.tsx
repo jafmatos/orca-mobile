@@ -3,9 +3,11 @@ import { useAppForm } from "@/hooks/use-app-form";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { EntryTypes } from "@/models/Entry";
-import { ExportEntriesArguments, ListEntriesArguments } from "@/services/EntryService";
+import { EntryService, ExportEntriesArguments, ListEntriesArguments } from "@/services/EntryService";
 import { Portal } from "@gorhom/portal";
 import { useMutation } from "@tanstack/react-query";
+import { Paths, File } from "expo-file-system";
+import * as Sharing from "expo-sharing";
 import { BottomSheetRef } from "jam-bottomsheet";
 import React, { useState } from "react";
 import { View } from "react-native";
@@ -43,18 +45,30 @@ export function EntryListHeader(props: EntryListHeaderProps) {
 
   const entryExportMutation = useMutation({
     mutationFn: async (options: ExportEntriesArguments) => {
-      // const permission = await ExpoPermissions.askAsync(ExpoPermissions.MEDIA_LIBRARY);
-      // if (!permission.granted) {
-      //   return;
-      // }
-      // console.log("permission granted");
-      // const { data, headers } = await EntryService.exportEntries(options);
-      // const fileName = headers["Content-Disposition"] || "lancamentos.csv";
-      // const destination = new ExpoFileSystem.Directory(ExpoFileSystem.Paths.cache, "orca/downloads");
-      // const file = new ExpoFileSystem.File(destination, fileName);
-      // destination.create();
-      // file.create();
-      // file.write(data);
+      const response = await EntryService.exportEntries(options);
+      const csvData = response.data;
+
+      const contentDisposition = response.headers["content-disposition"] || response.headers["Content-Disposition"];
+      let fileName = "lancamentos.csv";
+      if (typeof contentDisposition === "string") {
+        const match = contentDisposition.match(/filename="?([^"]+)"?/);
+        if (match && match[1]) {
+          fileName = match[1];
+        }
+      }
+
+      const file = new File(Paths.cache, fileName);
+      file.write(csvData);
+      const localUri = file.uri;
+
+      try {
+        await Sharing.shareAsync(localUri, {
+          mimeType: "text/csv",
+          dialogTitle: "Exportar lançamentos",
+        });
+      } catch (shareError) {
+        return;
+      }
     },
     onError: (error) => {
       toast.error({
@@ -62,11 +76,12 @@ export function EntryListHeader(props: EntryListHeaderProps) {
         description: error.message || "Erro desconhecido",
       });
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       toast.success({
-        title: "Exportação iniciada!",
-        description: "Verifique seus downloads para acessar o arquivo.",
+        title: "Lançamentos exportados!",
+        description: "O arquivo foi salvo com sucesso.",
       });
+      closeEntryExport();
     },
   });
 

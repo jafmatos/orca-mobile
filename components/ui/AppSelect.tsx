@@ -1,6 +1,6 @@
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useRef } from "react";
-import { Pressable, View } from "react-native";
+import { Keyboard, Pressable, View } from "react-native";
 import { Text, TextInput } from "react-native-paper";
 import { AppBottomSheet } from "./AppBottomSheet";
 import { BottomSheetRef } from "jam-bottomsheet";
@@ -27,7 +27,8 @@ export function AppSelect({ value, emptyLabel = "Nenhuma das opções", closeOnS
   const closeBottomSheet = () => bottomSheetRef.current?.close();
 
   const onOpen = () => {
-    (textInputRef.current as any)?.focus();
+    Keyboard.dismiss();
+		(textInputRef.current as any)?.focus();
 
     openBottomSheet();
   };
@@ -77,7 +78,7 @@ export function AppSelect({ value, emptyLabel = "Nenhuma das opções", closeOnS
                 onPress={() => handleOptionPress(option)}
                 className="rounded-lg w-full py-4 px-6"
                 style={{
-                  backgroundColor: option.value === currentOption?.value ? theme.colors.surfaceVariant : "transparent",
+                  backgroundColor: option.value === (value || "") ? theme.colors.surfaceVariant : "transparent",
                 }}
               >
                 <Text variant="bodyLarge" style={{ fontStyle: !option.value ? "italic" : "normal" }}>
