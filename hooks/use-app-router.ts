@@ -27,7 +27,7 @@ export function useAppRouter() {
     goToSchedules: () => router.push("/(tabs)/schedules"),
     goToCategories: () => router.push("/(tabs)/categories"),
     goToLimits: () => router.push("/(tabs)/limits"),
-    goToDashboard: () => router.push("/(tabs)/dashboard"),
+    goToOverview: () => router.push("/(tabs)/overview"),
     goToAnalyses: () => router.push("/(tabs)/analyses"),
     goToProfile: () => router.push("/(tabs)/profile"),
   };

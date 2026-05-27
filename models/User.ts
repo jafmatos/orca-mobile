@@ -7,4 +7,5 @@ export interface User {
   avatar?: UserAvatar;
   periodGe?: string;
   periodLe?: string;
+  balance?: number;
 }

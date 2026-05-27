@@ -1,0 +1,37 @@
+import { useAppTheme } from "@/hooks/use-app-theme";
+import { currencyFormatter } from "@/utils/currencyFormatter";
+import { View } from "react-native";
+import { Icon, Surface, Text } from "react-native-paper";
+
+export interface KpiCardProps {
+  title: string;
+  amount?: number;
+  icon?: string;
+  iconColor?: string;
+}
+
+export function KpiCard(props: KpiCardProps) {
+  const theme = useAppTheme();
+
+  return (
+    <Surface
+      className="grow flex-1 flex flex-row items-center"
+      elevation={1}
+      style={{
+        height: 90,
+        flexShrink: 0,
+        borderRadius: theme.roundness,
+      }}
+    >
+      <View className="p-4 flex flex-col gap-2">
+        <View className="flex flex-row items-center gap-2" style={{ height: 24 }}>
+          <Text variant="titleSmall">{props.title}</Text>
+
+          {props.icon && <Icon size={24} source={props.icon} color={props.iconColor} />}
+        </View>
+
+        <Text variant="bodyLarge">{currencyFormatter.format(props.amount || 0)}</Text>
+      </View>
+    </Surface>
+  );
+}

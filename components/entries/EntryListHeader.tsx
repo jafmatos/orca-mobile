@@ -11,7 +11,7 @@ import * as Sharing from "expo-sharing";
 import { BottomSheetRef } from "jam-bottomsheet";
 import React, { useState } from "react";
 import { View } from "react-native";
-import { Button, Dialog, IconButton, Searchbar, Text } from "react-native-paper";
+import { Button, Chip, Dialog, IconButton, Searchbar, Text } from "react-native-paper";
 import { AppBottomSheet } from "../ui/AppBottomSheet";
 import { AppChipSelect } from "../ui/AppChipSelect";
 import { AppDatePicker } from "../ui/AppDatePicker";
@@ -30,8 +30,32 @@ export interface EntryListHeaderProps {
   onFilterChange: (filter: EntryFilterForm) => void;
 }
 
+const filterDateOptionsMap = new Map<FilterDateOptions | undefined, string>([
+  [undefined, "Período"],
+  [FilterDateOptions.Week, "Esta semana"],
+  [FilterDateOptions.Month, "Este mês"],
+  [FilterDateOptions.Custom, "Personalizado"],
+]);
+
+const filterDateOptions = Array.from(filterDateOptionsMap.entries()).map(([value, label]) => ({
+  value,
+  label,
+}));
+
+const filterTypeOptionsMap = new Map<EntryTypes | undefined, string>([
+  [undefined, "Todos"],
+  [EntryTypes.Income, "Receita"],
+  [EntryTypes.Expense, "Despesa"],
+]);
+
+const filterTypeOptions = Array.from(filterTypeOptionsMap.entries()).map(([value, label]) => ({
+  value,
+  label,
+}));
+
 export function EntryListHeader(props: EntryListHeaderProps) {
-  const [filterDateOption, setFilterDateOption] = useState<FilterDateOptions>(FilterDateOptions.Period);
+  const [filterDateOption, setFilterDateOption] = useState<FilterDateOptions | undefined>(undefined);
+  const [activeFilters, setActiveFilters] = useState<{ [key in keyof EntryFilterForm]?: string }>({});
   const [isEntryExportOpen, setIsEntryExportOpen] = useState(false);
 
   const toast = useAppToast();
@@ -94,8 +118,8 @@ export function EntryListHeader(props: EntryListHeaderProps) {
   const categoryQuery = useCategories();
 
   return (
-    <View className="flex flex-col gap-4">
-      <View className="flex flex-row mb-4 gap-2">
+    <View className="flex flex-col">
+      <View className="flex flex-row gap-2 mb-4">
         <Searchbar
           style={{ flex: 1 }}
           placeholder="Pesquisar..."
@@ -114,6 +138,58 @@ export function EntryListHeader(props: EntryListHeaderProps) {
         </View>
       </View>
 
+      {Object.values(activeFilters).filter((v) => !!v).length > 0 && (
+        <View className="flex flex-row flex-wrap gap-2 mb-4">
+          {activeFilters.type && (
+            <Chip
+              compact
+              mode="outlined"
+              onClose={() => {
+                const updatedFilter = filterForm.setValue("type", undefined);
+
+                setActiveFilters({ ...activeFilters, type: undefined });
+
+                props.onFilterChange?.(updatedFilter);
+              }}
+            >
+              {activeFilters.type}
+            </Chip>
+          )}
+
+          {activeFilters.when && (
+            <Chip
+              compact
+              mode="outlined"
+              onClose={() => {
+                const updatedFilter = filterForm.setValue("when", undefined);
+
+                setFilterDateOption(undefined);
+                setActiveFilters({ ...activeFilters, when: undefined });
+
+                props.onFilterChange?.(updatedFilter);
+              }}
+            >
+              {activeFilters.when}
+            </Chip>
+          )}
+
+          {activeFilters.category && (
+            <Chip
+              compact
+              mode="outlined"
+              onClose={() => {
+                const updatedFilter = filterForm.setValue("category", undefined);
+                setActiveFilters({ ...activeFilters, category: undefined });
+
+                props.onFilterChange?.(updatedFilter);
+              }}
+            >
+              {activeFilters.category}
+            </Chip>
+          )}
+        </View>
+      )}
+
       <AppBottomSheet imperative ref={filterBottomSheetRef} fullscreen>
         <View className="flex flex-col gap-4">
           <View className="flex flex-row items-center justify-between">
@@ -123,7 +199,7 @@ export function EntryListHeader(props: EntryListHeaderProps) {
               icon="close"
               onPress={() => {
                 filterForm.clear();
-                setFilterDateOption(FilterDateOptions.Period);
+                setFilterDateOption(undefined);
               }}
             >
               Limpar
@@ -135,28 +211,11 @@ export function EntryListHeader(props: EntryListHeaderProps) {
 
             <AppChipSelect
               value={filterDateOption}
-              options={[
-                {
-                  label: "Período",
-                  value: FilterDateOptions.Period,
-                },
-                {
-                  label: "Esta semana",
-                  value: FilterDateOptions.Week,
-                },
-                {
-                  label: "Este mês",
-                  value: FilterDateOptions.Month,
-                },
-                {
-                  label: "Personalizado",
-                  value: FilterDateOptions.Custom,
-                },
-              ]}
+              options={filterDateOptions}
               onChange={(option) => {
                 setFilterDateOption(option);
 
-                if (option === FilterDateOptions.Period) {
+                if (!option || option === FilterDateOptions.Period) {
                   filterForm.setValue("when", undefined);
                 } else if (option === FilterDateOptions.Week) {
                   const endOfToday = new Date();
@@ -223,20 +282,7 @@ export function EntryListHeader(props: EntryListHeaderProps) {
 
             <AppChipSelect<EntryFilterForm["type"]>
               value={filterForm.values.type}
-              options={[
-                {
-                  value: undefined,
-                  label: "Todos",
-                },
-                {
-                  value: EntryTypes.Expense,
-                  label: "Despesas",
-                },
-                {
-                  value: EntryTypes.Income,
-                  label: "Receitas",
-                },
-              ]}
+              options={filterTypeOptions}
               onChange={filterForm.makeSetter("type")}
             />
           </FormField>
@@ -268,6 +314,14 @@ export function EntryListHeader(props: EntryListHeaderProps) {
             mode="contained"
             onPress={() => {
               props.onFilterChange(filterForm.values);
+
+              setActiveFilters({
+                type: filterForm.values.type ? filterTypeOptionsMap.get(filterForm.values.type) : undefined,
+                category: filterForm.values.category
+                  ? categoryQuery.data?.data.find((c) => c.id === filterForm.values.category)?.name
+                  : undefined,
+                when: filterDateOptionsMap.get(filterDateOption),
+              });
               closeEntryFilter();
             }}
           >

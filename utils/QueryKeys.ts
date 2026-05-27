@@ -25,16 +25,16 @@ export class CategoryQueryKeys {
 export class OverviewQueryKeys {
   private static readonly baseKey = "overview";
 
-  public static getExpenseByCategory() {
-    return [this.baseKey, "expense-by-category"];
+  public static getExpenseByCategory(options?: any) {
+    return [this.baseKey, "expense-by-category", options];
   }
 
-  public static getMonthlyEvolution() {
-    return [this.baseKey, "monthly-evolution"];
+  public static getMonthlyEvolution(options?: any) {
+    return [this.baseKey, "monthly-evolution", options];
   }
 
-  public static getKpis() {
-    return [this.baseKey, "kpis"];
+  public static getKpis(options?: any) {
+    return [this.baseKey, "kpis", options];
   }
 }
 

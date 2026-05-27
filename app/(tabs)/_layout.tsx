@@ -19,7 +19,7 @@ export default function TabLayout() {
         }}
       >
         <SafeAreaComponent className="grow" keyboardHandled>
-          <Navigation />
+          {/* <Navigation /> */}
 
           <Tabs
             screenOptions={{
@@ -65,7 +65,7 @@ export default function TabLayout() {
               }}
             />
             <Tabs.Screen
-              name="dashboard"
+              name="overview"
               options={{
                 title: "Visão Geral",
                 tabBarIcon: ({ color }) => <Icon source="chart-donut" size={24} color={color} />,

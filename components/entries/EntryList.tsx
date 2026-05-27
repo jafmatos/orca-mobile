@@ -53,8 +53,10 @@ export function EntryList(props: EntryListProps) {
       ListFooterComponent={
         <EndOfListWithLoading
           isLoading={entryQuery.isPending || entryQuery.isFetchingNextPage}
-          endOfList={!entryQuery.isPending && !entryQuery.isFetchingNextPage && !entryQuery.hasNextPage}
+          isOnEnd={!entryQuery.isPending && !entryQuery.isFetchingNextPage && !entryQuery.hasNextPage}
+          isEmpty={!entryQuery.isPending && !entryQuery.isFetching && entries?.length === 0}
           endOfListText="Não há mais lançamentos"
+          emptyListText="Não há lançamentos"
         />
       }
       contentContainerClassName="p-4"

@@ -13,7 +13,7 @@ export interface UseOverviewExpenseByCategoryOptions {
 
 export const useOverviewExpenseByCategory = (options?: UseOverviewExpenseByCategoryOptions) => {
   return useQuery({
-    queryKey: QueryKeys.Overview.getExpenseByCategory(),
+    queryKey: QueryKeys.Overview.getExpenseByCategory(options),
     queryFn: () => OverviewService.getExpenseByCategory({ filter: options?.filter }),
   });
 };

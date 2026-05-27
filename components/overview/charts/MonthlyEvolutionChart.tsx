@@ -3,13 +3,13 @@ import { useAppTheme } from "@/hooks/use-app-theme";
 import { createRef, useMemo, useState } from "react";
 import { ScrollView, View } from "react-native";
 import { BarChart, BarChartPropsType } from "react-native-gifted-charts";
-import { AppChartContainer } from "../ui/AppChartContainer";
-import { AppChipSelect } from "../ui/AppChipSelect";
+import { AppChartContainer } from "@/components/ui/AppChartContainer";
+import { AppChipSelect } from "@/components/ui/AppChipSelect";
 
 export function MonthlyEvolutionChart() {
   const theme = useAppTheme();
   const [months, setMonths] = useState(12);
-
+	
   const monthlyEvolutionQuery = useMonthlyEvolution({ months: months });
   const scrollViewRef = createRef<ScrollView>();
 

@@ -2,6 +2,7 @@ import { EntryFormOverlay, EntryFormOverlayRef } from "@/components/entries/Entr
 import { EntryList } from "@/components/entries/EntryList";
 import { EntryListItem } from "@/components/entries/EntryListItem";
 import { TabbedLayout } from "@/components/layouts/TabbedLayout";
+import { Navigation } from "@/components/Navigation";
 import { AppBottomSheet } from "@/components/ui/AppBottomSheet";
 import { AppConfirmationDialog } from "@/components/ui/AppConfirmationDialog";
 import { AppFabOverlay } from "@/components/ui/AppFabOverlay";
@@ -98,6 +99,8 @@ export default function EntriesScreen() {
 
   return (
     <TabbedLayout>
+      <Navigation />
+
       <EntryList
         renderItem={renderItem}
         onRefresh={() => setWasQueryResetted(true)}

@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from "react";
-import { FAB, TextInput } from "react-native-paper";
+import { FAB } from "react-native-paper";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Navigation } from "@/components/Navigation";
 import { TabbedLayout } from "@/components/layouts/TabbedLayout";
@@ -14,13 +14,8 @@ import { CategoryService } from "@/services/CategoryService";
 import { QueryKeys } from "@/utils/QueryKeys";
 import { CategoryListHeader } from "@/components/categories/CategoryListHeader";
 import { useCategories } from "@/hooks/queries/use-categories";
-import { Portal } from "@gorhom/portal";
-import { useIsFocused } from "@react-navigation/native";
-import { AppBottomSheet } from "@/components/ui/AppBottomSheet";
-import { AppFullScreenOverlay } from "@/components/ui/AppFullScreenOverlay";
 
 export default function CategoriesScreen() {
-  const isFocused = useIsFocused();
   const queryClient = useQueryClient();
   const toast = useAppToast();
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
@@ -88,11 +83,7 @@ export default function CategoriesScreen() {
 
   return (
     <TabbedLayout>
-      {isFocused && (
-        <Portal hostName="sub-navigation">
-          <CategoryListHeader onFilterChange={(filter) => setSelectedType(filter.type)} />
-        </Portal>
-      )}
+      <Navigation SubHeaderComponent={<CategoryListHeader onFilterChange={(filter) => setSelectedType(filter.type)} />} />
 
       <CategoryList renderItem={renderItem} data={categories} />
 
@@ -133,7 +124,6 @@ export default function CategoriesScreen() {
           refreshList();
         }}
       />
-
     </TabbedLayout>
   );
 }

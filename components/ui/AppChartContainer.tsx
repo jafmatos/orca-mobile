@@ -47,8 +47,6 @@ export function AppChartContainer(props: AppChartContainerProps) {
       className={`flex flex-col items-center ${props.className}`}
       style={[
         {
-          borderWidth: 1,
-          borderColor: theme.colors.surfaceVariant,
           borderRadius: theme.roundness,
         },
         props.style,

@@ -2,7 +2,7 @@ import { Category } from "@/models/Category";
 import { $axios } from "@/utils/$axios";
 import qs from "qs";
 
-export interface GetExpenseByCategoryReturnArguments {
+export interface GetExpenseByCategoryArguments {
   filter?: {
     when?: {
       ge?: Date;
@@ -35,6 +35,15 @@ export interface GetMonthlyEvolutionReturnType {
   }[];
 }
 
+export interface GetKpisArguments {
+  filter?: {
+    when?: {
+      ge?: Date;
+      le?: Date;
+    };
+  };
+}
+
 export interface GetKpisReturnType {
   status: {
     totalExpense: number;
@@ -48,7 +57,7 @@ export interface GetKpisReturnType {
 export class OverviewService {
   private static readonly path = "/users/overview";
 
-  public static async getExpenseByCategory(options: GetExpenseByCategoryReturnArguments): Promise<GetExpenseByCategoryReturnType> {
+  public static async getExpenseByCategory(options: GetExpenseByCategoryArguments): Promise<GetExpenseByCategoryReturnType> {
     const queryString = qs.stringify(options);
     const { data } = await $axios.get(`${this.path}/expense-by-category?${queryString}`);
 
@@ -62,8 +71,9 @@ export class OverviewService {
     return data;
   }
 
-  public static async getKpis(): Promise<GetKpisReturnType> {
-    const { data } = await $axios.get(`${this.path}/kpis`);
+  public static async getKpis(options?: GetKpisArguments): Promise<GetKpisReturnType> {
+    const queryString = qs.stringify(options);
+    const { data } = await $axios.get(`${this.path}/kpis?${queryString}`);
 
     return data;
   }

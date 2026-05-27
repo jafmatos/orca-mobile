@@ -1,18 +1,30 @@
-import { useOverviewExpenseByCategory } from "@/hooks/queries/use-overview-expense-by-category";
+import { useOverviewExpenseByCategory, UseOverviewExpenseByCategoryOptions } from "@/hooks/queries/use-overview-expense-by-category";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { Category } from "@/models/Category";
-import { useCallback, useMemo } from "react";
+import React, { useCallback, useImperativeHandle, useMemo } from "react";
 import { View } from "react-native";
 import { FlatList } from "react-native-gesture-handler";
 import { ProgressBar, Text } from "react-native-paper";
-import { AppChartContainer } from "../ui/AppChartContainer";
-import { AppSkeleton } from "../ui/AppSkeleton";
-import { Conditional } from "../utils/Conditional";
-import { currencyFormatter } from "@/utils/currencyFormatter";
+import { AppChartContainer } from "@/components/ui/AppChartContainer";
+import { AppSkeleton } from "@/components/ui/AppSkeleton";
+import { Conditional } from "@/components/utils/Conditional";
+import { UseQueryResult } from "@tanstack/react-query";
+import { GetExpenseByCategoryReturnType } from "@/services/OverviewService";
 
-export function LimitsMonitorChart() {
+export interface LimitsMonitorChartRef {
+  query: UseQueryResult<GetExpenseByCategoryReturnType, Error>;
+}
+
+export interface LimitsMonitorChartProps {
+  filter?: UseOverviewExpenseByCategoryOptions["filter"];
+}
+
+export const LimitsMonitorChart = React.forwardRef<LimitsMonitorChartRef, LimitsMonitorChartProps>(function LimitsMonitorChart(
+  props: LimitsMonitorChartProps,
+  ref,
+) {
   const theme = useAppTheme();
-  const expenseByCategoryData = useOverviewExpenseByCategory();
+  const expenseByCategoryData = useOverviewExpenseByCategory({ filter: props.filter });
 
   const categoriesWithLimit = useMemo(() => {
     return (
@@ -49,10 +61,16 @@ export function LimitsMonitorChart() {
     [getProgressBarColorByPercentage],
   );
 
+  useImperativeHandle(ref, () => {
+    return {
+      query: expenseByCategoryData,
+    };
+  });
+
   return (
     <AppChartContainer>
       <AppChartContainer.Content>
-        <AppChartContainer.Title>Monitor de limites</AppChartContainer.Title>
+        <AppChartContainer.Title>Monitor de Limites</AppChartContainer.Title>
 
         <Conditional
           if={!expenseByCategoryData.isPending && !expenseByCategoryData.isFetching}
@@ -78,4 +96,4 @@ export function LimitsMonitorChart() {
       </AppChartContainer.Content>
     </AppChartContainer>
   );
-}
+});

@@ -1,9 +1,9 @@
 import { useCategories } from "@/hooks/queries/use-categories";
-import { FlatList } from "react-native-gesture-handler";
-import { EndOfListWithLoading } from "../EndOfListWithLoading";
-import { ListRenderItem, View } from "react-native";
 import { Category } from "@/models/Category";
 import { useMemo } from "react";
+import { ListRenderItem, View } from "react-native";
+import { FlatList } from "react-native-gesture-handler";
+import { EndOfListWithLoading } from "../EndOfListWithLoading";
 
 export interface CategoryListProps {
   data: ArrayLike<Category>;
@@ -23,8 +23,10 @@ export const CategoryList = (props: CategoryListProps) => {
       ListFooterComponent={
         <EndOfListWithLoading
           isLoading={categoriesQuery.isPending}
-          endOfList={categoriesQuery.data && categoriesQuery.data.meta.page === categoriesQuery.data.meta.pages}
+          isOnEnd={categoriesQuery.data && categoriesQuery.data.meta.page === categoriesQuery.data.meta.pages}
+          isEmpty={categoriesQuery.data?.data.length === 0}
           endOfListText="Não há mais categorias"
+          emptyListText="Não há categorias"
         />
       }
       contentContainerClassName="p-4"

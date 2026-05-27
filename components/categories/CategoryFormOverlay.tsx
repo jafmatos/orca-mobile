@@ -1,3 +1,7 @@
+import { useAppForm } from "@/hooks/use-app-form";
+import { useAppFormWithMutation } from "@/hooks/use-app-form-with-mutation";
+import { useAppTheme } from "@/hooks/use-app-theme";
+import { Category, CategoryTypes } from "@/models/Category";
 import {
   CategoryService,
   CreateCategoryBody,
@@ -5,19 +9,12 @@ import {
   UpdateCategoryBody,
   UpdateCategoryReturnType,
 } from "@/services/CategoryService";
-import { AppFullScreenOverlay, AppFullScreenOverlayProps, AppFullScreenOverlayRef } from "../ui/AppFullScreenOverlay";
-import { Category, CategoryTypes } from "@/models/Category";
-import React, { useCallback, useEffect, useImperativeHandle } from "react";
+import React, { useImperativeHandle } from "react";
 import { View } from "react-native";
-import { SegmentedButtons, HelperText, TextInput, Button } from "react-native-paper";
+import { Button, HelperText, SegmentedButtons, TextInput } from "react-native-paper";
 import { AppCurrencyInput } from "../ui/AppCurrencyInput";
+import { AppFullScreenOverlay, AppFullScreenOverlayProps, AppFullScreenOverlayRef } from "../ui/AppFullScreenOverlay";
 import { FormField } from "../ui/FormField";
-import { useAppForm } from "@/hooks/use-app-form";
-import { useAppTheme } from "@/hooks/use-app-theme";
-import { useAppFormWithMutation } from "@/hooks/use-app-form-with-mutation";
-import { QueryKeys } from "@/utils/QueryKeys";
-import { useQueryClient } from "@tanstack/react-query";
-import { useAppToast } from "@/hooks/use-app-toast";
 
 export type CategoryCreateOrUpdateForm = Required<CreateCategoryBody & UpdateCategoryBody> & {
   id?: Category["id"];

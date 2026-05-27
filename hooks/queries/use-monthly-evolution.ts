@@ -8,7 +8,7 @@ export interface UseMonthlyEvolutionOptions {
 
 export const useMonthlyEvolution = (options: UseMonthlyEvolutionOptions) => {
   return useQuery({
-    queryKey: QueryKeys.Overview.getMonthlyEvolution(),
+    queryKey: QueryKeys.Overview.getMonthlyEvolution(options),
     queryFn: () => OverviewService.getMonthlyEvolution({ months: options.months }),
   });
 };

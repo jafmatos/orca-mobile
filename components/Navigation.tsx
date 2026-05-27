@@ -17,6 +17,10 @@ export interface DrawerNavigationItemProps {
   to: React.ComponentProps<typeof Link>["href"];
 }
 
+export interface NavigationProps {
+  SubHeaderComponent?: React.ReactNode;
+}
+
 function DrawerNavigationItem(props: DrawerNavigationItemProps) {
   const router = useAppRouter();
   const theme = useAppTheme();
@@ -46,7 +50,7 @@ function DrawerNavigationItem(props: DrawerNavigationItemProps) {
   );
 }
 
-export function Navigation() {
+export function Navigation(props?: NavigationProps) {
   const theme = useAppTheme();
   const router = useAppRouter();
   const user = useAuthUser();
@@ -65,11 +69,12 @@ export function Navigation() {
         }}
       >
         <View className="h-[72px] px-4 flex flex-row justify-between items-center">
-          <AppAvatar />
+          <AppAvatar url={user?.avatar?.url} fallback={user?.name[0].toUpperCase()} />
           <IconButton icon="menu" onPress={() => setIsDrawerOpen(true)} size={32} />
         </View>
 
         <PortalHost name="sub-navigation" />
+        {props?.SubHeaderComponent}
       </View>
 
       <Portal hostName="drawer">
@@ -81,7 +86,8 @@ export function Navigation() {
           }}
         >
           <View className="flex flex-row gap-2 items-center">
-            <AppAvatar />
+            <AppAvatar url={user?.avatar?.url} fallback={user?.name[0].toUpperCase()} />
+
             <View style={{ flexShrink: 1, gap: 4 }} className="flex flex-col">
               <Text
                 variant="titleSmall"
@@ -103,7 +109,7 @@ export function Navigation() {
             <DrawerNavigationItem onPressCallback={closeDrawer} to={"/schedules"} icon="clock" text="Agendamentos" />
             <DrawerNavigationItem onPressCallback={closeDrawer} to={"/categories"} icon="bookmark" text="Categorias" />
             <DrawerNavigationItem onPressCallback={closeDrawer} to={"/limits"} icon="alert-octagon" text="Limites" />
-            <DrawerNavigationItem onPressCallback={closeDrawer} to={"/dashboard"} icon="chart-donut" text="Visão Geral" />
+            <DrawerNavigationItem onPressCallback={closeDrawer} to={"/overview"} icon="chart-donut" text="Visão Geral" />
             <DrawerNavigationItem onPressCallback={closeDrawer} to={"/analyses"} icon="creation" text="Análises" />
             <DrawerNavigationItem onPressCallback={closeDrawer} to={"/profile"} icon="account" text="Meu Perfil" />
           </View>

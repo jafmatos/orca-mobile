@@ -67,7 +67,8 @@ export const AppBottomSheet = React.forwardRef<AppBottomSheetRef, AppBottomSheet
             position: "absolute",
             width: "100%",
             height: "100%",
-            display: "none", // Statically hidden to shield the first frame!
+            display: "none",
+            zIndex: 100,
           },
           wrapperAnimatedStyle,
         ]}
@@ -79,12 +80,7 @@ export const AppBottomSheet = React.forwardRef<AppBottomSheetRef, AppBottomSheet
           handleColor={theme.colors.onBackground}
           backdropColor={theme.colors.backdrop}
           backdropOpacity={1}
-          style={[
-            {
-              zIndex: 100,
-            },
-            bottomSheetProps.style,
-          ]}
+          style={bottomSheetProps.style}
           onOpenAnimationStarted={() => {
             setIsOpen(true);
             bottomSheetProps.onOpenAnimationStarted?.();

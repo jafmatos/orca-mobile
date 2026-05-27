@@ -1,5 +1,5 @@
 import { ApiError } from "@/models/ApiError";
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 export type AppFormErrors<Form> = (Omit<ApiError, "path"> & { path: keyof Form })[];
 
@@ -20,47 +20,64 @@ export const useAppForm = <Form>(initialState: Form): AppForm<Form> => {
   const [form, setForm] = useState<Form>(initialState);
   const [errors, setErrors] = useState<AppFormErrors<Form>>([]);
 
-  const makeSetter = <Key extends keyof Form>(key: Key) => {
-    return (value: Form[Key]) => {
-      setForm({
+  const settersRef = useRef<{ [key in keyof Form]?: (value: any) => void }>({});
+
+  const makeSetter = useCallback(<Key extends keyof Form>(key: Key) => {
+    if (!settersRef.current[key]) {
+      settersRef.current[key] = (value: Form[Key]) => {
+        setForm((prev) => ({
+          ...prev,
+          [key]: value,
+        }));
+        setErrors((prevErrors) => prevErrors.filter((error) => error.path !== key));
+      };
+    }
+    return settersRef.current[key] as (value: Form[Key]) => void;
+  }, []);
+
+  const setValue = useCallback(
+    <Key extends keyof Form>(key: Key, value: Form[Key]) => {
+      const newForm = {
         ...form,
         [key]: value,
-      });
-      setErrors(errors.filter((error) => error.path !== key));
-    };
-  };
+      };
+      setForm((prev) => ({
+        ...prev,
+        [key]: value,
+      }));
+      setErrors((prevErrors) => prevErrors.filter((error) => error.path !== key));
 
-  const setValue = <Key extends keyof Form>(key: Key, value: Form[Key]) => {
-    const newForm = {
-      ...form,
-      [key]: value,
-    };
-    setForm(newForm);
-    setErrors(errors.filter((error) => error.path !== key));
+      return newForm;
+    },
+    [form],
+  );
 
-    return newForm;
-  };
-
-  const _setForm = (form: Form) => {
+  const _setForm = useCallback((form: Form) => {
     setForm(form);
 
     return form;
-  };
+  }, []);
 
-  const clear = () => {
+  const clear = useCallback(() => {
     setForm(initialState);
     setErrors([]);
-  };
+  }, [initialState]);
 
-  const getError = (key: keyof Form) => {
-    const error = errors.find((error) => error.path === key);
+  const getError = useCallback(
+    (key: keyof Form) => {
+      const error = errors.find((error) => error.path === key);
 
-    return error?.message;
-  };
+      return error?.message;
+    },
+    [errors],
+  );
 
-  const hasError = (key: keyof Form) => {
-    return errors.some((error) => error.path === key);
-  };
+  const hasError = useCallback(
+    (key: keyof Form) => {
+      return errors.some((error) => error.path === key);
+    },
+    [errors],
+  );
 
   return {
     values: form,
