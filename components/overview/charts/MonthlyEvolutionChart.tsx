@@ -5,7 +5,7 @@ import { ScrollView, View, TouchableOpacity } from "react-native";
 import { BarChart, LineChart } from "react-native-gifted-charts";
 import { AppChartContainer } from "@/components/ui/AppChartContainer";
 import { AppChipSelect } from "@/components/ui/AppChipSelect";
-import { Text, Divider, Icon, Surface } from "react-native-paper";
+import { Text, Divider, Icon } from "react-native-paper";
 import { AppHideableCurrencyText } from "@/components/ui/AppHideableCurrencyText";
 import { currencyFormatter } from "@/utils/currencyFormatter";
 import { AppTextSwitch } from "@/components/ui/AppTextSwitch";
@@ -289,7 +289,6 @@ export function MonthlyEvolutionChart() {
                   lowlightOpacity={0.45}
                 />
 
-                {/* Transparent Column Overlay to enable Touch-Anywhere (exactly like LineChart) */}
                 <View
                   style={{
                     position: "absolute",
@@ -298,7 +297,7 @@ export function MonthlyEvolutionChart() {
                     width: 20 + (historyData?.length || 0) * 56,
                     height: 220,
                     flexDirection: "row",
-                    paddingLeft: 20, // matches initialSpacing
+                    paddingLeft: 20,
                     zIndex: 9999,
                   }}
                   pointerEvents="box-none"
@@ -320,7 +319,7 @@ export function MonthlyEvolutionChart() {
                           activeOpacity={0.8}
                           onPress={onPress}
                           style={{
-                            width: 56, // matches barWidth (16) * 2 + spacing (4) + spacing (20)
+                            width: 56,
                             height: "100%",
                           }}
                         />

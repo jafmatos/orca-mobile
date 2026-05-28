@@ -19,8 +19,6 @@ export default function TabLayout() {
         }}
       >
         <SafeAreaComponent className="grow" keyboardHandled>
-          {/* <Navigation /> */}
-
           <Tabs
             screenOptions={{
               tabBarActiveTintColor: theme.colors.primary,

@@ -21,16 +21,14 @@ export const AppBottomSheet = React.forwardRef<AppBottomSheetRef, AppBottomSheet
   const theme = useTheme();
   const [isOpen, setIsOpen] = useState(!!bottomSheetProps.isOpen);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
-
-  // UI-thread visibility controller to shield against first-frame portal flashes
   const isVisibleSharedValue = useSharedValue(!!bottomSheetProps.isOpen);
 
   useImperativeHandle(ref, () => {
     return {
       open: (hooks) => {
         "worklet";
-        // Synchronously toggle display on the UI thread with zero delay
-        isVisibleSharedValue.value = true;
+
+				isVisibleSharedValue.value = true;
         bottomSheetRef.current?.open(hooks);
       },
       close: (hooks) => {
@@ -47,7 +45,6 @@ export const AppBottomSheet = React.forwardRef<AppBottomSheetRef, AppBottomSheet
     };
   }, [isVisibleSharedValue]);
 
-  // Handle controlled visibility changes
   useEffect(() => {
     if (!bottomSheetProps.imperative) {
       isVisibleSharedValue.value = !!bottomSheetProps.isOpen;
