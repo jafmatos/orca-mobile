@@ -5,6 +5,7 @@ import { useState } from "react";
 import { View } from "react-native";
 import { Surface, Menu, IconButton, Icon, Text } from "react-native-paper";
 import { Conditional } from "../utils/Conditional";
+import { AppHideableCurrencyText } from "../ui/AppHideableCurrencyText";
 
 interface CategoryListItemProps {
   data: Category;
@@ -33,9 +34,9 @@ export function CategoryListItem(props: CategoryListItemProps) {
       <Conditional
         if={!!props.data.limit}
         _then={
-          <Text className="ml-4" variant="bodySmall">
+          <AppHideableCurrencyText className="ml-4" variant="bodySmall">
             {currencyFormatter.format(props.data.limit?.amount || 0)}
-          </Text>
+          </AppHideableCurrencyText>
         }
       />
 

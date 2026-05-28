@@ -1,16 +1,12 @@
 import { TabbedLayout } from "@/components/layouts/TabbedLayout";
-import { BalanceCard } from "@/components/overview/BalanceCard";
 import { ExpenseByCategoryChart, ExpenseByCategoryChartRef } from "@/components/overview/charts/ExpenseByCategoryChart";
 import { LimitsMonitorChart, LimitsMonitorChartRef } from "@/components/overview/charts/LimitsMonitorChart";
 import { MonthlyEvolutionChart } from "@/components/overview/charts/MonthlyEvolutionChart";
 import { ExpenseCard } from "@/components/overview/ExpenseCard";
 import { IncomeCard } from "@/components/overview/IncomeCard";
-import { LimitsCard } from "@/components/overview/LimitsCard";
 import { AppSkeleton } from "@/components/ui/AppSkeleton";
 import { AppTabHeader } from "@/components/ui/AppTabHeader";
 import { useKpis } from "@/hooks/queries/use-kpis";
-import { useMonthlyEvolution } from "@/hooks/queries/use-monthly-evolution";
-import { useOverviewExpenseByCategory } from "@/hooks/queries/use-overview-expense-by-category";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ScrollView, View } from "react-native";
 import { IconButton, Text } from "react-native-paper";
@@ -111,9 +107,11 @@ export default function OverviewScreen() {
     <TabbedLayout>
       <AppTabHeader>
         <IconButton icon="arrow-left" onPress={handlePeriodDateFilterPrevious} />
+
         <Text variant="titleLarge" numberOfLines={1}>
           {periodDateLabel}
         </Text>
+
         <IconButton icon="arrow-right" onPress={handlePeriodDateFilterNext} disabled={!periodFilter?.ge && !periodFilter?.le} />
       </AppTabHeader>
 

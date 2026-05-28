@@ -2,6 +2,7 @@ import { useAppTheme } from "@/hooks/use-app-theme";
 import { currencyFormatter } from "@/utils/currencyFormatter";
 import { View } from "react-native";
 import { Icon, Surface, Text } from "react-native-paper";
+import { AppHideableCurrencyText } from "../ui/AppHideableCurrencyText";
 
 export interface KpiCardProps {
   title: string;
@@ -30,7 +31,7 @@ export function KpiCard(props: KpiCardProps) {
           {props.icon && <Icon size={24} source={props.icon} color={props.iconColor} />}
         </View>
 
-        <Text variant="bodyLarge">{currencyFormatter.format(props.amount || 0)}</Text>
+        <AppHideableCurrencyText variant="bodyLarge">{currencyFormatter.format(props.amount || 0)}</AppHideableCurrencyText>
       </View>
     </Surface>
   );

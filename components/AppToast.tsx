@@ -1,6 +1,6 @@
 import Toast, { BaseToast, ToastConfigParams } from "react-native-toast-message";
-import { CircleCheckIcon, CircleAlertIcon, CircleXIcon } from "lucide-react-native";
 import { View } from "react-native";
+import { Icon } from "react-native-paper";
 import { useAppTheme } from "@/hooks/use-app-theme";
 
 export function AppToast(props: React.ComponentProps<typeof Toast>) {
@@ -46,9 +46,9 @@ export function AppToast(props: React.ComponentProps<typeof Toast>) {
       swipeable
       visibilityTime={5000}
       config={{
-        success: makeToast(theme.colors.success, <CircleCheckIcon size={20} color={theme.colors.success} />),
-        warning: makeToast(theme.colors.warning, <CircleAlertIcon size={20} color={theme.colors.warning} />),
-        error: makeToast(theme.colors.error, <CircleXIcon size={20} color={theme.colors.error} />),
+        success: makeToast(theme.colors.success, <Icon source="check-circle" size={20} color={theme.colors.success} />),
+        warning: makeToast(theme.colors.warning, <Icon source="alert-circle" size={20} color={theme.colors.warning} />),
+        error: makeToast(theme.colors.error, <Icon source="close-circle" size={20} color={theme.colors.error} />),
       }}
     />
   );

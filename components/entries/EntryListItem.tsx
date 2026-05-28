@@ -4,6 +4,7 @@ import { currencyFormatter } from "@/utils/currencyFormatter";
 import React from "react";
 import { Pressable, View } from "react-native";
 import { Surface, Text } from "react-native-paper";
+import { AppHideableCurrencyText } from "../ui/AppHideableCurrencyText";
 
 export interface EntryListItemProps extends React.ComponentProps<typeof Pressable> {
   data: Entry;
@@ -18,13 +19,13 @@ export function EntryListItem({ data, ...pressableProps }: EntryListItemProps) {
         <View className="rounded-xl p-4 flex gap-2">
           <View className="flex flex-row items-center justify-between">
             <Text variant="titleMedium">{data.category?.name || "Sem categoria"}</Text>
-            <Text
+            <AppHideableCurrencyText
               style={{
                 color: data.type === EntryTypes.Expense ? theme.colors.error : theme.colors.success,
               }}
             >
               {currencyFormatter.format(data.amount)}
-            </Text>
+            </AppHideableCurrencyText>
           </View>
           <View className="flex flex-row items-center justify-between gap-4">
             <View style={{ flexShrink: 1 }}>

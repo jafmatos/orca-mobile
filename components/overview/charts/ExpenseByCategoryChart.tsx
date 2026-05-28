@@ -10,6 +10,7 @@ import { Text } from "react-native-paper";
 import { AppChartContainer } from "@/components/ui/AppChartContainer";
 import { UseQueryResult } from "@tanstack/react-query";
 import { GetExpenseByCategoryReturnType } from "@/services/OverviewService";
+import { AppHideableCurrencyText } from "@/components/ui/AppHideableCurrencyText";
 
 export interface ExpenseByCategoryChartRef {
   query: UseQueryResult<GetExpenseByCategoryReturnType, Error>;
@@ -70,7 +71,7 @@ export const ExpenseByCategoryChart = React.forwardRef<ExpenseByCategoryChartRef
             centerLabelComponent={() => {
               return (
                 <View>
-                  <Text variant="labelLarge">{expenseByCategoryCenterLabel}</Text>
+                  <AppHideableCurrencyText variant="labelLarge">{expenseByCategoryCenterLabel}</AppHideableCurrencyText>
                 </View>
               );
             }}
@@ -102,7 +103,7 @@ export const ExpenseByCategoryChart = React.forwardRef<ExpenseByCategoryChartRef
                           {category.name}
                         </Text>
 
-                        <Text variant="bodyMedium">{currencyFormatter.format(category.spent)}</Text>
+                        <AppHideableCurrencyText variant="bodyMedium">{currencyFormatter.format(category.spent)}</AppHideableCurrencyText>
                       </View>
                     );
                   })}

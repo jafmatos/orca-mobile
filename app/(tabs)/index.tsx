@@ -18,22 +18,24 @@ export function ShortcutCard({ icon, label, onPress }: { icon: string; label: st
   const theme = useAppTheme();
 
   return (
-    <Pressable onPress={onPress} className="flex-1 min-w-[45%]">
+    <Pressable onPress={onPress} className="flex items-center gap-2">
       <Surface
         elevation={1}
-        className="flex flex-row items-center px-2"
+        className="flex flex-row items-center justify-center"
         style={{
           backgroundColor: theme.colors.elevation.level1 || theme.colors.surface,
           borderColor: theme.colors.outlineVariant,
           borderRadius: theme.roundness,
+          width: 96,
           height: 56,
         }}
       >
         <IconButton icon={icon} size={20} iconColor={theme.colors.primary} style={{ margin: 0 }} />
-        <Text variant="labelMedium" style={{ fontWeight: "bold", marginLeft: 2 }} numberOfLines={1} ellipsizeMode="tail">
-          {label}
-        </Text>
       </Surface>
+
+      <Text variant="labelMedium" style={{ fontWeight: "bold", marginLeft: 2 }} numberOfLines={1} ellipsizeMode="tail">
+        {label}
+      </Text>
     </Pressable>
   );
 }
@@ -67,6 +69,7 @@ export default function HomeScreen() {
 
   const recentEntries = useMemo(() => {
     const allEntries = entriesQuery.data?.pages.flatMap((page) => page.data) || [];
+
     return allEntries.slice(0, 3);
   }, [entriesQuery.data]);
 
@@ -74,8 +77,8 @@ export default function HomeScreen() {
     <TabbedLayout>
       <Navigation />
 
-      <ScrollView style={{ flex: 1 }} contentContainerClassName="p-4 flex gap-6" showsVerticalScrollIndicator={false}>
-        <View>
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+        <View className="p-4 mb-2">
           <Text variant="headlineSmall" style={{ fontWeight: "bold" }}>
             {greeting}, {user?.name.split(" ")[0] || "usuário"}!
           </Text>
@@ -84,8 +87,8 @@ export default function HomeScreen() {
           </Text>
         </View>
 
-        <View className="flex flex-col gap-4">
-          {user?.balance !== undefined ? <BalanceCard amount={user.balance} /> : <AppSkeleton height={90} />}
+        <View className="px-4 mb-6 flex flex-col gap-4">
+          {user?.balance !== undefined ? <BalanceCard amount={user.balance} /> : <AppSkeleton height={110} />}
 
           <View className="flex flex-row gap-4 ">
             {kpisQuery.isPending || kpisQuery.isFetching ? (
@@ -101,21 +104,24 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        <View>
-          <Text variant="titleMedium" className="mb-3" style={{ fontWeight: "bold" }}>
+        <View className="mb-2">
+          <Text variant="titleMedium" className="px-4 mb-3" style={{ fontWeight: "bold" }}>
             Atalhos Rápidos
           </Text>
 
-          <View className="flex flex-row justify-between flex-wrap gap-4">
-            <ShortcutCard onPress={() => router.goToOverview()} icon="chart-donut" label="Visão Geral" />
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 16 }}
+						contentContainerClassName="px-4"
+          >
+            <ShortcutCard onPress={() => router.goToAnalyses()} icon="creation" label="Análises" />
 
-            <ShortcutCard onPress={() => router.goToLimits()} icon="alert-octagon" label="Limites" />
-
-            <ShortcutCard onPress={() => router.goToEntries()} icon="plus" label="Novo Lançamento" />
-          </View>
+            <ShortcutCard onPress={() => router.goToLimits()} icon="clock" label="Agendamentos" />
+          </ScrollView>
         </View>
 
-        <View>
+        <View className="py-4 px-4">
           <View className="flex flex-row justify-between items-center mb-3">
             <Text variant="titleMedium" style={{ fontWeight: "bold" }}>
               Lançamentos Recentes

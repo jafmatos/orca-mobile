@@ -6,6 +6,7 @@ import { Navigation } from "@/components/Navigation";
 import { AppBottomSheet } from "@/components/ui/AppBottomSheet";
 import { AppConfirmationDialog } from "@/components/ui/AppConfirmationDialog";
 import { AppFabOverlay } from "@/components/ui/AppFabOverlay";
+import { AppHideableCurrencyText } from "@/components/ui/AppHideableCurrencyText";
 import { AppSkeleton } from "@/components/ui/AppSkeleton";
 import { Conditional } from "@/components/utils/Conditional";
 import { useAppTheme } from "@/hooks/use-app-theme";
@@ -246,14 +247,14 @@ export default function EntriesScreen() {
 
           <View className="flex flex-row justify-between items-center">
             {!!selectedEntry ? (
-              <Text
+              <AppHideableCurrencyText
                 variant="bodyMedium"
                 style={{
                   color: selectedEntry?.type === EntryTypes.Expense ? theme.colors.error : theme.colors.success,
                 }}
               >
                 {currencyFormatter.format(selectedEntry?.amount || 0)}
-              </Text>
+              </AppHideableCurrencyText>
             ) : (
               <AppSkeleton height={20} width={80} />
             )}

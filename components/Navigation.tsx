@@ -9,6 +9,7 @@ import { Pressable, View } from "react-native";
 import { Button, Divider, Icon, IconButton, Text } from "react-native-paper";
 import { AppAvatar } from "./ui/AppAvatar";
 import { AppDrawer } from "./ui/AppDrawer";
+import { AppHideableCurrencyToggle } from "./ui/AppHideableCurrencyToggle";
 
 export interface DrawerNavigationItemProps {
   icon?: string;
@@ -70,7 +71,12 @@ export function Navigation(props?: NavigationProps) {
       >
         <View className="h-[72px] px-4 flex flex-row justify-between items-center">
           <AppAvatar url={user?.avatar?.url} fallback={user?.name[0].toUpperCase()} />
-          <IconButton icon="menu" onPress={() => setIsDrawerOpen(true)} size={32} />
+
+          <View className="flex flex-row items-center gap-4">
+            <AppHideableCurrencyToggle size={24} />
+
+            <IconButton icon="menu" onPress={() => setIsDrawerOpen(true)} size={32} style={{ margin: 0 }} />
+          </View>
         </View>
 
         <PortalHost name="sub-navigation" />
@@ -102,7 +108,9 @@ export function Navigation(props?: NavigationProps) {
               <Text variant="bodySmall">{user?.email}</Text>
             </View>
           </View>
+
           <Divider />
+
           <View className="grow flex flex-col">
             <DrawerNavigationItem onPressCallback={closeDrawer} to={"/"} icon="home" text="Início" />
             <DrawerNavigationItem onPressCallback={closeDrawer} to={"/entries"} icon="receipt-text" text="Lançamentos" />
@@ -113,6 +121,7 @@ export function Navigation(props?: NavigationProps) {
             <DrawerNavigationItem onPressCallback={closeDrawer} to={"/analyses"} icon="creation" text="Análises" />
             <DrawerNavigationItem onPressCallback={closeDrawer} to={"/profile"} icon="account" text="Meu Perfil" />
           </View>
+
           <Button
             icon="logout"
             mode="contained-tonal"
