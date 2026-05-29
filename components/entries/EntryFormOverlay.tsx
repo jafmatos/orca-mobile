@@ -161,6 +161,9 @@ export const EntryFormOverlay = React.forwardRef<EntryFormOverlayRef, EntryFormO
             label="Descrição"
             value={entryForm.values.description}
             onChangeText={entryForm.makeSetter("description")}
+            autoCorrect={false}
+            spellCheck={false}
+            autoComplete="off"
             right={
               <TextInput.Affix
                 textStyle={{

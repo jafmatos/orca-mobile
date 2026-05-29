@@ -148,6 +148,14 @@ export default function EntriesScreen() {
             };
           });
 
+          queryClient.resetQueries({
+            queryKey: QueryKeys.Overview.getKpis(),
+          });
+
+          queryClient.resetQueries({
+            queryKey: QueryKeys.Overview.getExpenseByCategory(),
+          });
+
           closeEntryForm();
           setNeedsRefresh(true);
         }}

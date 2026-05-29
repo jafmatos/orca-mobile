@@ -3,7 +3,7 @@ import { QueryKeys } from "@/utils/QueryKeys";
 import { useQuery } from "@tanstack/react-query";
 
 export interface UseMonthlyEvolutionOptions {
-  months: number;
+  months?: number;
 }
 
 export const useMonthlyEvolution = (options: UseMonthlyEvolutionOptions) => {

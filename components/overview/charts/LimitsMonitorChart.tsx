@@ -1,7 +1,7 @@
 import { useOverviewExpenseByCategory, UseOverviewExpenseByCategoryOptions } from "@/hooks/queries/use-overview-expense-by-category";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { Category } from "@/models/Category";
-import React, { useCallback, useImperativeHandle, useMemo } from "react";
+import React, { useCallback, useEffect, useImperativeHandle, useMemo, useState } from "react";
 import { View } from "react-native";
 import { FlatList } from "react-native-gesture-handler";
 import { ProgressBar, Text } from "react-native-paper";
@@ -24,15 +24,25 @@ export const LimitsMonitorChart = React.forwardRef<LimitsMonitorChartRef, Limits
   ref,
 ) {
   const theme = useAppTheme();
-  const expenseByCategoryData = useOverviewExpenseByCategory({ filter: props.filter });
+  const expenseByCategoryQuery = useOverviewExpenseByCategory({ filter: props.filter });
+
+  const [lastCount, setLastCount] = useState<number>(10);
 
   const categoriesWithLimit = useMemo(() => {
     return (
-      expenseByCategoryData.data?.categories
+      expenseByCategoryQuery.data?.categories
         .filter((category) => !!category.limit)
         .sort((categoryA, categoryB) => categoryB.spent / categoryB.limit!.amount - categoryA.spent / categoryA.limit!.amount) || []
     );
-  }, [expenseByCategoryData]);
+  }, [expenseByCategoryQuery.data?.categories]);
+
+  useEffect(() => {
+    const newCount = categoriesWithLimit.length;
+
+    if (newCount > 0) {
+      setLastCount((prev) => (prev !== newCount ? newCount : prev));
+    }
+  }, [categoriesWithLimit.length]);
 
   const getProgressBarColorByPercentage = useCallback(
     (percentage: number) => {
@@ -63,7 +73,7 @@ export const LimitsMonitorChart = React.forwardRef<LimitsMonitorChartRef, Limits
 
   useImperativeHandle(ref, () => {
     return {
-      query: expenseByCategoryData,
+      query: expenseByCategoryQuery,
     };
   });
 
@@ -73,7 +83,7 @@ export const LimitsMonitorChart = React.forwardRef<LimitsMonitorChartRef, Limits
         <AppChartContainer.Title>Monitor de Limites</AppChartContainer.Title>
 
         <Conditional
-          if={!expenseByCategoryData.isPending && !expenseByCategoryData.isFetching}
+          if={!expenseByCategoryQuery.isPending && !expenseByCategoryQuery.isFetching}
           _then={
             <FlatList
               className="w-full"
@@ -85,7 +95,7 @@ export const LimitsMonitorChart = React.forwardRef<LimitsMonitorChartRef, Limits
           }
           _else={
             <View className="w-full flex gap-4">
-              {Array.from({ length: categoriesWithLimit.length || 10 })
+              {Array.from({ length: lastCount || categoriesWithLimit.length || 10 })
                 .fill(false)
                 .map((_, index) => {
                   return <AppSkeleton key={index} height={32} />;

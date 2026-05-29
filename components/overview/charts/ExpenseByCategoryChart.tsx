@@ -3,7 +3,7 @@ import { Conditional } from "@/components/utils/Conditional";
 import { useOverviewExpenseByCategory, UseOverviewExpenseByCategoryOptions } from "@/hooks/queries/use-overview-expense-by-category";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { currencyFormatter } from "@/utils/currencyFormatter";
-import React, { useImperativeHandle, useMemo } from "react";
+import React, { useEffect, useImperativeHandle, useMemo, useState } from "react";
 import { View, FlatList } from "react-native";
 import { PieChart, pieDataItem } from "react-native-gifted-charts";
 import { Text } from "react-native-paper";
@@ -24,6 +24,15 @@ export const ExpenseByCategoryChart = React.forwardRef<ExpenseByCategoryChartRef
   function ExpenseByCategoryChart(props: ExpenseByCategoryChartProps, ref) {
     const theme = useAppTheme();
     const expenseByCategoryQuery = useOverviewExpenseByCategory({ filter: props.filter });
+
+    const [lastCount, setLastCount] = useState<number | undefined>(undefined);
+
+    useEffect(() => {
+      const currentLength = expenseByCategoryQuery.data?.categories.length;
+      if (currentLength && currentLength > 0) {
+        setLastCount(currentLength);
+      }
+    }, [expenseByCategoryQuery.data?.categories]);
 
     const expenseByCategoryChartData = useMemo(() => {
       if (!expenseByCategoryQuery.data) return [];
@@ -113,7 +122,7 @@ export const ExpenseByCategoryChart = React.forwardRef<ExpenseByCategoryChartRef
                 <FlatList
                   scrollEnabled={false}
                   ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
-                  data={Array.from({ length: 10 })}
+                  data={Array.from({ length: lastCount || 10 })}
                   renderItem={() => {
                     return <AppSkeleton height={24} />;
                   }}

@@ -88,7 +88,11 @@ export default function HomeScreen() {
         </View>
 
         <View className="px-4 mb-6 flex flex-col gap-4">
-          {user?.balance !== undefined ? <BalanceCard amount={user.balance} /> : <AppSkeleton height={110} />}
+          {kpisQuery.isPending || kpisQuery.isFetching ? (
+            <AppSkeleton height={110} />
+          ) : (
+            <BalanceCard amount={kpisQuery.data?.status.balance} />
+          )}
 
           <View className="flex flex-row gap-4 ">
             {kpisQuery.isPending || kpisQuery.isFetching ? (
@@ -113,7 +117,7 @@ export default function HomeScreen() {
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ gap: 16 }}
-						contentContainerClassName="px-4"
+            contentContainerClassName="px-4"
           >
             <ShortcutCard onPress={() => router.goToAnalyses()} icon="creation" label="Análises" />
 

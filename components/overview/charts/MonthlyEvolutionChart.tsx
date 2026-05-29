@@ -1,6 +1,6 @@
 import { useMonthlyEvolution } from "@/hooks/queries/use-monthly-evolution";
 import { useAppTheme } from "@/hooks/use-app-theme";
-import { createRef, useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { ScrollView, View, TouchableOpacity } from "react-native";
 import { BarChart, LineChart } from "react-native-gifted-charts";
 import { AppChartContainer } from "@/components/ui/AppChartContainer";
@@ -9,6 +9,7 @@ import { Text, Divider, Icon } from "react-native-paper";
 import { AppHideableCurrencyText } from "@/components/ui/AppHideableCurrencyText";
 import { currencyFormatter } from "@/utils/currencyFormatter";
 import { AppTextSwitch } from "@/components/ui/AppTextSwitch";
+import { AppSkeleton } from "@/components/ui/AppSkeleton";
 
 export enum MonthlyEvolutionChartMode {
   Balance = "balance",
@@ -17,7 +18,7 @@ export enum MonthlyEvolutionChartMode {
 
 export function MonthlyEvolutionChart() {
   const theme = useAppTheme();
-  const [months, setMonths] = useState(12);
+  const [months, setMonths] = useState<number | undefined>(undefined);
   const [chartMode, setChartMode] = useState<MonthlyEvolutionChartMode>(MonthlyEvolutionChartMode.Balance);
   const [selectedItem, setSelectedItem] = useState<{
     month: string;
@@ -27,13 +28,14 @@ export function MonthlyEvolutionChart() {
   } | null>(null);
 
   const monthlyEvolutionQuery = useMonthlyEvolution({ months: months });
-  const scrollViewRef = createRef<ScrollView>();
+  const scrollViewRef = useRef<ScrollView>(null);
 
   const historyData = monthlyEvolutionQuery.data?.history;
 
   useEffect(() => {
     if (historyData && historyData.length > 0) {
       const lastItem = historyData[historyData.length - 1];
+
       setSelectedItem({
         month: lastItem.month,
         totalIncome: lastItem.totalIncome,
@@ -47,24 +49,32 @@ export function MonthlyEvolutionChart() {
 
   const selectedMonthIndex = useMemo(() => {
     if (!selectedItem || !historyData) return -1;
+
     return historyData.findIndex((h) => h.month === selectedItem.month);
   }, [selectedItem, historyData]);
 
   const lineChartData = useMemo(() => {
     if (!historyData) return [];
-    return historyData.map((item) => ({
-      value: item.balance,
-      label: item.month,
-      onPress: () => {
-        setSelectedItem({
-          month: item.month,
-          totalIncome: item.totalIncome,
-          totalExpense: item.totalExpense,
-          balance: item.balance,
-        });
-      },
-    }));
-  }, [historyData]);
+
+    return historyData.map((item, index) => {
+      const isSelected = selectedMonthIndex === index;
+
+      return {
+        value: item.balance,
+        label: item.month,
+        onPress: () => {
+          setSelectedItem({
+            month: item.month,
+            totalIncome: item.totalIncome,
+            totalExpense: item.totalExpense,
+            balance: item.balance,
+          });
+        },
+        dataPointRadius: isSelected ? 6 : 4,
+        dataPointColor: theme.colors.primary,
+      };
+    });
+  }, [historyData, selectedMonthIndex, theme.colors.primary]);
 
   const lineChartSectionProps = useMemo(() => {
     const defaultProps = {
@@ -96,15 +106,15 @@ export function MonthlyEvolutionChart() {
     let bestCandidate = candidates[4];
     let bestScore = Infinity;
 
-		for (const stepVal of candidates) {
+    for (const stepVal of candidates) {
       const posSec = Math.ceil(maxVal / stepVal);
       const negSec = Math.ceil(minVal / stepVal);
       const totalSec = posSec + negSec;
 
       if (totalSec >= 4 && totalSec <= 10) {
-        const emptySpace = (posSec * stepVal - maxVal) + (negSec * stepVal - minVal);
+        const emptySpace = posSec * stepVal - maxVal + (negSec * stepVal - minVal);
         const emptyRatio = emptySpace / (totalSec * stepVal);
-        
+
         const score = emptyRatio * 2 + Math.abs(totalSec - 6) * 0.1;
         if (score < bestScore) {
           bestScore = score;
@@ -146,6 +156,7 @@ export function MonthlyEvolutionChart() {
 
   const cashflowChartData = useMemo(() => {
     if (!historyData) return [];
+
     const data: any[] = [];
 
     historyData.forEach((item) => {
@@ -200,7 +211,7 @@ export function MonthlyEvolutionChart() {
             value={months}
             onChange={(months) => setMonths(months)}
             options={[
-              { label: "6 meses", value: 6 },
+              { label: "Completo", value: undefined },
               { label: "12 meses", value: 12 },
               { label: "24 meses", value: 24 },
             ]}
@@ -223,53 +234,80 @@ export function MonthlyEvolutionChart() {
             showsHorizontalScrollIndicator={false}
             ref={scrollViewRef}
             onContentSizeChange={() => {
-              scrollViewRef.current?.scrollToEnd({ animated: true });
+              setTimeout(() => {
+                scrollViewRef.current?.scrollToEnd({ animated: true });
+              }, 50);
             }}
           >
             {chartMode === "balance" ? (
-              <LineChart
-                disableScroll
-                areaChart
-                curved
-                data={lineChartData}
-                height={lineChartSectionProps.height}
-                noOfSections={lineChartSectionProps.noOfSections}
-                noOfSectionsBelowXAxis={lineChartSectionProps.noOfSectionsBelowXAxis}
-                stepHeight={lineChartSectionProps.stepHeight}
-                stepValue={lineChartSectionProps.stepValue}
-                spacing={60}
-                color={theme.colors.primary}
-                thickness={3}
-                startFillColor={theme.colors.primary}
-                endFillColor="transparent"
-                startOpacity={0.2}
-                endOpacity={0.01}
-                hideYAxisText
-                yAxisColor="transparent"
-                xAxisColor={theme.colors.outlineVariant}
-                hideRules
-                dataPointsColor={theme.colors.primary}
-                dataPointsRadius={4}
-                xAxisLabelTextStyle={{ color: theme.colors.onSurfaceVariant, fontSize: 10 }}
-                focusEnabled
-                onFocus={(item: any, index: number) => {
-                  if (historyData && historyData[index]) {
-                    const selected = historyData[index];
-										
-                    setSelectedItem({
-                      month: selected.month,
-                      totalIncome: selected.totalIncome,
-                      totalExpense: selected.totalExpense,
-                      balance: selected.balance,
-                    });
-                  }
-                }}
-                focusedDataPointRadius={6}
-                focusedDataPointColor={theme.colors.primary}
-                unFocusOnPressOut={false}
-                xAxisLabelsAtBottom={true}
-                labelsExtraHeight={0}
-              />
+              <View style={{ position: "relative" }}>
+                <LineChart
+                  disableScroll
+                  areaChart
+                  curved
+                  data={lineChartData}
+                  height={lineChartSectionProps.height}
+                  noOfSections={lineChartSectionProps.noOfSections}
+                  noOfSectionsBelowXAxis={lineChartSectionProps.noOfSectionsBelowXAxis}
+                  stepHeight={lineChartSectionProps.stepHeight}
+                  stepValue={lineChartSectionProps.stepValue}
+                  spacing={60}
+                  initialSpacing={30}
+                  color={theme.colors.primary}
+                  thickness={3}
+                  startFillColor={theme.colors.primary}
+                  endFillColor="transparent"
+                  startOpacity={0.2}
+                  endOpacity={0.01}
+                  hideYAxisText
+                  yAxisColor="transparent"
+                  xAxisColor={theme.colors.outlineVariant}
+                  hideRules
+                  dataPointsColor={theme.colors.primary}
+                  dataPointsRadius={4}
+                  xAxisLabelTextStyle={{ color: theme.colors.onSurfaceVariant, fontSize: 10 }}
+                  focusEnabled={false}
+                  xAxisLabelsAtBottom={true}
+                  labelsExtraHeight={0}
+                />
+
+                <View
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: (historyData?.length || 0) * 60,
+                    height: 220,
+                    flexDirection: "row",
+                    zIndex: 9999,
+                  }}
+                  pointerEvents="box-none"
+                >
+                  {historyData &&
+                    historyData.map((item, index) => {
+                      const onPress = () => {
+                        setSelectedItem({
+                          month: item.month,
+                          totalIncome: item.totalIncome,
+                          totalExpense: item.totalExpense,
+                          balance: item.balance,
+                        });
+                      };
+
+                      return (
+                        <TouchableOpacity
+                          key={item.month}
+                          activeOpacity={0.8}
+                          onPress={onPress}
+                          style={{
+                            width: 60,
+                            height: "100%",
+                          }}
+                        />
+                      );
+                    })}
+                </View>
+              </View>
             ) : (
               <View style={{ position: "relative" }}>
                 <BarChart
@@ -331,16 +369,24 @@ export function MonthlyEvolutionChart() {
           </ScrollView>
         </View>
 
-        {selectedItem && (
-          <View className="w-full px-4 flex flex-col gap-4">
+        <View className="w-full px-4 flex flex-col gap-4">
+          {selectedItem?.month ? (
             <Text variant="titleMedium">Detalhamento de {selectedItem.month}</Text>
+          ) : (
+            <AppSkeleton height={24} width={180} />
+          )}
 
+          {selectedItem?.month ? (
             <View className="flex flex-row justify-between items-center">
               <Text variant="bodyMedium">Receitas</Text>
 
               <AppHideableCurrencyText variant="bodyMedium">{currencyFormatter.format(selectedItem.totalIncome)}</AppHideableCurrencyText>
             </View>
+          ) : (
+            <AppSkeleton height={20} />
+          )}
 
+          {selectedItem?.month ? (
             <View className="flex flex-row justify-between items-center">
               <Text variant="bodyMedium">Despesas</Text>
 
@@ -348,9 +394,13 @@ export function MonthlyEvolutionChart() {
                 - {currencyFormatter.format(selectedItem.totalExpense)}
               </AppHideableCurrencyText>
             </View>
+          ) : (
+            <AppSkeleton height={20} />
+          )}
 
-            <Divider />
+          <Divider />
 
+          {selectedItem?.month ? (
             <View className="flex flex-row justify-between items-center">
               <View className="h-6 flex flex-row items-center gap-2">
                 <Text variant="bodyMedium">Saldo Líquido</Text>
@@ -371,8 +421,10 @@ export function MonthlyEvolutionChart() {
                 {currencyFormatter.format(selectedItem.balance)}
               </AppHideableCurrencyText>
             </View>
-          </View>
-        )}
+          ) : (
+            <AppSkeleton height={24} />
+          )}
+        </View>
       </AppChartContainer.Content>
     </AppChartContainer>
   );
