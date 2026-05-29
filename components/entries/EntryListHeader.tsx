@@ -16,6 +16,7 @@ import { AppBottomSheet } from "../ui/AppBottomSheet";
 import { AppChipSelect } from "../ui/AppChipSelect";
 import { AppDatePicker } from "../ui/AppDatePicker";
 import { FormField } from "../ui/FormField";
+import { useAuthUser } from "@/hooks/queries/use-auth-user";
 
 enum FilterDateOptions {
   Period = "period",
@@ -31,7 +32,7 @@ export interface EntryListHeaderProps {
 }
 
 const filterDateOptionsMap = new Map<FilterDateOptions | undefined, string>([
-  [undefined, "Período"],
+  [FilterDateOptions.Period, "Período"],
   [FilterDateOptions.Week, "Esta semana"],
   [FilterDateOptions.Month, "Este mês"],
   [FilterDateOptions.Custom, "Personalizado"],
@@ -116,6 +117,7 @@ export function EntryListHeader(props: EntryListHeaderProps) {
   const closeEntryExport = () => setIsEntryExportOpen(false);
 
   const categoryQuery = useCategories();
+  const user = useAuthUser();
 
   return (
     <View className="flex flex-col">
@@ -210,13 +212,14 @@ export function EntryListHeader(props: EntryListHeaderProps) {
             <FormField.Label>Data</FormField.Label>
 
             <AppChipSelect
+              allowUnselect
               value={filterDateOption}
               options={filterDateOptions}
               onChange={(option) => {
                 setFilterDateOption(option);
 
-                if (!option || option === FilterDateOptions.Period) {
-                  filterForm.setValue("when", undefined);
+                if (option === FilterDateOptions.Period && !!user) {
+                  filterForm.setValue("when", { ge: new Date(user.periodGe), le: new Date(user.periodLe) });
                 } else if (option === FilterDateOptions.Week) {
                   const endOfToday = new Date();
                   const startOfWeekAtMidnight = new Date();
@@ -242,6 +245,13 @@ export function EntryListHeader(props: EntryListHeaderProps) {
                   filterForm.setValue("when", {
                     ge: startOfMonthAtMidnight,
                     le: endOfToday,
+                  });
+                } else if (!option || !user) {
+                  filterForm.setValue("when", undefined);
+                } else {
+                  filterForm.setValue("when", {
+                    ge: new Date(user.periodGe),
+                    le: new Date(user.periodLe),
                   });
                 }
               }}

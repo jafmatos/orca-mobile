@@ -5,7 +5,7 @@ export interface User {
   email: string;
   name: string;
   avatar?: UserAvatar;
-  periodGe?: string;
-  periodLe?: string;
+  periodGe: string;
+  periodLe: string;
   balance?: number;
 }

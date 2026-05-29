@@ -10,8 +10,8 @@ export interface SelectOption<T> {
 
 export interface AppChipSelectProps<T> {
   value: T;
-  emptyValue?: T;
   options: SelectOption<T>[];
+  allowUnselect?: boolean;
   onChange?: (value: T) => void;
 }
 
@@ -28,9 +28,12 @@ export function AppChipSelect<T = string>(props: AppChipSelectProps<T>) {
             mode="outlined"
             key={index}
             onPress={() => {
-              option.onSelect?.();
-
-              props.onChange?.(option.value);
+              if (isSelected && props.allowUnselect) {
+                props.onChange?.(undefined as unknown as T);
+              } else {
+                option.onSelect?.();
+                props.onChange?.(option.value);
+              }
             }}
             selected={isSelected}
             showSelectedCheck
