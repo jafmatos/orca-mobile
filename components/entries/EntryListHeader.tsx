@@ -32,6 +32,7 @@ export interface EntryListHeaderProps {
 }
 
 const filterDateOptionsMap = new Map<FilterDateOptions | undefined, string>([
+  [undefined, "Completo"],
   [FilterDateOptions.Period, "Período"],
   [FilterDateOptions.Week, "Esta semana"],
   [FilterDateOptions.Month, "Este mês"],
@@ -330,7 +331,7 @@ export function EntryListHeader(props: EntryListHeaderProps) {
                 category: filterForm.values.category
                   ? categoryQuery.data?.data.find((c) => c.id === filterForm.values.category)?.name
                   : undefined,
-                when: filterDateOptionsMap.get(filterDateOption),
+                when: filterForm.values.when ? filterDateOptionsMap.get(filterDateOption) : undefined,
               });
               closeEntryFilter();
             }}
