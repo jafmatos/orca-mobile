@@ -5,9 +5,11 @@ import { View } from "react-native";
 import { Icon, Surface, Text } from "react-native-paper";
 import { AppHideableCurrencyText } from "../ui/AppHideableCurrencyText";
 import { AppHideableCurrencyToggle } from "../ui/AppHideableCurrencyToggle";
+import { AppSkeleton } from "../ui/AppSkeleton";
 
 export interface BalanceCardProps {
   amount?: number;
+  loading?: boolean;
 }
 
 export function BalanceCard(props: BalanceCardProps) {
@@ -38,9 +40,13 @@ export function BalanceCard(props: BalanceCardProps) {
       </View>
 
       <View>
-        <AppHideableCurrencyText variant="headlineMedium" style={{ fontWeight: "bold", color: textColor, letterSpacing: -0.5 }}>
-          {currencyFormatter.format(props.amount || 0)}
-        </AppHideableCurrencyText>
+        {props.loading ? (
+          <AppSkeleton height={32} width={150} />
+        ) : (
+          <AppHideableCurrencyText variant="headlineMedium" style={{ fontWeight: "bold", color: textColor, letterSpacing: -0.5 }}>
+            {currencyFormatter.format(props.amount || 0)}
+          </AppHideableCurrencyText>
+        )}
       </View>
     </Surface>
   );

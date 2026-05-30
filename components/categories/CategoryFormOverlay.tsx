@@ -59,9 +59,10 @@ export const CategoryFormOverlay = React.forwardRef<CategoryFormOverlayRef, Cate
       else return CategoryService.create(body);
     },
     onSuccess: (data) => {
+      const mode = categoryForm.values.id ? "editing" : "creating";
       categoryForm.clear();
 
-      props.onSuccess?.(data.category, categoryForm.values.id ? "editing" : "creating");
+      props.onSuccess?.(data.category, mode);
     },
   });
 
@@ -83,6 +84,7 @@ export const CategoryFormOverlay = React.forwardRef<CategoryFormOverlayRef, Cate
                   type === CategoryTypes.Income
                     ? null
                     : {
+                        ...categoryForm.values.limit,
                         amount: categoryForm.values.limit?.amount || 0,
                       },
               });
@@ -134,7 +136,7 @@ export const CategoryFormOverlay = React.forwardRef<CategoryFormOverlayRef, Cate
             label="Limite"
             placeholder="Limite"
             value={categoryForm.values.limit?.amount}
-            onChange={(value) => categoryForm.setValue("limit", value ? { amount: value } : null)}
+            onChange={(value) => categoryForm.setValue("limit", value ? { ...categoryForm.values.limit, amount: value } : null)}
             disabled={categoryForm.values.type === CategoryTypes.Income}
           />
 

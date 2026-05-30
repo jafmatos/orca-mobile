@@ -77,13 +77,6 @@ export default function TabLayout() {
               }}
             />
             <Tabs.Screen
-              name="limits"
-              options={{
-                title: "Limites",
-                href: null,
-              }}
-            />
-            <Tabs.Screen
               name="schedules"
               options={{
                 title: "Agendamentos",

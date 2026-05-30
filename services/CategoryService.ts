@@ -15,6 +15,7 @@ export type CreateCategoryBody = {
   name: string;
   type: CategoryTypes;
   limit?: {
+    id?: string;
     amount: number;
   } | null;
 };
@@ -27,6 +28,7 @@ export type UpdateCategoryBody = {
   name?: string;
   type?: CategoryTypes;
   limit?: {
+    id?: string;
     amount: number;
   } | null;
 };

@@ -71,19 +71,25 @@ export default function EntriesScreen() {
         description: error.message || "Erro desconhecido",
       });
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       toast.success({
         title: "Lançamento removido!",
         description: "Atualize a lista para ver as modificações.",
       });
 
-      queryClient.setQueryData(QueryKeys.Entry.getEntries(), (oldData: InfiniteData<PaginatedData<Entry>>) => {
-        return oldData;
-        // return {
-        //   ...oldData,
-        //   pages: oldData.pages.map((page) => ({ ...page, data: page.data.filter((entry) => entry.id !== selectedEntry?.id) })),
-        // };
+      queryClient.setQueryData(QueryKeys.Entry.getEntries(), (oldData: InfiniteData<PaginatedData<Entry>> | undefined) => {
+        if (!oldData) return oldData;
+        return {
+          ...oldData,
+          pages: oldData.pages.map((page) => ({ ...page, data: page.data.filter((entry) => entry.id !== variables.id) })),
+        };
       });
+
+      queryClient.invalidateQueries({ queryKey: QueryKeys.Overview.getKpis() });
+
+      queryClient.invalidateQueries({ queryKey: QueryKeys.Overview.getExpenseByCategory() });
+
+      queryClient.invalidateQueries({ queryKey: QueryKeys.Overview.getMonthlyEvolution() });
 
       setSelectedEntry(undefined);
       closeEntryDetail();
@@ -135,7 +141,8 @@ export default function EntriesScreen() {
             });
           }
 
-          queryClient.setQueryData(QueryKeys.Entry.getEntries(), (oldData: InfiniteData<PaginatedData<Entry>>) => {
+          queryClient.setQueryData(QueryKeys.Entry.getEntries(), (oldData: InfiniteData<PaginatedData<Entry>> | undefined) => {
+            if (!oldData) return oldData;
             return {
               ...oldData,
               pages: [
@@ -143,18 +150,14 @@ export default function EntriesScreen() {
                   ...oldData.pages[0],
                   data: [entry, ...oldData.pages[0].data],
                 },
-                ...oldData.pages.slice(1).map((page) => ({ ...page, data: page.data.filter((entry) => entry.id !== entry.id) })),
+                ...oldData.pages.slice(1).map((page) => ({ ...page, data: page.data.filter((e) => e.id !== entry.id) })),
               ],
             };
           });
 
-          queryClient.resetQueries({
-            queryKey: QueryKeys.Overview.getKpis(),
-          });
+          queryClient.invalidateQueries({ queryKey: QueryKeys.Overview.getKpis() });
 
-          queryClient.resetQueries({
-            queryKey: QueryKeys.Overview.getExpenseByCategory(),
-          });
+          queryClient.invalidateQueries({ queryKey: QueryKeys.Overview.getExpenseByCategory() });
 
           closeEntryForm();
           setNeedsRefresh(true);

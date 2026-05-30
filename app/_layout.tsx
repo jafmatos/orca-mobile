@@ -8,7 +8,7 @@ import { useAxiosInterceptors } from "@/hooks/use-axios-interceptors";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { paperDarkThemeColors } from "@/themes/paper-dark-theme-colors";
 import { paperLightThemeColors } from "@/themes/paper-light-theme-colors";
-import { MD3DarkTheme, MD3LightTheme, PaperProvider } from "react-native-paper";
+import { configureFonts, MD3DarkTheme, MD3LightTheme, PaperProvider } from "react-native-paper";
 import { PortalProvider } from "@gorhom/portal";
 import { BottomSheetProvider } from "jam-bottomsheet";
 import * as SplashScreen from "expo-splash-screen";
@@ -40,7 +40,6 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (loaded || error) {
-      console.log("Fonts loaded", loaded, error);
       SplashScreen.hideAsync();
     }
   }, [loaded, error]);
@@ -53,30 +52,24 @@ export default function RootLayout() {
     return null;
   }
 
+  const customFonts = Object.fromEntries(
+    Object.entries(paperTheme.fonts).map(([variant, config]) => {
+      let fontFamily = "Inter-Regular";
+      if (config.fontWeight === "500") fontFamily = "Inter-Medium";
+      if (config.fontWeight === "600") fontFamily = "Inter-SemiBold";
+      if (config.fontWeight === "700" || config.fontWeight === "bold") fontFamily = "Inter-Bold";
+
+      return [variant, { ...config, fontFamily }];
+    }),
+  ) as typeof paperTheme.fonts;
+
   return (
     <PaperProvider
       theme={{
         ...paperTheme,
         dark: appThemeName === "dark",
         colors: paperColors,
-        fonts: {
-          ...paperTheme.fonts,
-          bodyLarge: { ...paperTheme.fonts.bodyLarge, fontFamily: "Inter-Regular", fontWeight: "400" },
-          bodyMedium: { ...paperTheme.fonts.bodyMedium, fontFamily: "Inter-Regular", fontWeight: "400" },
-          bodySmall: { ...paperTheme.fonts.bodySmall, fontFamily: "Inter-Regular", fontWeight: "400" },
-          labelLarge: { ...paperTheme.fonts.labelLarge, fontFamily: "Inter-Medium", fontWeight: "500" },
-          labelMedium: { ...paperTheme.fonts.labelMedium, fontFamily: "Inter-Medium", fontWeight: "500" },
-          labelSmall: { ...paperTheme.fonts.labelSmall, fontFamily: "Inter-Medium", fontWeight: "500" },
-          titleLarge: { ...paperTheme.fonts.titleLarge, fontFamily: "Inter-SemiBold", fontWeight: "600" },
-          titleMedium: { ...paperTheme.fonts.titleMedium, fontFamily: "Inter-Medium", fontWeight: "500" },
-          titleSmall: { ...paperTheme.fonts.titleSmall, fontFamily: "Inter-Medium", fontWeight: "500" },
-          headlineLarge: { ...paperTheme.fonts.headlineLarge, fontFamily: "Inter-Bold", fontWeight: "700" },
-          headlineMedium: { ...paperTheme.fonts.headlineMedium, fontFamily: "Inter-SemiBold", fontWeight: "600" },
-          headlineSmall: { ...paperTheme.fonts.headlineSmall, fontFamily: "Inter-Medium", fontWeight: "500" },
-          displayLarge: { ...paperTheme.fonts.displayLarge, fontFamily: "Inter-Bold", fontWeight: "700" },
-          displayMedium: { ...paperTheme.fonts.displayMedium, fontFamily: "Inter-Bold", fontWeight: "700" },
-          displaySmall: { ...paperTheme.fonts.displaySmall, fontFamily: "Inter-Bold", fontWeight: "700" },
-        },
+        fonts: customFonts,
       }}
     >
       <KeyboardProvider>

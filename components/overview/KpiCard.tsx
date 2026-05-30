@@ -3,12 +3,14 @@ import { currencyFormatter } from "@/utils/currencyFormatter";
 import { View } from "react-native";
 import { Icon, Surface, Text } from "react-native-paper";
 import { AppHideableCurrencyText } from "../ui/AppHideableCurrencyText";
+import { AppSkeleton } from "../ui/AppSkeleton";
 
 export interface KpiCardProps {
   title: string;
   amount?: number;
   icon?: string;
   iconColor?: string;
+  loading?: boolean;
 }
 
 export function KpiCard(props: KpiCardProps) {
@@ -31,7 +33,11 @@ export function KpiCard(props: KpiCardProps) {
           {props.icon && <Icon size={24} source={props.icon} color={props.iconColor} />}
         </View>
 
-        <AppHideableCurrencyText variant="bodyLarge">{currencyFormatter.format(props.amount || 0)}</AppHideableCurrencyText>
+        {props.loading ? (
+          <AppSkeleton height={24} width={100} />
+        ) : (
+          <AppHideableCurrencyText variant="bodyLarge">{currencyFormatter.format(props.amount || 0)}</AppHideableCurrencyText>
+        )}
       </View>
     </Surface>
   );

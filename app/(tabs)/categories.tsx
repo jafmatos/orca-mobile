@@ -29,10 +29,7 @@ export default function CategoriesScreen() {
   const closeDeleteDialog = () => categoryDeleteDialogRef.current?.close();
 
   const refreshList = useCallback(() => {
-    queryClient.resetQueries({
-      queryKey: QueryKeys.Category.getCategories(),
-      exact: true,
-    });
+    queryClient.invalidateQueries({ queryKey: QueryKeys.Category.getCategories() });
   }, [queryClient]);
 
   const deleteCategoryMutation = useMutation({
@@ -50,13 +47,25 @@ export default function CategoriesScreen() {
       });
 
       refreshList();
+
+      queryClient.invalidateQueries({ queryKey: QueryKeys.Overview.getKpis() });
+
+      queryClient.invalidateQueries({ queryKey: QueryKeys.Overview.getExpenseByCategory() });
     },
   });
 
   const categoriesQuery = useCategories();
 
   const categories = useMemo(() => {
-    return categoriesQuery.data?.data.filter((category) => category.type === selectedType || !selectedType) || [];
+    const filtered = categoriesQuery.data?.data.filter((category) => category.type === selectedType || !selectedType) || [];
+
+    return filtered.sort((a, b) => {
+      if (a.type !== b.type) {
+        return a.type === CategoryTypes.Expense ? -1 : 1;
+      }
+
+      return a.name.localeCompare(b.name);
+    });
   }, [categoriesQuery.data, selectedType]);
 
   const renderItem = useCallback(({ item }: { item: Category }) => {
@@ -68,7 +77,7 @@ export default function CategoriesScreen() {
             id: category.id,
             name: category.name,
             type: category.type,
-            limit: category.limit ? { amount: category.limit.amount } : null,
+            limit: category.limit ? { id: category.limit.id, amount: category.limit.amount } : null,
           });
 
           openCategoryForm();
@@ -107,21 +116,39 @@ export default function CategoriesScreen() {
 
       <CategoryFormOverlay
         ref={categoryFormRef}
-        onSuccess={(_category, mode) => {
+        onSuccess={(category, mode) => {
           if (mode === "editing") {
             toast.success({
               title: "Categoria editada!",
-              description: "Atualize a lista para ver as modificações.",
+              description: "A lista foi atualizada com sucesso.",
             });
           } else {
             toast.success({
               title: "Categoria cadastrada!",
-              description: "Atualize a lista para ver as modificações.",
+              description: "A lista foi atualizada com sucesso.",
             });
           }
 
+          queryClient.setQueryData<any>(QueryKeys.Category.getCategories(), (oldData: any) => {
+            if (!oldData) return oldData;
+
+            if (mode === "editing") {
+              return {
+                ...oldData,
+                data: oldData.data.map((c: Category) => (c.id === category.id ? category : c)),
+              };
+            } else {
+              return {
+                ...oldData,
+                data: [...oldData.data, category],
+              };
+            }
+          });
+
+          queryClient.invalidateQueries({ queryKey: [QueryKeys.Overview.getKpis()[0]] });
+
           closeCategoryForm();
-          refreshList();
+          queryClient.invalidateQueries({ queryKey: QueryKeys.Category.getCategories() });
         }}
       />
     </TabbedLayout>

@@ -4,6 +4,7 @@ import { LimitsMonitorChart, LimitsMonitorChartRef } from "@/components/overview
 import { MonthlyEvolutionChart } from "@/components/overview/charts/MonthlyEvolutionChart";
 import { ExpenseCard } from "@/components/overview/ExpenseCard";
 import { IncomeCard } from "@/components/overview/IncomeCard";
+import { AppSegmentedControl } from "@/components/ui/AppSegmentedControl";
 import { AppSkeleton } from "@/components/ui/AppSkeleton";
 import { AppTabHeader } from "@/components/ui/AppTabHeader";
 import { useKpis } from "@/hooks/queries/use-kpis";
@@ -16,12 +17,19 @@ type PeriodDateFilter = {
   le?: Date;
 };
 
+export enum ChartTab {
+  Limits = "limits",
+  Categories = "categories",
+  History = "history",
+}
+
 export default function OverviewScreen() {
   const [periodFilter, setDatePeriodFilter] = useState<PeriodDateFilter | undefined>(undefined);
   const kpisQuery = useKpis({ filter: { when: periodFilter } });
 
   const expenseByCategoryChartRef = React.useRef<ExpenseByCategoryChartRef>(null);
   const limitsMonitorChartRef = React.useRef<LimitsMonitorChartRef>(null);
+  const [chartTab, setChartTab] = useState<ChartTab>(ChartTab.Limits);
 
   useEffect(() => {
     expenseByCategoryChartRef.current?.query.refetch();
@@ -105,7 +113,21 @@ export default function OverviewScreen() {
 
   return (
     <TabbedLayout>
-      <AppTabHeader>
+      <AppTabHeader
+        SubHeaderComponent={
+          <AppSegmentedControl<ChartTab>
+            options={[
+              { label: "Limites", value: ChartTab.Limits },
+              { label: "Categorias", value: ChartTab.Categories },
+              { label: "Evolução", value: ChartTab.History },
+            ]}
+            value={chartTab}
+            onChange={(val) => {
+              if (val) setChartTab(val);
+            }}
+          />
+        }
+      >
         <IconButton icon="arrow-left" onPress={handlePeriodDateFilterPrevious} />
 
         <Text variant="titleLarge" numberOfLines={1}>
@@ -115,25 +137,16 @@ export default function OverviewScreen() {
         <IconButton icon="arrow-right" onPress={handlePeriodDateFilterNext} disabled={!periodFilter?.ge && !periodFilter?.le} />
       </AppTabHeader>
 
-      <ScrollView style={{ flex: 1 }} contentContainerClassName="p-4 flex gap-4">
-        <View className="flex flex-col gap-4">
-          <View className="flex flex-row gap-4">
-            {kpisQuery.isPending || kpisQuery.isFetching ? (
-              <AppSkeleton height={90} />
-            ) : (
-              <ExpenseCard amount={kpisQuery.data?.status.totalExpense} />
-            )}
-            {kpisQuery.isPending || kpisQuery.isFetching ? (
-              <AppSkeleton height={90} />
-            ) : (
-              <IncomeCard amount={kpisQuery.data?.status.totalIncome} />
-            )}
-          </View>
-        </View>
+      <ScrollView style={{ flex: 1 }}>
+        {chartTab === ChartTab.Limits && (
+          <LimitsMonitorChart ref={limitsMonitorChartRef} filter={periodFilter ? { when: periodFilter } : undefined} />
+        )}
 
-        <LimitsMonitorChart ref={limitsMonitorChartRef} filter={periodFilter ? { when: periodFilter } : undefined} />
-        <ExpenseByCategoryChart ref={expenseByCategoryChartRef} filter={periodFilter ? { when: periodFilter } : undefined} />
-        <MonthlyEvolutionChart />
+        {chartTab === ChartTab.Categories && (
+          <ExpenseByCategoryChart ref={expenseByCategoryChartRef} filter={periodFilter ? { when: periodFilter } : undefined} />
+        )}
+
+        {chartTab === ChartTab.History && <MonthlyEvolutionChart filter={periodFilter ? { when: periodFilter } : undefined} />}
       </ScrollView>
     </TabbedLayout>
   );

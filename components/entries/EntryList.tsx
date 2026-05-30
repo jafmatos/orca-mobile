@@ -26,17 +26,13 @@ export function EntryList(props: EntryListProps) {
     onSuccess: props.onFetchSuccess,
   });
 
-  const refreshList = useCallback(() => {
+  useEffect(() => {
     props.onRefresh?.();
 
     queryClient.resetQueries({
       queryKey: QueryKeys.Entry.getEntries(),
-      exact: true,
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.onRefresh, queryClient]);
-
-  useEffect(refreshList, [refreshList, filter]);
+  }, [filter, props.onRefresh, queryClient]);
 
   const entries = useMemo(() => {
     return entryQuery.data?.pages.reduce((entries, page) => {

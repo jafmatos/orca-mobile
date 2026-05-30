@@ -116,7 +116,6 @@ export function Navigation(props?: NavigationProps) {
             <DrawerNavigationItem onPressCallback={closeDrawer} to={"/entries"} icon="receipt-text" text="Lançamentos" />
             <DrawerNavigationItem onPressCallback={closeDrawer} to={"/schedules"} icon="clock" text="Agendamentos" />
             <DrawerNavigationItem onPressCallback={closeDrawer} to={"/categories"} icon="bookmark" text="Categorias" />
-            <DrawerNavigationItem onPressCallback={closeDrawer} to={"/limits"} icon="alert-octagon" text="Limites" />
             <DrawerNavigationItem onPressCallback={closeDrawer} to={"/overview"} icon="chart-donut" text="Visão Geral" />
             <DrawerNavigationItem onPressCallback={closeDrawer} to={"/analyses"} icon="creation" text="Análises" />
             <DrawerNavigationItem onPressCallback={closeDrawer} to={"/profile"} icon="account" text="Meu Perfil" />

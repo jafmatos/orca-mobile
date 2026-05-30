@@ -10,13 +10,23 @@ import { AppHideableCurrencyText } from "@/components/ui/AppHideableCurrencyText
 import { currencyFormatter } from "@/utils/currencyFormatter";
 import { AppTextSwitch } from "@/components/ui/AppTextSwitch";
 import { AppSkeleton } from "@/components/ui/AppSkeleton";
+import { AppHideableCurrencyToggle } from "@/components/ui/AppHideableCurrencyToggle";
 
 export enum MonthlyEvolutionChartMode {
   Balance = "balance",
   Cashflow = "cashflow",
 }
 
-export function MonthlyEvolutionChart() {
+export interface MonthlyEvolutionChartProps {
+  filter?: {
+    when?: {
+      ge?: Date;
+      le?: Date;
+    };
+  };
+}
+
+export function MonthlyEvolutionChart(props: MonthlyEvolutionChartProps) {
   const theme = useAppTheme();
   const [months, setMonths] = useState<number | undefined>(undefined);
   const [chartMode, setChartMode] = useState<MonthlyEvolutionChartMode>(MonthlyEvolutionChartMode.Balance);
@@ -33,19 +43,34 @@ export function MonthlyEvolutionChart() {
   const historyData = monthlyEvolutionQuery.data?.history;
 
   useEffect(() => {
-    if (historyData && historyData.length > 0) {
-      const lastItem = historyData[historyData.length - 1];
+    if (!historyData) {
+      setSelectedItem(null);
+      return;
+    }
 
+    const targetDate = props.filter?.when?.ge || new Date();
+    const mm = String(targetDate.getMonth() + 1).padStart(2, "0");
+    const yy = String(targetDate.getFullYear()).slice(-2);
+    const targetMonthString = `${mm}/${yy}`;
+
+    const foundItem = historyData.find((h) => h.month === targetMonthString);
+
+    if (foundItem) {
       setSelectedItem({
-        month: lastItem.month,
-        totalIncome: lastItem.totalIncome,
-        totalExpense: lastItem.totalExpense,
-        balance: lastItem.balance,
+        month: foundItem.month,
+        totalIncome: foundItem.totalIncome,
+        totalExpense: foundItem.totalExpense,
+        balance: foundItem.balance,
       });
     } else {
-      setSelectedItem(null);
+      setSelectedItem({
+        month: targetMonthString,
+        totalIncome: 0,
+        totalExpense: 0,
+        balance: 0,
+      });
     }
-  }, [historyData]);
+  }, [historyData, props.filter?.when?.ge]);
 
   const selectedMonthIndex = useMemo(() => {
     if (!selectedItem || !historyData) return -1;
@@ -172,11 +197,7 @@ export function MonthlyEvolutionChart() {
       data.push({
         value: item.totalIncome,
         labelComponent: () => (
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={onPress}
-            style={{ width: 36, alignItems: "center", marginLeft: 2, paddingVertical: 4 }}
-          >
+          <TouchableOpacity activeOpacity={0.7} onPress={onPress} style={{ width: 36, alignItems: "center", marginLeft: 2, paddingTop: 4 }}>
             <Text style={{ color: theme.colors.onSurfaceVariant, fontSize: 10 }}>{item.month}</Text>
           </TouchableOpacity>
         ),
@@ -202,24 +223,27 @@ export function MonthlyEvolutionChart() {
   }, [historyData, theme.colors.primary, theme.colors.outlineVariant, theme.colors.onSurfaceVariant, theme.roundness]);
 
   return (
-    <AppChartContainer className="overflow-hidden">
-      <AppChartContainer.Content className="px-0 flex gap-4">
-        <AppChartContainer.Title className="px-4 align-self-start">Evolução Mensal</AppChartContainer.Title>
+    <AppChartContainer className="py-6">
+      <AppChartContainer.Content className="flex gap-4">
+        <View className="flex flex-row gap-4 items-center">
+          <AppChartContainer.Title>Evolução Mensal</AppChartContainer.Title>
 
-        <View className="w-full px-4">
-          <AppChipSelect
-            value={months}
-            onChange={(months) => setMonths(months)}
-            options={[
-              { label: "Completo", value: undefined },
-              { label: "12 meses", value: 12 },
-              { label: "24 meses", value: 24 },
-            ]}
-          />
+          <AppHideableCurrencyToggle size={18} />
         </View>
 
+        <AppChipSelect
+          className="mx-6"
+          value={months}
+          onChange={(months) => setMonths(months)}
+          options={[
+            { label: "Completo", value: undefined },
+            { label: "12 meses", value: 12 },
+            { label: "24 meses", value: 24 },
+          ]}
+        />
+
         <AppTextSwitch<MonthlyEvolutionChartMode>
-          className="mx-4"
+          className="mx-6"
           value={chartMode}
           onChange={(chartMode) => setChartMode(chartMode)}
           options={[
@@ -228,146 +252,145 @@ export function MonthlyEvolutionChart() {
           ]}
         />
 
-        <View className="w-full">
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            ref={scrollViewRef}
-            onContentSizeChange={() => {
-              setTimeout(() => {
-                scrollViewRef.current?.scrollToEnd({ animated: true });
-              }, 50);
-            }}
-          >
-            {chartMode === "balance" ? (
-              <View style={{ position: "relative" }}>
-                <LineChart
-                  disableScroll
-                  areaChart
-                  curved
-                  data={lineChartData}
-                  height={lineChartSectionProps.height}
-                  noOfSections={lineChartSectionProps.noOfSections}
-                  noOfSectionsBelowXAxis={lineChartSectionProps.noOfSectionsBelowXAxis}
-                  stepHeight={lineChartSectionProps.stepHeight}
-                  stepValue={lineChartSectionProps.stepValue}
-                  spacing={60}
-                  initialSpacing={30}
-                  color={theme.colors.primary}
-                  thickness={3}
-                  startFillColor={theme.colors.primary}
-                  endFillColor="transparent"
-                  startOpacity={0.2}
-                  endOpacity={0.01}
-                  hideYAxisText
-                  yAxisColor="transparent"
-                  xAxisColor={theme.colors.outlineVariant}
-                  hideRules
-                  dataPointsColor={theme.colors.primary}
-                  dataPointsRadius={4}
-                  xAxisLabelTextStyle={{ color: theme.colors.onSurfaceVariant, fontSize: 10 }}
-                  focusEnabled={false}
-                  xAxisLabelsAtBottom={true}
-                  labelsExtraHeight={0}
-                />
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          ref={scrollViewRef}
+          contentContainerStyle={{ paddingBottom: 12 }}
+          onContentSizeChange={() => {
+            setTimeout(() => {
+              scrollViewRef.current?.scrollToEnd({ animated: true });
+            }, 50);
+          }}
+        >
+          {chartMode === "balance" ? (
+            <View style={{ position: "relative" }}>
+              <LineChart
+                disableScroll
+                areaChart
+                curved
+                data={lineChartData}
+                height={lineChartSectionProps.height}
+                noOfSections={lineChartSectionProps.noOfSections}
+                noOfSectionsBelowXAxis={lineChartSectionProps.noOfSectionsBelowXAxis}
+                stepHeight={lineChartSectionProps.stepHeight}
+                stepValue={lineChartSectionProps.stepValue}
+                spacing={60}
+                initialSpacing={30}
+                color={theme.colors.primary}
+                thickness={3}
+                startFillColor={theme.colors.primary}
+                endFillColor="transparent"
+                startOpacity={0.2}
+                endOpacity={0.01}
+                hideYAxisText
+                yAxisColor="transparent"
+                xAxisColor={theme.colors.outlineVariant}
+                hideRules
+                dataPointsColor={theme.colors.primary}
+                dataPointsRadius={4}
+                xAxisLabelTextStyle={{ color: theme.colors.onSurfaceVariant, fontSize: 10 }}
+                focusEnabled={false}
+                xAxisLabelsAtBottom={true}
+                labelsExtraHeight={0}
+              />
 
-                <View
-                  style={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    width: (historyData?.length || 0) * 60,
-                    height: 220,
-                    flexDirection: "row",
-                    zIndex: 9999,
-                  }}
-                  pointerEvents="box-none"
-                >
-                  {historyData &&
-                    historyData.map((item, index) => {
-                      const onPress = () => {
-                        setSelectedItem({
-                          month: item.month,
-                          totalIncome: item.totalIncome,
-                          totalExpense: item.totalExpense,
-                          balance: item.balance,
-                        });
-                      };
+              <View
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: (historyData?.length || 0) * 60,
+                  height: 220,
+                  flexDirection: "row",
+                  zIndex: 9999,
+                }}
+                pointerEvents="box-none"
+              >
+                {historyData &&
+                  historyData.map((item, index) => {
+                    const onPress = () => {
+                      setSelectedItem({
+                        month: item.month,
+                        totalIncome: item.totalIncome,
+                        totalExpense: item.totalExpense,
+                        balance: item.balance,
+                      });
+                    };
 
-                      return (
-                        <TouchableOpacity
-                          key={item.month}
-                          activeOpacity={0.8}
-                          onPress={onPress}
-                          style={{
-                            width: 60,
-                            height: "100%",
-                          }}
-                        />
-                      );
-                    })}
-                </View>
+                    return (
+                      <TouchableOpacity
+                        key={item.month}
+                        activeOpacity={0.8}
+                        onPress={onPress}
+                        style={{
+                          width: 60,
+                          height: "100%",
+                        }}
+                      />
+                    );
+                  })}
               </View>
-            ) : (
-              <View style={{ position: "relative" }}>
-                <BarChart
-                  disableScroll
-                  data={cashflowChartData}
-                  height={160}
-                  barWidth={16}
-                  initialSpacing={20}
-                  hideYAxisText
-                  yAxisColor="transparent"
-                  xAxisColor={theme.colors.outlineVariant}
-                  hideRules
-                  noOfSections={3}
-                  xAxisLabelTextStyle={{ color: theme.colors.onSurfaceVariant, fontSize: 10 }}
-                  highlightEnabled
-                  highlightedBarIndex={selectedMonthIndex === -1 ? -1 : [2 * selectedMonthIndex, 2 * selectedMonthIndex + 1]}
-                  lowlightOpacity={0.45}
-                />
+            </View>
+          ) : (
+            <View style={{ position: "relative" }}>
+              <BarChart
+                disableScroll
+                data={cashflowChartData}
+                height={160}
+                barWidth={16}
+                initialSpacing={20}
+                hideYAxisText
+                yAxisColor="transparent"
+                xAxisColor={theme.colors.outlineVariant}
+                hideRules
+                noOfSections={3}
+                xAxisLabelTextStyle={{ color: theme.colors.onSurfaceVariant, fontSize: 10 }}
+                highlightEnabled
+                highlightedBarIndex={selectedMonthIndex === -1 ? -1 : [2 * selectedMonthIndex, 2 * selectedMonthIndex + 1]}
+                lowlightOpacity={0.45}
+              />
 
-                <View
-                  style={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    width: 20 + (historyData?.length || 0) * 56,
-                    height: 220,
-                    flexDirection: "row",
-                    paddingLeft: 20,
-                    zIndex: 9999,
-                  }}
-                  pointerEvents="box-none"
-                >
-                  {historyData &&
-                    historyData.map((item, index) => {
-                      const onPress = () => {
-                        setSelectedItem({
-                          month: item.month,
-                          totalIncome: item.totalIncome,
-                          totalExpense: item.totalExpense,
-                          balance: item.balance,
-                        });
-                      };
+              <View
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: 20 + (historyData?.length || 0) * 56,
+                  height: 220,
+                  flexDirection: "row",
+                  paddingLeft: 20,
+                  zIndex: 9999,
+                }}
+                pointerEvents="box-none"
+              >
+                {historyData &&
+                  historyData.map((item, index) => {
+                    const onPress = () => {
+                      setSelectedItem({
+                        month: item.month,
+                        totalIncome: item.totalIncome,
+                        totalExpense: item.totalExpense,
+                        balance: item.balance,
+                      });
+                    };
 
-                      return (
-                        <TouchableOpacity
-                          key={item.month}
-                          activeOpacity={0.8}
-                          onPress={onPress}
-                          style={{
-                            width: 56,
-                            height: "100%",
-                          }}
-                        />
-                      );
-                    })}
-                </View>
+                    return (
+                      <TouchableOpacity
+                        key={item.month}
+                        activeOpacity={0.8}
+                        onPress={onPress}
+                        style={{
+                          width: 56,
+                          height: "100%",
+                        }}
+                      />
+                    );
+                  })}
               </View>
-            )}
-          </ScrollView>
-        </View>
+            </View>
+          )}
+        </ScrollView>
 
         <View className="w-full px-4 flex flex-col gap-4">
           {selectedItem?.month ? (

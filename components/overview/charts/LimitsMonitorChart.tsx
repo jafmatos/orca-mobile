@@ -10,6 +10,9 @@ import { AppSkeleton } from "@/components/ui/AppSkeleton";
 import { Conditional } from "@/components/utils/Conditional";
 import { UseQueryResult } from "@tanstack/react-query";
 import { GetExpenseByCategoryReturnType } from "@/services/OverviewService";
+import { currencyFormatter } from "@/utils/currencyFormatter";
+import { AppHideableCurrencyText } from "@/components/ui/AppHideableCurrencyText";
+import { AppHideableCurrencyToggle } from "@/components/ui/AppHideableCurrencyToggle";
 
 export interface LimitsMonitorChartRef {
   query: UseQueryResult<GetExpenseByCategoryReturnType, Error>;
@@ -57,18 +60,54 @@ export const LimitsMonitorChart = React.forwardRef<LimitsMonitorChartRef, Limits
   const renderListItem = useCallback(
     ({ item }: { item: Category }) => {
       const percentageSpent = Math.round((100 * item.spent) / item.limit!.amount);
+      const isOverLimit = item.spent > item.limit!.amount;
 
       return (
-        <View className="w-full flex flex-col gap-2" style={{ height: 32 }}>
-          <View className="flex flex-row items-center justify-between">
-            <Text>{item.name}</Text>
-            <Text>{percentageSpent}%</Text>
+        <View className="w-full flex flex-col gap-2 py-2">
+          <View className="flex flex-col gap-1">
+            <View className="flex flex-row items-center justify-between">
+              <Text variant="titleSmall" style={{ color: theme.colors.onSurface, flexShrink: 1 }} numberOfLines={1}>
+                {item.name}
+              </Text>
+              <Text
+                variant="bodyMedium"
+                style={{ color: getProgressBarColorByPercentage(percentageSpent), fontWeight: "600", marginLeft: 8 }}
+              >
+                {percentageSpent}%
+              </Text>
+            </View>
+
+            <View className="flex flex-row items-center justify-between">
+              <View className="flex flex-row items-baseline gap-1 flex-1 flex-wrap">
+                <AppHideableCurrencyText variant="bodySmall" style={{ color: isOverLimit ? theme.colors.error : theme.colors.onSurface }}>
+                  {currencyFormatter.format(item.spent)} de {currencyFormatter.format(item.limit!.amount)}
+                </AppHideableCurrencyText>
+              </View>
+
+              {isOverLimit && (
+                <View
+                  style={{
+                    backgroundColor: theme.colors.errorContainer,
+                    paddingHorizontal: 6,
+                    paddingVertical: 2,
+                    borderRadius: 4,
+                    marginLeft: 8,
+                  }}
+                >
+                  <Text style={{ color: theme.colors.onErrorContainer, fontSize: 9, fontWeight: "bold" }}>EXCEDIDO</Text>
+                </View>
+              )}
+            </View>
           </View>
-          <ProgressBar progress={item.spent / item.limit!.amount} color={getProgressBarColorByPercentage(percentageSpent)} />
+          <ProgressBar
+            progress={Math.min(1, item.spent / item.limit!.amount)}
+            color={getProgressBarColorByPercentage(percentageSpent)}
+            style={{ borderRadius: 4, height: 6 }}
+          />
         </View>
       );
     },
-    [getProgressBarColorByPercentage],
+    [getProgressBarColorByPercentage, theme.colors],
   );
 
   useImperativeHandle(ref, () => {
@@ -78,27 +117,61 @@ export const LimitsMonitorChart = React.forwardRef<LimitsMonitorChartRef, Limits
   });
 
   return (
-    <AppChartContainer>
+    <AppChartContainer className="p-6">
       <AppChartContainer.Content>
-        <AppChartContainer.Title>Monitor de Limites</AppChartContainer.Title>
+        <View className="flex flex-row gap-4 items-center">
+          <AppChartContainer.Title>Monitor de Limites</AppChartContainer.Title>
+
+          <AppHideableCurrencyToggle size={18} />
+        </View>
 
         <Conditional
           if={!expenseByCategoryQuery.isPending && !expenseByCategoryQuery.isFetching}
           _then={
-            <FlatList
-              className="w-full"
-              data={categoriesWithLimit}
-              renderItem={renderListItem}
-              scrollEnabled={false}
-              ItemSeparatorComponent={() => <View className="h-4" />}
+            <Conditional
+              if={categoriesWithLimit.length > 0}
+              _then={
+                <FlatList
+                  className="w-full"
+                  data={categoriesWithLimit}
+                  renderItem={renderListItem}
+                  scrollEnabled={false}
+                  ItemSeparatorComponent={() => <View className="h-2" />}
+                />
+              }
+              _else={
+                <View className="w-full py-6 items-center justify-center flex flex-col gap-2">
+                  <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant, textAlign: "center" }}>
+                    Nenhum limite de gastos definido para suas categorias.
+                  </Text>
+                  <Text variant="bodySmall" style={{ color: theme.colors.outline, textAlign: "center" }}>
+                    Defina limites nas suas categorias para acompanhar seus gastos aqui.
+                  </Text>
+                </View>
+              }
             />
           }
           _else={
-            <View className="w-full flex gap-4">
+            <View className="w-full flex flex-col gap-2">
               {Array.from({ length: lastCount || categoriesWithLimit.length || 10 })
                 .fill(false)
                 .map((_, index) => {
-                  return <AppSkeleton key={index} height={32} />;
+                  return (
+                    <View key={index} className="w-full flex flex-col gap-2 py-2">
+                      <View className="flex flex-col gap-1">
+                        <View className="flex flex-row items-center justify-between">
+                          <AppSkeleton height={20} width={150} />
+                          <AppSkeleton height={20} width={50} />
+                        </View>
+
+                        <View className="flex flex-row items-center justify-between">
+                          <AppSkeleton height={16} width={200} />
+                        </View>
+                      </View>
+
+                      <AppSkeleton height={6} />
+                    </View>
+                  );
                 })}
             </View>
           }

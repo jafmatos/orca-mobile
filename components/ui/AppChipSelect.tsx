@@ -8,19 +8,18 @@ export interface SelectOption<T> {
   onSelect?: () => void;
 }
 
-export interface AppChipSelectProps<T> {
+export interface AppChipSelectProps<T> extends React.ComponentProps<typeof View> {
   value: T;
   options: SelectOption<T>[];
   allowUnselect?: boolean;
   onChange?: (value: T) => void;
 }
 
-export function AppChipSelect<T = string>(props: AppChipSelectProps<T>) {
+export function AppChipSelect<T = string>({ value, options, allowUnselect, onChange, ...props }: AppChipSelectProps<T>) {
   return (
-    <View className="flex flex-row flex-wrap gap-2">
-      {props.options.map((option, index) => {
-        const isSelected =
-          props.value instanceof Object ? JSON.stringify(props.value) === JSON.stringify(option.value) : props.value === option.value;
+    <View {...props} className={`flex flex-row flex-wrap gap-2 ${props.className}`}>
+      {options.map((option, index) => {
+        const isSelected = value instanceof Object ? JSON.stringify(value) === JSON.stringify(option.value) : value === option.value;
 
         return (
           <Chip
@@ -28,11 +27,11 @@ export function AppChipSelect<T = string>(props: AppChipSelectProps<T>) {
             mode="outlined"
             key={index}
             onPress={() => {
-              if (isSelected && props.allowUnselect) {
-                props.onChange?.(undefined as unknown as T);
+              if (isSelected && allowUnselect) {
+                onChange?.(undefined as unknown as T);
               } else {
                 option.onSelect?.();
-                props.onChange?.(option.value);
+                onChange?.(option.value);
               }
             }}
             selected={isSelected}

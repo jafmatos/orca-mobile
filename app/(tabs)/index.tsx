@@ -88,23 +88,11 @@ export default function HomeScreen() {
         </View>
 
         <View className="px-4 mb-6 flex flex-col gap-4">
-          {kpisQuery.isPending || kpisQuery.isFetching ? (
-            <AppSkeleton height={110} />
-          ) : (
-            <BalanceCard amount={kpisQuery.data?.status.balance} />
-          )}
+          <BalanceCard amount={kpisQuery.data?.status.balance} loading={kpisQuery.isPending || kpisQuery.isFetching} />
 
           <View className="flex flex-row gap-4 ">
-            {kpisQuery.isPending || kpisQuery.isFetching ? (
-              <AppSkeleton height={90} />
-            ) : (
-              <IncomeCard amount={kpisQuery.data?.status.totalIncome} />
-            )}
-            {kpisQuery.isPending || kpisQuery.isFetching ? (
-              <AppSkeleton height={90} />
-            ) : (
-              <ExpenseCard amount={kpisQuery.data?.status.totalExpense} />
-            )}
+            <IncomeCard amount={kpisQuery.data?.status.totalIncome} loading={kpisQuery.isPending || kpisQuery.isFetching} />
+            <ExpenseCard amount={kpisQuery.data?.status.totalExpense} loading={kpisQuery.isPending || kpisQuery.isFetching} />
           </View>
         </View>
 
