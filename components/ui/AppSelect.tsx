@@ -27,8 +27,10 @@ export function AppSelect({ value, emptyLabel = "Nenhuma das opções", closeOnS
   const closeBottomSheet = () => bottomSheetRef.current?.close();
 
   const onOpen = () => {
+    if (props.disabled) return;
+
     Keyboard.dismiss();
-		(textInputRef.current as any)?.focus();
+    (textInputRef.current as any)?.focus();
 
     openBottomSheet();
   };
@@ -69,6 +71,7 @@ export function AppSelect({ value, emptyLabel = "Nenhuma das opções", closeOnS
           }}
         />
       </Pressable>
+
       <AppBottomSheet imperative portalHostName="select" style={{ zIndex: 101 }} fullscreen expandable={false} ref={bottomSheetRef}>
         <View>
           {[{ label: emptyLabel, value: "" }, ...options].map((option) => {

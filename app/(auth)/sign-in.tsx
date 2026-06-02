@@ -4,7 +4,11 @@ import { FormField } from "@/components/ui/FormField";
 import { useAppForm } from "@/hooks/use-app-form";
 import { useAppFormWithMutation } from "@/hooks/use-app-form-with-mutation";
 import { useAppRouter } from "@/hooks/use-app-router";
-import { CreateAuthenticationTokenArguments, CreateAuthenticationTokenReturnType, SignInService } from "@/services/Auth/SignInService";
+import {
+  CreateAuthenticationTokenArguments,
+  CreateAuthenticationTokenReturnType,
+  SignInService,
+} from "@/services/Users/Auth/SignInService";
 import { AppAuthenticationTokenStore } from "@/utils/AuthenticationTokenStore";
 import React from "react";
 import { View } from "react-native";

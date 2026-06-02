@@ -6,7 +6,11 @@ import { useAppForm } from "@/hooks/use-app-form";
 import { useAppFormWithMutation } from "@/hooks/use-app-form-with-mutation";
 import { useAppRouter } from "@/hooks/use-app-router";
 import { useAppToast } from "@/hooks/use-app-toast";
-import { ConfirmResetPasswordArguments, ConfirmResetPasswordReturnType, ResetPasswordService } from "@/services/Auth/ResetPasswordService";
+import {
+  ConfirmResetPasswordArguments,
+  ConfirmResetPasswordReturnType,
+  ResetPasswordService,
+} from "@/services/Users/Auth/ResetPasswordService";
 import { AppAuthenticationTokenStore } from "@/utils/AuthenticationTokenStore";
 import { useLocalSearchParams } from "expo-router";
 import { View } from "react-native";

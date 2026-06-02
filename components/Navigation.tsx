@@ -122,10 +122,11 @@ export function Navigation(props?: NavigationProps) {
           </View>
 
           <Button
+            mode="contained"
             icon="logout"
-            mode="contained-tonal"
             buttonColor={theme.colors.error}
             textColor={theme.colors.onError}
+            style={{ borderRadius: theme.roundness }}
             onPress={() => {
               AppAuthenticationTokenStore.remove();
 

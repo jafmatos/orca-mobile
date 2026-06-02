@@ -109,7 +109,7 @@ export default function HomeScreen() {
           >
             <ShortcutCard onPress={() => router.goToAnalyses()} icon="creation" label="Análises" />
 
-            <ShortcutCard onPress={() => router.goToLimits()} icon="clock" label="Agendamentos" />
+            <ShortcutCard onPress={() => router.goToSchedules()} icon="clock" label="Agendamentos" />
           </ScrollView>
         </View>
 

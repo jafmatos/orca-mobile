@@ -146,9 +146,8 @@ export default function CategoriesScreen() {
           });
 
           queryClient.invalidateQueries({ queryKey: [QueryKeys.Overview.getKpis()[0]] });
-
-          closeCategoryForm();
           queryClient.invalidateQueries({ queryKey: QueryKeys.Category.getCategories() });
+          closeCategoryForm();
         }}
       />
     </TabbedLayout>

@@ -26,7 +26,6 @@ export function useAppRouter() {
     goToEntries: () => router.push("/(tabs)/entries"),
     goToSchedules: () => router.push("/(tabs)/schedules"),
     goToCategories: () => router.push("/(tabs)/categories"),
-    goToLimits: () => router.push("/(tabs)/limits"),
     goToOverview: () => router.push("/(tabs)/overview"),
     goToAnalyses: () => router.push("/(tabs)/analyses"),
     goToProfile: () => router.push("/(tabs)/profile"),

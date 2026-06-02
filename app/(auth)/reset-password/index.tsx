@@ -5,10 +5,10 @@ import { useAppForm } from "@/hooks/use-app-form";
 import { useAppFormWithMutation } from "@/hooks/use-app-form-with-mutation";
 import { useAppRouter } from "@/hooks/use-app-router";
 import {
-	CreateResetPasswordKeyArguments,
-	CreateResetPasswordKeyReturnType,
-	ResetPasswordService,
-} from "@/services/Auth/ResetPasswordService";
+  CreateResetPasswordKeyArguments,
+  CreateResetPasswordKeyReturnType,
+  ResetPasswordService,
+} from "@/services/Users/Auth/ResetPasswordService";
 import { View } from "react-native";
 import { Button, HelperText, Text, TextInput, useTheme } from "react-native-paper";
 

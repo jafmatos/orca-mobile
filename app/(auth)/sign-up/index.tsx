@@ -5,7 +5,7 @@ import { websiteUrl } from "@/constants/website-url";
 import { useAppForm } from "@/hooks/use-app-form";
 import { useAppFormWithMutation } from "@/hooks/use-app-form-with-mutation";
 import { useAppRouter } from "@/hooks/use-app-router";
-import { CreateSignUpKeyArguments, CreateSignUpKeyReturnType, SignUpService } from "@/services/Auth/SignUpService";
+import { CreateSignUpKeyArguments, CreateSignUpKeyReturnType, SignUpService } from "@/services/Users/Auth/SignUpService";
 import { Pressable, View } from "react-native";
 import { Button, Checkbox, HelperText, Text, TextInput, useTheme } from "react-native-paper";
 
@@ -48,6 +48,7 @@ export default function SignUpScreen() {
             <FormField>
               <TextInput
                 label="Nome*"
+                autoCapitalize="words"
                 placeholder="Digite seu nome"
                 mode="outlined"
                 value={form.values.name}

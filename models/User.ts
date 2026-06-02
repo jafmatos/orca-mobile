@@ -1,11 +1,16 @@
+import { Subscription } from "./Subscription";
 import { UserAvatar } from "./UserAvatar";
 
 export interface User {
   id: string;
   email: string;
   name: string;
-  avatar?: UserAvatar;
+  balance?: number;
   periodGe: string;
   periodLe: string;
-  balance?: number;
+  periodReferenceDay: number;
+  acceptsNotifications: boolean;
+  createdAt: string;
+  avatar?: UserAvatar;
+  subscription?: Subscription;
 }
