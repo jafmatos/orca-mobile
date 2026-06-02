@@ -1,12 +1,13 @@
+import { useAuthUser } from "@/hooks/queries/use-auth-user";
 import { useCategories } from "@/hooks/queries/use-categories";
 import { useAppForm } from "@/hooks/use-app-form";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { EntryTypes } from "@/models/Entry";
-import { EntryService, ExportEntriesArguments, ListEntriesArguments } from "@/services/EntryService";
+import { EntryService, ExportEntriesArguments, ListEntriesArguments } from "@/services/Api/EntryApiService";
 import { Portal } from "@gorhom/portal";
 import { useMutation } from "@tanstack/react-query";
-import { Paths, File } from "expo-file-system";
+import { File, Paths } from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import { BottomSheetRef } from "jam-bottomsheet";
 import React, { useState } from "react";
@@ -16,7 +17,6 @@ import { AppBottomSheet } from "../ui/AppBottomSheet";
 import { AppChipSelect } from "../ui/AppChipSelect";
 import { AppDatePicker } from "../ui/AppDatePicker";
 import { FormField } from "../ui/FormField";
-import { useAuthUser } from "@/hooks/queries/use-auth-user";
 
 enum FilterDateOptions {
   Period = "period",

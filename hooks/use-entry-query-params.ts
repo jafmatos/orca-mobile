@@ -1,4 +1,4 @@
-import { ListEntriesArguments } from "@/services/EntryService";
+import { ListEntriesArguments } from "@/services/Api/EntryApiService";
 import zustand from "zustand";
 
 type EntryQuery = NonNullable<ListEntriesArguments["query"]>;

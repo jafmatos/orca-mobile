@@ -7,17 +7,17 @@ import { useAuthUser } from "@/hooks/queries/use-auth-user";
 import { useAppRouter } from "@/hooks/use-app-router";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useAppToast } from "@/hooks/use-app-toast";
-import { AvatarService } from "@/services/Users/AvatarService";
-import { ProfileService, UpdateProfileArguments } from "@/services/Users/ProfileService";
+import { AvatarService } from "@/services/Api/Users/AvatarApiService";
+import { ProfileService } from "@/services/Api/Users/ProfileApiService";
 import { AppAuthenticationTokenStore } from "@/utils/AuthenticationTokenStore";
-import { subscribeToPushNotifications, unsubscribeToPushNotifications } from "@/utils/notifications";
 import { currencyFormatter } from "@/utils/currencyFormatter";
+import { subscribeToPushNotifications, unsubscribeToPushNotifications } from "@/utils/notifications";
 import { QueryKeys } from "@/utils/QueryKeys";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import * as ImagePicker from "expo-image-picker";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { Pressable, ScrollView, View } from "react-native";
-import { Button, Divider, Icon, IconButton, Surface, Switch, Text } from "react-native-paper";
+import { Button, Icon, IconButton, Surface, Switch, Text } from "react-native-paper";
 
 export default function ProfileScreen() {
   const user = useAuthUser();
@@ -266,7 +266,7 @@ export default function ProfileScreen() {
           <Text variant="titleMedium" style={{ fontWeight: "bold", paddingLeft: 4 }}>
             Plano e Assinatura
           </Text>
-					
+
           <Surface style={{ borderRadius: theme.roundness }} className="!p-4 flex flex-col gap-4">
             <View className="flex flex-row justify-between items-center">
               <View className="flex flex-row items-center gap-3">

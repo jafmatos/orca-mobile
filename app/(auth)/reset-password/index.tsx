@@ -8,7 +8,7 @@ import {
   CreateResetPasswordKeyArguments,
   CreateResetPasswordKeyReturnType,
   ResetPasswordService,
-} from "@/services/Users/Auth/ResetPasswordService";
+} from "@/services/Api/Users/Auth/ResetPasswordApiService";
 import { View } from "react-native";
 import { Button, HelperText, Text, TextInput, useTheme } from "react-native-paper";
 

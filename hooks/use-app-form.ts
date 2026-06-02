@@ -1,7 +1,7 @@
-import { ApiError } from "@/models/ApiError";
+import { ApiValidationError } from "@/models/ApiValidationError";
 import { useCallback, useRef, useState } from "react";
 
-export type AppFormErrors<Form> = (Omit<ApiError, "path"> & { path: keyof Form })[];
+export type AppFormErrors<Form> = (Omit<ApiValidationError, "path"> & { path: keyof Form })[];
 
 export type AppForm<Form> = {
   values: Form;

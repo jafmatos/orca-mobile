@@ -8,7 +8,7 @@ import {
   CreateCategoryReturnType,
   UpdateCategoryBody,
   UpdateCategoryReturnType,
-} from "@/services/CategoryService";
+} from "@/services/Api/CategoryApiService";
 import React, { useImperativeHandle } from "react";
 import { View } from "react-native";
 import { Button, HelperText, SegmentedButtons, TextInput } from "react-native-paper";

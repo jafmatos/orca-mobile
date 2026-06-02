@@ -1,4 +1,4 @@
-import { GetKpisArguments, OverviewService } from "@/services/OverviewService";
+import { GetKpisArguments, OverviewService } from "@/services/Api/OverviewApiService";
 import { QueryKeys } from "@/utils/QueryKeys";
 import { useQuery } from "@tanstack/react-query";
 

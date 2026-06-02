@@ -1,4 +1,4 @@
-import { SignInService } from "@/services/Users/Auth/SignInService";
+import { SignInService } from "@/services/Api/Users/Auth/SignInApiService";
 import { QueryKeys } from "@/utils/QueryKeys";
 import { useQuery } from "@tanstack/react-query";
 

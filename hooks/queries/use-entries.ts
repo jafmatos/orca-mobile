@@ -1,9 +1,8 @@
 import { Entry } from "@/models/Entry";
 import { PaginatedData } from "@/models/PaginatedData";
-import { EntryService, ListEntriesArguments } from "@/services/EntryService";
+import { EntryService, ListEntriesArguments } from "@/services/Api/EntryApiService";
 import { QueryKeys } from "@/utils/QueryKeys";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
 
 export interface UseEntriesOptions {
   filter?: NonNullable<NonNullable<ListEntriesArguments>["query"]>["filter"];
@@ -33,7 +32,6 @@ export const useEntries = (options?: UseEntriesOptions) => {
     },
     initialPageParam: 1,
   });
-
 
   return entriesQuery;
 };

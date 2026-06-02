@@ -1,8 +1,8 @@
-import * as Notifications from "expo-notifications";
-import Constants from "expo-constants";
-import { Platform } from "react-native";
-import { PushSubscriptionService } from "@/services/PushSubscriptionService";
 import { PushSubscriptionProvider } from "@/models/PushSubscription";
+import { PushSubscriptionService } from "@/services/Api/PushSubscriptionApiService";
+import Constants from "expo-constants";
+import * as Notifications from "expo-notifications";
+import { Platform } from "react-native";
 
 export async function subscribeToPushNotifications() {
   if (Platform.OS === "android") {

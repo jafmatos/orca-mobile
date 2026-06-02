@@ -13,7 +13,7 @@ import { useAppTheme } from "@/hooks/use-app-theme";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { Entry, EntryTypes } from "@/models/Entry";
 import { PaginatedData } from "@/models/PaginatedData";
-import { DeleteEntryReturnType, EntryService } from "@/services/EntryService";
+import { DeleteEntryReturnType, EntryService } from "@/services/Api/EntryApiService";
 import { currencyFormatter } from "@/utils/currencyFormatter";
 import { QueryKeys } from "@/utils/QueryKeys";
 import { InfiniteData, useMutation, useQueryClient } from "@tanstack/react-query";

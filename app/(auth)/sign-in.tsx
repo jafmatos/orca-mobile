@@ -8,7 +8,7 @@ import {
   CreateAuthenticationTokenArguments,
   CreateAuthenticationTokenReturnType,
   SignInService,
-} from "@/services/Users/Auth/SignInService";
+} from "@/services/Api/Users/Auth/SignInApiService";
 import { AppAuthenticationTokenStore } from "@/utils/AuthenticationTokenStore";
 import React from "react";
 import { View } from "react-native";

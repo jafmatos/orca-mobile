@@ -3,7 +3,13 @@ import { AppForm, useAppForm } from "@/hooks/use-app-form";
 import { useAppFormWithMutation } from "@/hooks/use-app-form-with-mutation";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { Entry, EntryTypes } from "@/models/Entry";
-import { CreateEntryBody, CreateEntryReturnType, EntryService, UpdateEntryBody, UpdateEntryReturnType } from "@/services/EntryService";
+import {
+  CreateEntryBody,
+  CreateEntryReturnType,
+  EntryService,
+  UpdateEntryBody,
+  UpdateEntryReturnType,
+} from "@/services/Api/EntryApiService";
 import React, { useImperativeHandle, useMemo } from "react";
 import { View } from "react-native";
 import { Button, HelperText, SegmentedButtons, TextInput } from "react-native-paper";

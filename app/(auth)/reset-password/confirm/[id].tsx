@@ -10,7 +10,7 @@ import {
   ConfirmResetPasswordArguments,
   ConfirmResetPasswordReturnType,
   ResetPasswordService,
-} from "@/services/Users/Auth/ResetPasswordService";
+} from "@/services/Api/Users/Auth/ResetPasswordApiService";
 import { AppAuthenticationTokenStore } from "@/utils/AuthenticationTokenStore";
 import { useLocalSearchParams } from "expo-router";
 import { View } from "react-native";

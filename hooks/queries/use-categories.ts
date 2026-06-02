@@ -1,4 +1,4 @@
-import { CategoryService } from "@/services/CategoryService";
+import { CategoryService } from "@/services/Api/CategoryApiService";
 import { QueryKeys } from "@/utils/QueryKeys";
 import { useQuery } from "@tanstack/react-query";
 

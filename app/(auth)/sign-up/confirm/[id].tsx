@@ -4,7 +4,7 @@ import { FormField } from "@/components/ui/FormField";
 import { useAppForm } from "@/hooks/use-app-form";
 import { useAppFormWithMutation } from "@/hooks/use-app-form-with-mutation";
 import { useAppRouter } from "@/hooks/use-app-router";
-import { ConfirmSignUpArguments, ConfirmSignUpReturnType, SignUpService } from "@/services/Users/Auth/SignUpService";
+import { ConfirmSignUpArguments, ConfirmSignUpReturnType, SignUpService } from "@/services/Api/Users/Auth/SignUpApiService";
 import { AppAuthenticationTokenStore } from "@/utils/AuthenticationTokenStore";
 import { useLocalSearchParams } from "expo-router";
 import { View } from "react-native";

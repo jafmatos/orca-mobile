@@ -1,10 +1,15 @@
-import { ApiError } from "@/models/ApiError";
+import { ApiValidationError } from "@/models/ApiValidationError";
+import { useMutation, UseMutationOptions } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { AppForm } from "./use-app-form";
-import { useMutation, UseMutationOptions } from "@tanstack/react-query";
 import { useAppToast } from "./use-app-toast";
 
-export const useAppFormWithMutation = <Form, TVariables = unknown, TData = unknown, TError = AxiosError<Error & { errors?: ApiError[] }>>(
+export const useAppFormWithMutation = <
+  Form,
+  TVariables = unknown,
+  TData = unknown,
+  TError = AxiosError<Error & { errors?: ApiValidationError[] }>,
+>(
   appForm: AppForm<Form>,
   mutationConfig: UseMutationOptions<TData, TError, TVariables>,
 ) => {
@@ -14,9 +19,9 @@ export const useAppFormWithMutation = <Form, TVariables = unknown, TData = unkno
     onError: (err, variables, onMutateResult, context) => {
       mutationConfig.onError && mutationConfig.onError(err, variables, onMutateResult, context);
 
-      const error = err as AxiosError<Error & { errors?: ApiError[] }>;
+      const error = err as AxiosError<Error & { errors?: ApiValidationError[] }>;
 
-			if (error.response?.status === 422) {
+      if (error.response?.status === 422) {
         appForm.setErrors((error.response?.data?.errors || []) as any);
 
         return;

@@ -1,13 +1,13 @@
 import { useAppForm } from "@/hooks/use-app-form";
 import { useAppFormWithMutation } from "@/hooks/use-app-form-with-mutation";
+import { User } from "@/models/User";
+import { ProfileService, UpdateProfileArguments, UpdateProfileReturnType } from "@/services/Api/Users/ProfileApiService";
 import React, { useImperativeHandle, useMemo } from "react";
 import { View } from "react-native";
 import { Button, HelperText, TextInput } from "react-native-paper";
 import { AppFullScreenOverlay, AppFullScreenOverlayProps, AppFullScreenOverlayRef } from "../ui/AppFullScreenOverlay";
-import { FormField } from "../ui/FormField";
 import { AppSelect } from "../ui/AppSelect";
-import { User } from "@/models/User";
-import { ProfileService, UpdateProfileArguments, UpdateProfileReturnType } from "@/services/Users/ProfileService";
+import { FormField } from "../ui/FormField";
 
 export interface UpdateProfileForm {
   name: string;

@@ -1,10 +1,10 @@
 import { useEntries } from "@/hooks/queries/use-entries";
 import { Entry } from "@/models/Entry";
 import { PaginatedData } from "@/models/PaginatedData";
-import { ListEntriesArguments } from "@/services/EntryService";
+import { ListEntriesArguments } from "@/services/Api/EntryApiService";
 import { QueryKeys } from "@/utils/QueryKeys";
 import { useQueryClient } from "@tanstack/react-query";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { FlatList, ListRenderItem, View } from "react-native";
 import { EndOfListWithLoading } from "../EndOfListWithLoading";
 import { EntryListHeader } from "./EntryListHeader";

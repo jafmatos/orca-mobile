@@ -5,7 +5,7 @@ import { websiteUrl } from "@/constants/website-url";
 import { useAppForm } from "@/hooks/use-app-form";
 import { useAppFormWithMutation } from "@/hooks/use-app-form-with-mutation";
 import { useAppRouter } from "@/hooks/use-app-router";
-import { CreateSignUpKeyArguments, CreateSignUpKeyReturnType, SignUpService } from "@/services/Users/Auth/SignUpService";
+import { CreateSignUpKeyArguments, CreateSignUpKeyReturnType, SignUpService } from "@/services/Api/Users/Auth/SignUpApiService";
 import { Pressable, View } from "react-native";
 import { Button, Checkbox, HelperText, Text, TextInput, useTheme } from "react-native-paper";
 
