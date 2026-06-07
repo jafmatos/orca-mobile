@@ -6,13 +6,16 @@ import { CategoryListItem } from "@/components/categories/CategoryListItem";
 import { TabbedLayout } from "@/components/layouts/TabbedLayout";
 import { AppConfirmationDialog, AppConfirmationDialogRef } from "@/components/ui/AppConfirmationDialog";
 import { AppFabOverlay } from "@/components/ui/AppFabOverlay";
+import { AppSegmentedControl } from "@/components/ui/AppSegmentedControl";
 import { useCategories } from "@/hooks/queries/use-categories";
+import { useAppTheme } from "@/hooks/use-app-theme";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { Category, CategoryTypes } from "@/models/Category";
 import { CategoryService } from "@/services/Api/CategoryApiService";
 import { QueryKeys } from "@/utils/QueryKeys";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo, useRef, useState } from "react";
+import { View } from "react-native";
 import { FAB } from "react-native-paper";
 
 export default function CategoriesScreen() {
@@ -70,29 +73,44 @@ export default function CategoriesScreen() {
 
   const renderItem = useCallback(({ item }: { item: Category }) => {
     return (
-      <CategoryListItem
-        data={item}
-        onPressEdit={(category) => {
-          categoryFormRef.current?.form.setForm({
-            id: category.id,
-            name: category.name,
-            type: category.type,
-            limit: category.limit ? { id: category.limit.id, amount: category.limit.amount } : null,
-          });
+      <View className="px-4">
+        <CategoryListItem
+          data={item}
+          onPressEdit={(category) => {
+            categoryFormRef.current?.form.setForm({
+              id: category.id,
+              name: category.name,
+              type: category.type,
+              limit: category.limit ? { id: category.limit.id, amount: category.limit.amount } : null,
+            });
 
-          openCategoryForm();
-        }}
-        onPressDelete={(category) => {
-          setSelectedCategory(category);
-          openDeleteDialog();
-        }}
-      />
+            openCategoryForm();
+          }}
+          onPressDelete={(category) => {
+            setSelectedCategory(category);
+            openDeleteDialog();
+          }}
+        />
+      </View>
     );
   }, []);
 
   return (
     <TabbedLayout>
-      <Navigation SubHeaderComponent={<CategoryListHeader onFilterChange={(filter) => setSelectedType(filter.type)} />} />
+      <Navigation
+        SubHeaderComponent={
+          <AppSegmentedControl<CategoryTypes>
+            style={{ height: 56 }}
+            allowUnselect
+            options={[
+              { label: "Despesas", value: CategoryTypes.Expense },
+              { label: "Receitas", value: CategoryTypes.Income },
+            ]}
+            value={selectedType}
+            onChange={setSelectedType}
+          />
+        }
+      />
 
       <CategoryList renderItem={renderItem} data={categories} />
 

@@ -1,22 +1,25 @@
 import { useAuthUser } from "@/hooks/queries/use-auth-user";
 import { useCategories } from "@/hooks/queries/use-categories";
+import { useEntries } from "@/hooks/queries/use-entries";
 import { useAppForm } from "@/hooks/use-app-form";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useAppToast } from "@/hooks/use-app-toast";
-import { EntryTypes } from "@/models/Entry";
+import { Entry, EntryTypes } from "@/models/Entry";
 import { EntryService, ExportEntriesArguments, ListEntriesArguments } from "@/services/Api/EntryApiService";
-import { Portal } from "@gorhom/portal";
 import { useMutation } from "@tanstack/react-query";
 import { File, Paths } from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import { BottomSheetRef } from "jam-bottomsheet";
 import React, { useState } from "react";
-import { View } from "react-native";
-import { Button, Chip, Dialog, IconButton, Searchbar, Text } from "react-native-paper";
+import { Keyboard, TouchableWithoutFeedback, View } from "react-native";
+import { Button, Chip, IconButton, Searchbar, Text } from "react-native-paper";
 import { AppBottomSheet } from "../ui/AppBottomSheet";
 import { AppChipSelect } from "../ui/AppChipSelect";
 import { AppDatePicker } from "../ui/AppDatePicker";
+import { AppFullScreenOverlay, AppFullScreenOverlayRef } from "../ui/AppFullScreenOverlay";
 import { FormField } from "../ui/FormField";
+import { EntryFilter, EntryList } from "./EntryList";
+import { EntryListItem } from "./EntryListItem";
 
 enum FilterDateOptions {
   Period = "period",
@@ -26,10 +29,6 @@ enum FilterDateOptions {
 }
 
 export type EntryFilterForm = Required<Required<ListEntriesArguments>["query"]>["filter"];
-
-export interface EntryListHeaderProps {
-  onFilterChange: (filter: EntryFilterForm) => void;
-}
 
 const filterDateOptionsMap = new Map<FilterDateOptions | undefined, string>([
   [undefined, "Completo"],
@@ -55,10 +54,35 @@ const filterTypeOptions = Array.from(filterTypeOptionsMap.entries()).map(([value
   label,
 }));
 
-export function EntryListHeader(props: EntryListHeaderProps) {
+export type EntrySearchOverlayRef = AppFullScreenOverlayRef;
+
+export interface EntrySearchOverlayProps {
+  onEntryPress?: (entry: Entry) => void;
+}
+
+export const EntrySearchOverlay = React.forwardRef<EntrySearchOverlayRef, EntrySearchOverlayProps>(function EntrySearchOverlay(
+  { onEntryPress },
+  ref,
+) {
+  const overlayRef = React.useRef<AppFullScreenOverlayRef>(null);
+  const searchBarRef = React.useRef<React.ElementRef<typeof Searchbar>>(null);
+  const filterBottomSheetRef = React.useRef<BottomSheetRef>(null);
+  const exportBottomSheetRef = React.useRef<BottomSheetRef>(null);
+
+  const openEntryFilter = () => {
+    Keyboard.dismiss();
+    filterBottomSheetRef.current?.open();
+  };
+  const closeEntryFilter = () => filterBottomSheetRef.current?.close();
+  const openEntryExport = () => {
+    Keyboard.dismiss();
+    exportBottomSheetRef.current?.open();
+  };
+  const closeEntryExport = () => exportBottomSheetRef.current?.close();
+
   const [filterDateOption, setFilterDateOption] = useState<FilterDateOptions | undefined>(undefined);
   const [activeFilters, setActiveFilters] = useState<{ [key in keyof EntryFilterForm]?: string }>({});
-  const [isEntryExportOpen, setIsEntryExportOpen] = useState(false);
+  const [filter, setFilter] = useState<EntryFilter>({});
 
   const toast = useAppToast();
   const theme = useAppTheme();
@@ -111,92 +135,172 @@ export function EntryListHeader(props: EntryListHeaderProps) {
     },
   });
 
-  const filterBottomSheetRef = React.useRef<BottomSheetRef>(null);
-  const openEntryFilter = () => filterBottomSheetRef.current?.open();
-  const closeEntryFilter = () => filterBottomSheetRef.current?.close();
-  const openEntryExport = () => setIsEntryExportOpen(true);
-  const closeEntryExport = () => setIsEntryExportOpen(false);
-
   const categoryQuery = useCategories();
   const user = useAuthUser();
 
-  return (
-    <View className="flex flex-col">
-      <View className="flex flex-row gap-2 mb-4">
+  const entriesQuery = useEntries({
+    filter,
+  });
+
+  const entries = React.useMemo(() => {
+    return entriesQuery.data?.pages.flatMap((page) => page.data) || [];
+  }, [entriesQuery.data]);
+
+  React.useImperativeHandle(ref, () => {
+    return {
+      open: () => {
+        overlayRef.current?.open({
+          onFinished: () => {
+            searchBarRef.current?.focus();
+          },
+        });
+      },
+      close: () => {
+        overlayRef.current?.close();
+      },
+    };
+  });
+
+  const handleApplyFilters = () => {
+    const values = filterForm.values;
+    setFilter(values);
+
+    setActiveFilters({
+      type: values.type ? filterTypeOptionsMap.get(values.type) : undefined,
+      category: values.category ? categoryQuery.data?.data.find((c) => c.id === values.category)?.name : undefined,
+      when: values.when ? filterDateOptionsMap.get(filterDateOption) : undefined,
+    });
+    closeEntryFilter();
+  };
+
+  const TopBar = (
+    <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+      <View className="flex flex-1 flex-row items-center gap-2 h-full w-full">
+        <IconButton
+          size={24}
+          style={{ marginLeft: 0, width: 44, height: 44 }}
+          iconColor={theme.colors.onBackground}
+          icon="arrow-left"
+          onPress={() => overlayRef.current?.close()}
+        />
+
         <Searchbar
-          style={{ flex: 1 }}
+          ref={searchBarRef}
+          style={{
+            flex: 1,
+            height: 44,
+            borderRadius: 22,
+            marginRight: 8,
+            backgroundColor: theme.colors.backdrop,
+          }}
+          inputStyle={{ minHeight: 44, color: theme.colors.onBackground }}
+					placeholderTextColor={theme.colors.onSurfaceDisabled}
           placeholder="Pesquisar..."
           value={filterForm.values.text || ""}
           onChangeText={filterForm.makeSetter("text")}
-          onIconPress={() => props.onFilterChange?.(filterForm.values)}
+          onIconPress={() => setFilter(filterForm.values)}
           onClearIconPress={() => {
             const updatedFilter = filterForm.setValue("text", "");
-
-            props.onFilterChange?.(updatedFilter);
+            setFilter(updatedFilter);
           }}
+          onSubmitEditing={() => setFilter(filterForm.values)}
         />
-        <View className="flex flex-row">
-          <IconButton mode="contained" icon="tune" size={24} onPress={openEntryFilter} />
-          <IconButton mode="contained" icon="download" size={24} onPress={openEntryExport} />
-        </View>
+
+        <IconButton
+          mode="contained"
+          theme={{ colors: { surfaceVariant: theme.colors.backdrop, primary: theme.colors.onBackground } }}
+          style={{ marginLeft: 0, width: 44, height: 44 }}
+          icon="tune"
+          size={24}
+          onPress={openEntryFilter}
+        />
+
+        <IconButton
+          mode="contained"
+          theme={{ colors: { surfaceVariant: theme.colors.backdrop, primary: theme.colors.onBackground } }}
+          style={{ marginLeft: 0, width: 44, height: 44 }}
+          icon="download"
+          size={24}
+          onPress={openEntryExport}
+        />
       </View>
+    </TouchableWithoutFeedback>
+  );
 
-      {Object.values(activeFilters).filter((v) => !!v).length > 0 && (
-        <View className="flex flex-row flex-wrap gap-2 mb-4">
-          {activeFilters.type && (
-            <Chip
-              compact
-              mode="outlined"
-              onClose={() => {
-                const updatedFilter = filterForm.setValue("type", undefined);
+  const ListHeader = React.useMemo(() => {
+    return (
+      <View>
+        {Object.values(activeFilters).filter((v) => !!v).length > 0 && (
+          <View className="flex flex-row flex-wrap gap-2 pb-4">
+            {activeFilters.type && (
+              <Chip
+                compact
+                mode="outlined"
+                onClose={() => {
+                  const updatedFilter = filterForm.setValue("type", undefined);
+                  setActiveFilters({ ...activeFilters, type: undefined });
+                  setFilter(updatedFilter);
+                }}
+              >
+                {activeFilters.type}
+              </Chip>
+            )}
 
-                setActiveFilters({ ...activeFilters, type: undefined });
+            {activeFilters.when && (
+              <Chip
+                compact
+                mode="outlined"
+                onClose={() => {
+                  const updatedFilter = filterForm.setValue("when", undefined);
+                  setFilterDateOption(undefined);
+                  setActiveFilters({ ...activeFilters, when: undefined });
+                  setFilter(updatedFilter);
+                }}
+              >
+                {activeFilters.when}
+              </Chip>
+            )}
 
-                props.onFilterChange?.(updatedFilter);
-              }}
-            >
-              {activeFilters.type}
-            </Chip>
-          )}
+            {activeFilters.category && (
+              <Chip
+                compact
+                mode="outlined"
+                onClose={() => {
+                  const updatedFilter = filterForm.setValue("category", undefined);
+                  setActiveFilters({ ...activeFilters, category: undefined });
+                  setFilter(updatedFilter);
+                }}
+              >
+                {activeFilters.category}
+              </Chip>
+            )}
+          </View>
+        )}
+      </View>
+    );
+  }, [activeFilters, filterForm]);
 
-          {activeFilters.when && (
-            <Chip
-              compact
-              mode="outlined"
-              onClose={() => {
-                const updatedFilter = filterForm.setValue("when", undefined);
-
-                setFilterDateOption(undefined);
-                setActiveFilters({ ...activeFilters, when: undefined });
-
-                props.onFilterChange?.(updatedFilter);
-              }}
-            >
-              {activeFilters.when}
-            </Chip>
-          )}
-
-          {activeFilters.category && (
-            <Chip
-              compact
-              mode="outlined"
-              onClose={() => {
-                const updatedFilter = filterForm.setValue("category", undefined);
-                setActiveFilters({ ...activeFilters, category: undefined });
-
-                props.onFilterChange?.(updatedFilter);
-              }}
-            >
-              {activeFilters.category}
-            </Chip>
-          )}
-        </View>
-      )}
+  return (
+    <AppFullScreenOverlay portalHostName="search-overlay" ref={overlayRef} HeaderComponent={TopBar}>
+      <EntryList
+        data={entries}
+        renderItem={({ item }) => (
+          <EntryListItem
+            data={item}
+            onPress={() => {
+              onEntryPress?.(item);
+            }}
+          />
+        )}
+        ListHeaderComponent={ListHeader}
+        filter={filter}
+      />
 
       <AppBottomSheet imperative ref={filterBottomSheetRef} fullscreen>
         <View className="flex flex-col gap-4">
           <View className="flex flex-row items-center justify-between">
             <Text variant="headlineSmall">Filtros</Text>
+
             <Button
               mode="elevated"
               icon="close"
@@ -321,54 +425,47 @@ export function EntryListHeader(props: EntryListHeaderProps) {
             />
           </FormField>
 
-          <Button
-            mode="contained"
-            onPress={() => {
-              props.onFilterChange(filterForm.values);
-
-              setActiveFilters({
-                type: filterForm.values.type ? filterTypeOptionsMap.get(filterForm.values.type) : undefined,
-                category: filterForm.values.category
-                  ? categoryQuery.data?.data.find((c) => c.id === filterForm.values.category)?.name
-                  : undefined,
-                when: filterForm.values.when ? filterDateOptionsMap.get(filterDateOption) : undefined,
-              });
-              closeEntryFilter();
-            }}
-          >
+          <Button mode="contained" onPress={handleApplyFilters}>
             Aplicar
           </Button>
         </View>
       </AppBottomSheet>
 
-      <Portal hostName="modal">
-        <Dialog visible={isEntryExportOpen} onDismiss={closeEntryExport}>
-          <Dialog.Title>Exportar</Dialog.Title>
-          <Dialog.Content>
-            <Text variant="bodyMedium">
-              Deseja exportar seus lançamentos? A lista de exportação será gerada a partir dos filtros aplicados.
+      <AppBottomSheet imperative ref={exportBottomSheetRef}>
+        <View className="flex flex-col">
+          <View className="flex flex-row justify-between items-center pb-2">
+            <Text variant="titleLarge">Exportar lançamentos</Text>
+            <IconButton icon="close" onPress={closeEntryExport} style={{ margin: 0 }} />
+          </View>
+
+          <View className="pb-8">
+            <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }} className="mb-6">
+              Deseja gerar um arquivo com seus lançamentos? A lista de exportação será gerada a partir dos filtros que você aplicou.
             </Text>
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button textColor={theme.colors.onSurfaceVariant} onPress={closeEntryExport}>
-              Cancelar
-            </Button>
-            <Button
-              loading={entryExportMutation.isPending}
-              disabled={entryExportMutation.isPending}
-              onPress={() =>
-                entryExportMutation.mutateAsync({
-                  query: {
-                    filter: filterForm.values,
-                  },
-                })
-              }
-            >
-              Exportar
-            </Button>
-          </Dialog.Actions>
-        </Dialog>
-      </Portal>
-    </View>
+
+            <View className="flex flex-row justify-end gap-2">
+              <Button mode="text" textColor={theme.colors.onSurfaceVariant} onPress={closeEntryExport}>
+                Cancelar
+              </Button>
+
+              <Button
+                mode="contained"
+                loading={entryExportMutation.isPending}
+                disabled={entryExportMutation.isPending}
+                onPress={() =>
+                  entryExportMutation.mutateAsync({
+                    query: {
+                      filter: filterForm.values,
+                    },
+                  })
+                }
+              >
+                Exportar
+              </Button>
+            </View>
+          </View>
+        </View>
+      </AppBottomSheet>
+    </AppFullScreenOverlay>
   );
-}
+});

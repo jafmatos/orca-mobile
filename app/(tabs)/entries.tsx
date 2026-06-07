@@ -1,6 +1,8 @@
+import { EntryDetailBottomSheet } from "@/components/entries/EntryDetailBottomSheet";
 import { EntryFormOverlay, EntryFormOverlayRef } from "@/components/entries/EntryFormOverlay";
 import { EntryList } from "@/components/entries/EntryList";
 import { EntryListItem } from "@/components/entries/EntryListItem";
+import { EntrySearchOverlay, EntrySearchOverlayRef } from "@/components/entries/EntrySearchOverlay";
 import { TabbedLayout } from "@/components/layouts/TabbedLayout";
 import { Navigation } from "@/components/Navigation";
 import { AppBottomSheet } from "@/components/ui/AppBottomSheet";
@@ -9,6 +11,7 @@ import { AppFabOverlay } from "@/components/ui/AppFabOverlay";
 import { AppHideableCurrencyText } from "@/components/ui/AppHideableCurrencyText";
 import { AppSkeleton } from "@/components/ui/AppSkeleton";
 import { Conditional } from "@/components/utils/Conditional";
+import { useEntries } from "@/hooks/queries/use-entries";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { Entry, EntryTypes } from "@/models/Entry";
@@ -18,17 +21,23 @@ import { currencyFormatter } from "@/utils/currencyFormatter";
 import { QueryKeys } from "@/utils/QueryKeys";
 import { InfiniteData, useMutation, useQueryClient } from "@tanstack/react-query";
 import { BottomSheetRef } from "jam-bottomsheet";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { View } from "react-native";
-import { FAB, IconButton, Text } from "react-native-paper";
+import { Button, FAB, IconButton, Text } from "react-native-paper";
 
 export default function EntriesScreen() {
+  const toast = useAppToast();
+  const theme = useAppTheme();
+  const queryClient = useQueryClient();
+  const entriesQuery = useEntries();
+
   const [selectedEntry, setSelectedEntry] = useState<Entry>();
   const [needsRefresh, setNeedsRefresh] = useState(false);
   const [wasQueryResetted, setWasQueryResetted] = useState(false);
 
   const detailBottomSheetRef = React.useRef<BottomSheetRef>(null);
   const entryFormOverlayRef = React.useRef<EntryFormOverlayRef>(null);
+  const entrySearchOverlayRef = React.useRef<EntrySearchOverlayRef>(null);
 
   const openEntryDetail = useCallback((entry: Entry) => {
     detailBottomSheetRef.current?.open({
@@ -44,13 +53,12 @@ export default function EntriesScreen() {
     });
   }, []);
 
+  const openEntrySearchOverlay = useCallback(() => {
+    entrySearchOverlayRef.current?.open();
+  }, []);
+
   const openEntryForm = () => entryFormOverlayRef.current?.open();
   const closeEntryForm = () => entryFormOverlayRef.current?.close();
-
-  const toast = useAppToast();
-  const theme = useAppTheme();
-
-  const queryClient = useQueryClient();
 
   const refreshList = useCallback(() => {
     setWasQueryResetted(true);
@@ -91,6 +99,10 @@ export default function EntriesScreen() {
 
       queryClient.invalidateQueries({ queryKey: QueryKeys.Overview.getMonthlyEvolution() });
 
+      queryClient.invalidateQueries({
+        predicate: (query) => QueryKeys.Entry.getEntriesFiltered(query.queryKey),
+      });
+
       setSelectedEntry(undefined);
       closeEntryDetail();
       setNeedsRefresh(true);
@@ -104,11 +116,41 @@ export default function EntriesScreen() {
     [openEntryDetail],
   );
 
+  const entries = useMemo(() => {
+    return entriesQuery.data?.pages.flatMap((page) => page.data) || [];
+  }, [entriesQuery.data]);
+
   return (
     <TabbedLayout>
-      <Navigation />
+      <Navigation
+        SubHeaderComponent={
+          <View style={{ height: 56 }}>
+            <View className="px-4 flex flex-row items-center justify-between gap-2">
+              <Text variant="headlineSmall" style={{ fontWeight: "700" }}>
+                Extrato
+              </Text>
+
+              <Button
+                icon="magnify"
+                mode="contained"
+                theme={{
+                  colors: {
+                    primary: theme.colors.backdrop,
+                    onPrimary: theme.colors.onBackground,
+                    onSurfaceVariant: theme.colors.surfaceDisabled,
+                  },
+                }}
+                onPress={openEntrySearchOverlay}
+              >
+                Pesquisar
+              </Button>
+            </View>
+          </View>
+        }
+      />
 
       <EntryList
+        data={entries}
         renderItem={renderItem}
         onRefresh={() => setWasQueryResetted(true)}
         onFetchSuccess={() => {
@@ -148,7 +190,7 @@ export default function EntriesScreen() {
               pages: [
                 {
                   ...oldData.pages[0],
-                  data: [entry, ...oldData.pages[0].data],
+                  data: [entry, ...oldData.pages[0].data.filter((e) => e.id !== entry.id)],
                 },
                 ...oldData.pages.slice(1).map((page) => ({ ...page, data: page.data.filter((e) => e.id !== entry.id) })),
               ],
@@ -159,130 +201,55 @@ export default function EntriesScreen() {
 
           queryClient.invalidateQueries({ queryKey: QueryKeys.Overview.getExpenseByCategory() });
 
+          queryClient.invalidateQueries({
+            predicate: (query) => QueryKeys.Entry.getEntriesFiltered(query.queryKey),
+          });
+
           closeEntryForm();
           setNeedsRefresh(true);
         }}
       />
 
-      <AppBottomSheet
-        imperative
-        ref={detailBottomSheetRef}
-        onCloseAnimationFinished={() => {
-          setSelectedEntry(undefined);
+      <EntrySearchOverlay
+        ref={entrySearchOverlayRef}
+        onEntryPress={(entry) => {
+          setSelectedEntry(entry);
+          detailBottomSheetRef.current?.open();
         }}
-      >
-        <View className="flex flex-col gap-4">
-          <View className="flex flex-row justify-between items-center gap-4">
-            <View style={{ flexShrink: 1 }}>
-              {!!selectedEntry ? (
-                <Text variant="titleMedium" ellipsizeMode="tail" numberOfLines={1}>
-                  {selectedEntry?.category?.name || "Sem categoria"}
-                </Text>
-              ) : (
-                <AppSkeleton height={20} width={144} />
-              )}
-            </View>
+      />
 
-            <View className="flex flex-row">
-              <IconButton
-                disabled={!selectedEntry}
-                icon="content-copy"
-                iconColor={theme.colors.primary}
-                onPress={() => {
-                  if (!selectedEntry) return;
+      <EntryDetailBottomSheet
+        ref={detailBottomSheetRef}
+        entry={selectedEntry}
+        onCloseAnimationFinished={() => setSelectedEntry(undefined)}
+        onDuplicate={(entry) => {
+          entryFormOverlayRef.current?.form.setForm({
+            id: undefined,
+            type: entry.type,
+            category: { id: entry.category?.id || "" },
+            amount: entry.amount,
+            description: entry.description,
+            when: new Date(entry.when),
+          });
 
-                  entryFormOverlayRef.current?.form.setForm({
-                    id: undefined,
-                    type: selectedEntry.type,
-                    category: {
-                      id: selectedEntry.category?.id || "",
-                    },
-                    amount: selectedEntry.amount,
-                    description: selectedEntry.description,
-                    when: new Date(selectedEntry.when),
-                  });
+          openEntryForm();
+        }}
+        onEdit={(entry) => {
+          entryFormOverlayRef.current?.form.setForm({
+            id: entry.id,
+            type: entry.type,
+            category: { id: entry.category?.id || "" },
+            amount: entry.amount,
+            description: entry.description,
+            when: new Date(entry.when),
+          });
 
-                  openEntryForm();
-                }}
-              />
-              <IconButton
-                disabled={!selectedEntry}
-                icon="pencil"
-                iconColor={theme.colors.primary}
-                onPress={() => {
-                  if (!selectedEntry) return;
-
-                  entryFormOverlayRef.current?.form.setForm({
-                    id: selectedEntry.id,
-                    type: selectedEntry.type,
-                    category: {
-                      id: selectedEntry.category?.id || "",
-                    },
-                    amount: selectedEntry.amount,
-                    description: selectedEntry.description,
-                    when: new Date(selectedEntry.when),
-                  });
-
-                  openEntryForm();
-                }}
-              />
-              <AppConfirmationDialog
-                trigger={({ open }) => {
-                  return <IconButton disabled={!selectedEntry} icon="trash-can" iconColor={theme.colors.error} onPress={open} />;
-                }}
-                title="Remover lançamento?"
-                description="Tem certeza de que deseja remover este lançamento? Não será possível recuperá-lo."
-                confirmText="Tenho certeza"
-                onConfirm={async (close) => {
-                  await entryDeleteMutation.mutateAsync(selectedEntry!);
-
-                  close();
-                }}
-                confirmButtonProps={{
-                  loading: entryDeleteMutation.isPending,
-                  disabled: entryDeleteMutation.isPending,
-                }}
-                closeOnCancel
-              />
-            </View>
-          </View>
-
-          {!!selectedEntry ? (
-            <Text variant="bodyMedium">{selectedEntry?.description || "Sem descrição"}</Text>
-          ) : (
-            <View className="flex gap-2">
-              <AppSkeleton height={20} />
-              <AppSkeleton height={20} />
-            </View>
-          )}
-
-          <View className="flex flex-row justify-between items-center">
-            {!!selectedEntry ? (
-              <AppHideableCurrencyText
-                variant="bodyMedium"
-                style={{
-                  color: selectedEntry?.type === EntryTypes.Expense ? theme.colors.error : theme.colors.success,
-                }}
-              >
-                {currencyFormatter.format(selectedEntry?.amount || 0)}
-              </AppHideableCurrencyText>
-            ) : (
-              <AppSkeleton height={20} width={80} />
-            )}
-
-            {!!selectedEntry ? (
-              <Text>
-                {new Date(selectedEntry!.when).toLocaleString("pt-BR", {
-                  day: "numeric",
-                  month: "short",
-                })}
-              </Text>
-            ) : (
-              <AppSkeleton height={20} width={80} />
-            )}
-          </View>
-        </View>
-      </AppBottomSheet>
+          openEntryForm();
+        }}
+        onDelete={async (entry) => {
+          await entryDeleteMutation.mutateAsync(entry);
+        }}
+      />
     </TabbedLayout>
   );
 }

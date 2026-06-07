@@ -7,7 +7,7 @@ function FormFieldLabel(props: React.ComponentProps<typeof Text>) {
 }
 
 export function FormField(props: React.ComponentProps<typeof View>) {
-  return <View {...props} className={`flex flex-col ${props.className}`} />;
+  return <View {...props} className={`flex flex-col gap-1 ${props.className}`} />;
 }
 
 FormField.Label = FormFieldLabel;

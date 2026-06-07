@@ -4,35 +4,33 @@ import { PaginatedData } from "@/models/PaginatedData";
 import { ListEntriesArguments } from "@/services/Api/EntryApiService";
 import { QueryKeys } from "@/utils/QueryKeys";
 import { useQueryClient } from "@tanstack/react-query";
-import React, { useEffect, useMemo, useState } from "react";
-import { FlatList, ListRenderItem, View } from "react-native";
+import React, { useEffect, useMemo } from "react";
+import { FlatList, View } from "react-native";
 import { EndOfListWithLoading } from "../EndOfListWithLoading";
-import { EntryListHeader } from "./EntryListHeader";
 
 export type EntryFilter = Required<ListEntriesArguments>["query"]["filter"];
 
-export interface EntryListProps {
+export interface EntryListProps extends React.ComponentProps<typeof FlatList<Entry>> {
   filter?: EntryFilter;
-  renderItem: ListRenderItem<Entry>;
-  onRefresh: () => void;
-  onFetchSuccess: (data?: PaginatedData<Entry>) => void;
+  onRefresh?: () => void;
+  onFetchSuccess?: (data?: PaginatedData<Entry>) => void;
 }
 
-export function EntryList(props: EntryListProps) {
-  const [filter, setFilter] = useState<EntryFilter>();
+export function EntryList({ filter, onRefresh, onFetchSuccess, ...props }: EntryListProps) {
   const queryClient = useQueryClient();
   const entryQuery = useEntries({
     filter,
-    onSuccess: props.onFetchSuccess,
+    onSuccess: onFetchSuccess,
   });
 
   useEffect(() => {
-    props.onRefresh?.();
+    onRefresh?.();
 
     queryClient.resetQueries({
-      queryKey: QueryKeys.Entry.getEntries(),
+      queryKey: QueryKeys.Entry.getEntries(filter),
+      exact: true,
     });
-  }, [filter, props.onRefresh, queryClient]);
+  }, [filter, onRefresh, queryClient]);
 
   const entries = useMemo(() => {
     return entryQuery.data?.pages.reduce((entries, page) => {
@@ -45,7 +43,6 @@ export function EntryList(props: EntryListProps) {
   return (
     <FlatList
       style={{ flex: 1 }}
-      ListHeaderComponent={<EntryListHeader onFilterChange={(filter) => setFilter(filter)} />}
       ListFooterComponent={
         <EndOfListWithLoading
           isLoading={entryQuery.isPending || entryQuery.isFetchingNextPage}
@@ -56,11 +53,10 @@ export function EntryList(props: EntryListProps) {
         />
       }
       contentContainerClassName="p-4"
-      data={entries}
-      renderItem={props.renderItem}
       ItemSeparatorComponent={() => <View className="h-4" />}
       onEndReached={() => entryQuery.fetchNextPage()}
       onEndReachedThreshold={1}
+      {...props}
     />
   );
 }

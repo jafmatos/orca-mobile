@@ -2,11 +2,11 @@ import { useBackHandlerQueue } from "@/hooks/use-back-handler-queue";
 import { Portal } from "@gorhom/portal";
 import React, { PropsWithChildren, useCallback, useImperativeHandle, useState } from "react";
 import { Dimensions, Keyboard, TouchableWithoutFeedback, View } from "react-native";
-import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { IconButton, Text, useTheme } from "react-native-paper";
 import Animated, { useAnimatedReaction, useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { scheduleOnRN, scheduleOnUI } from "react-native-worklets";
+import { Conditional } from "../utils/Conditional";
 
 export type AnimationCallback = () => void;
 
@@ -16,7 +16,9 @@ export type AnimationHooks = {
 };
 
 export interface AppFullScreenOverlayProps extends Omit<React.ComponentProps<typeof Animated.View>, "children"> {
-  title: string;
+  portalHostName?: string;
+  title?: string;
+  HeaderComponent?: React.ReactNode;
   backdropOpacity?: number;
   animationDuration?: number;
   onOpenAnimationStarted?: AnimationCallback;
@@ -99,7 +101,7 @@ export const AppFullScreenOverlay = React.forwardRef<AppFullScreenOverlayRef, Ap
 
         if (hooks?.onFinished) scheduleOnRN(hooks?.onFinished);
         if (props.onCloseAnimationFinished) scheduleOnRN(props.onCloseAnimationFinished);
-        
+
         isVisibleSharedValue.value = false;
       });
     },
@@ -159,7 +161,7 @@ export const AppFullScreenOverlay = React.forwardRef<AppFullScreenOverlayRef, Ap
   }, [translateXSharedValue]);
 
   return (
-    <Portal hostName="fullscreen-overlay">
+    <Portal hostName={props.portalHostName || "fullscreen-overlay"}>
       <Animated.View
         style={[
           {
@@ -207,14 +209,27 @@ export const AppFullScreenOverlay = React.forwardRef<AppFullScreenOverlayRef, Ap
               boxShadow: `0 1px 3px -2px ${theme.colors.outlineVariant}`,
             }}
           >
-            <IconButton icon="arrow-left" onPress={() => scheduleOnRN(close)} />
-            <Text variant="titleLarge">{props.title}</Text>
+            <Conditional
+              if={!!props.HeaderComponent}
+              _then={props.HeaderComponent}
+              _else={
+                <View className="flex-row gap-2 items-center">
+                  <IconButton
+                    size={24}
+                    style={{ marginLeft: 0, width: 44, height: 44 }}
+                    iconColor={theme.colors.onBackground}
+                    icon="arrow-left"
+                    onPress={() => scheduleOnRN(close)}
+                  />
+
+                  <Text variant="titleLarge">{props.title ?? ""}</Text>
+                </View>
+              }
+            />
           </View>
 
           <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-            <View style={{ flex: 1 }}>
-              {props.children}
-            </View>
+            <View style={{ flex: 1 }}>{props.children}</View>
           </TouchableWithoutFeedback>
         </Animated.View>
       </Animated.View>

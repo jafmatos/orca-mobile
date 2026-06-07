@@ -204,10 +204,15 @@ export default function ProfileScreen() {
             </Pressable>
 
             <View className="flex-1 pr-5">
-              <Text numberOfLines={1} ellipsizeMode="tail" variant="titleMedium" style={{ fontWeight: "bold" }}>
+              <Text numberOfLines={1} ellipsizeMode="tail" variant="titleMedium" style={{ fontWeight: "bold", flexShrink: 1 }}>
                 {user?.name || "Usuário"}
               </Text>
-              <Text numberOfLines={1} ellipsizeMode="tail" variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
+              <Text
+                numberOfLines={1}
+                ellipsizeMode="tail"
+                variant="bodyMedium"
+                style={{ color: theme.colors.onSurfaceVariant, flexShrink: 1 }}
+              >
                 {user?.email || "email@exemplo.com"}
               </Text>
             </View>

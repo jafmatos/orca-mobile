@@ -16,6 +16,7 @@ export interface FindScheduleReturnType {
 
 export interface CreateScheduleBody {
   type: EntryTypes;
+  category?: { id: string };
   amount: number;
   description: string;
   referenceTimestamp: Date;
@@ -29,6 +30,7 @@ export interface CreateScheduleReturnType {
 
 export interface UpdateScheduleBody {
   type?: EntryTypes;
+  category?: { id: string };
   amount?: number;
   description?: string;
   referenceTimestamp?: Date;
@@ -41,6 +43,15 @@ export interface UpdateScheduleReturnType {
 }
 
 export interface RemoveScheduleReturnType {
+  schedule: Schedule;
+}
+
+export interface SwitchScheduleBody {
+  when: Date;
+  isDone?: boolean;
+}
+
+export interface SwitchScheduleReturnType {
   schedule: Schedule;
 }
 

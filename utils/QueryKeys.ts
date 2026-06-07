@@ -9,8 +9,14 @@ export class UserQueryKeys {
 export class EntryQueryKeys {
   private static readonly baseKey = "entries";
 
-  public static getEntries() {
-    return [this.baseKey, "list"];
+  public static getEntries(filter?: any) {
+    return filter && Object.keys(filter).length > 0 ? [this.baseKey, "list", filter] : [this.baseKey, "list"];
+  }
+
+  public static getEntriesFiltered(queryKey: readonly unknown[]) {
+    const baseListKey = this.getEntries();
+		
+    return queryKey[0] === baseListKey[0] && queryKey[1] === baseListKey[1] && queryKey.length > baseListKey.length;
   }
 }
 
@@ -25,6 +31,10 @@ export class CategoryQueryKeys {
 export class OverviewQueryKeys {
   private static readonly baseKey = "overview";
 
+  public static all() {
+    return [this.baseKey];
+  }
+
   public static getExpenseByCategory(options?: any) {
     return [this.baseKey, "expense-by-category", options];
   }
@@ -38,9 +48,18 @@ export class OverviewQueryKeys {
   }
 }
 
+export class ScheduleQueryKeys {
+  private static readonly baseKey = "schedules";
+
+  public static getSchedules() {
+    return [this.baseKey, "list"];
+  }
+}
+
 export class QueryKeys {
   public static readonly User = UserQueryKeys;
   public static readonly Entry = EntryQueryKeys;
   public static readonly Category = CategoryQueryKeys;
   public static readonly Overview = OverviewQueryKeys;
+  public static readonly Schedule = ScheduleQueryKeys;
 }

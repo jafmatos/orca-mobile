@@ -4,6 +4,7 @@ import { View } from "react-native";
 
 export interface AppTabHeaderProps extends React.ComponentProps<typeof View> {
   SubHeaderComponent?: React.ReactNode;
+	backgroundColor?: string;
 }
 
 export function AppTabHeader(props: AppTabHeaderProps) {
@@ -12,13 +13,13 @@ export function AppTabHeader(props: AppTabHeaderProps) {
   return (
     <View
       style={{
-        backgroundColor: theme.colors.background,
+        backgroundColor: props.backgroundColor || theme.colors.background,
         boxShadow: `0 1px 1px -1px ${theme.colors.outlineVariant}`,
         zIndex: 1,
       }}
     >
       <View className="flex flex-col">
-        <View {...props} className={`p-4 w-full flex flex-row items-center justify-between ${props.className}`}>
+        <View {...props} className={`h-[72px] px-4 w-full flex flex-row items-center justify-between ${props.className}`}>
           {props.children}
         </View>
         {props.SubHeaderComponent}

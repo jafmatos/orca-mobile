@@ -119,7 +119,7 @@ export const EntryFormOverlay = React.forwardRef<EntryFormOverlayRef, EntryFormO
           <AppSelect
             mode="outlined"
             label="Categoria"
-            value={entryForm.values.category.id}
+            value={entryForm.values.category?.id}
             onChange={(id) => entryForm.setValue("category", { id })}
             closeOnSelect
             options={categoryOptions}

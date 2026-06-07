@@ -1,6 +1,6 @@
 import { ApiValidationError } from "./ApiValidationError";
 
-export interface ApiErrorResponseData {
-  message: string;
+export class ApiErrorResponseData {
+  message!: string;
   errors?: ApiValidationError[];
 }

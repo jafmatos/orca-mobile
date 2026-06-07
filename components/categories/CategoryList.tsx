@@ -7,6 +7,7 @@ import { EndOfListWithLoading } from "../EndOfListWithLoading";
 
 export interface CategoryListProps {
   data: ArrayLike<Category>;
+  ListHeaderComponent?: React.ReactElement;
   renderItem: ListRenderItem<Category>;
 }
 
@@ -20,16 +21,19 @@ export const CategoryList = (props: CategoryListProps) => {
   return (
     <FlatList
       style={{ flex: 1 }}
+      ListHeaderComponent={props.ListHeaderComponent}
       ListFooterComponent={
-        <EndOfListWithLoading
-          isLoading={categoriesQuery.isPending}
-          isOnEnd={categoriesQuery.data && categoriesQuery.data.meta.page === categoriesQuery.data.meta.pages}
-          isEmpty={categoriesQuery.data?.data.length === 0}
-          endOfListText="Não há mais categorias"
-          emptyListText="Não há categorias"
-        />
+        <View className="px-4">
+          <EndOfListWithLoading
+            isLoading={categoriesQuery.isPending}
+            isOnEnd={categoriesQuery.data && categoriesQuery.data.meta.page === categoriesQuery.data.meta.pages}
+            isEmpty={categoriesQuery.data?.data.length === 0}
+            endOfListText="Não há mais categorias"
+            emptyListText="Não há categorias"
+          />
+        </View>
       }
-      contentContainerClassName="p-4"
+      contentContainerClassName="py-4"
       data={props.data || categories}
       renderItem={props.renderItem}
       ItemSeparatorComponent={() => <View className="h-4" />}

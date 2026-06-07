@@ -1,14 +1,26 @@
+import { useAppTheme } from "@/hooks/use-app-theme";
 import { Avatar } from "react-native-paper";
 
 export interface AppAvatarProps {
   url?: string;
   fallback?: string;
   size?: number;
+  backgroundColor?: string;
+  color?: string;
 }
 
-export function AppAvatar({ size = 48, url, fallback }: AppAvatarProps) {
+export function AppAvatar({ size = 48, url, fallback, backgroundColor, color }: AppAvatarProps) {
+  const theme = useAppTheme();
+
   if (!url) {
-    return <Avatar.Text size={size} label={fallback?.[0].toUpperCase() || ""} />;
+    return (
+      <Avatar.Text
+        size={size}
+        label={fallback?.[0].toUpperCase() || ""}
+        color={color}
+        style={{ backgroundColor: backgroundColor || theme.colors.primary, borderRadius: size / 2 }}
+      />
+    );
   }
 
   return <Avatar.Image size={size} source={{ uri: url }} />;

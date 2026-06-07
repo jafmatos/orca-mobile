@@ -1,4 +1,4 @@
-export interface ApiValidationError {
-  path: string;
-  message: string;
+export class ApiValidationError {
+  path!: string;
+  message!: string;
 }

@@ -40,7 +40,7 @@ export const paperLightThemeColors: AppPaperTheme["colors"] = {
   },
   surfaceDisabled: "rgba(32, 27, 23, 0.12)",
   onSurfaceDisabled: "rgba(32, 27, 23, 0.38)",
-  backdrop: "rgba(58, 46, 37, 0.4)",
+  backdrop: "rgba(210, 202, 193, 0.4)",
   success: "rgb(35, 108, 45)",
   onSuccess: "rgb(255, 255, 255)",
   successContainer: "rgb(168, 245, 165)",

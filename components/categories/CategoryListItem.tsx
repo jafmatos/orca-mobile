@@ -26,7 +26,7 @@ export function CategoryListItem(props: CategoryListItemProps) {
       }}
     >
       <View className="grow flex" style={{ flexShrink: 1 }}>
-        <Text variant="titleMedium" ellipsizeMode="tail" numberOfLines={1}>
+        <Text style={{ flexShrink: 1 }} variant="titleMedium" ellipsizeMode="tail" numberOfLines={1}>
           {props.data.name}
         </Text>
       </View>

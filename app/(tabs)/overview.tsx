@@ -23,7 +23,9 @@ export enum ChartTab {
   History = "history",
 }
 
+import { useAppTheme } from "@/hooks/use-app-theme";
 export default function OverviewScreen() {
+  const theme = useAppTheme();
   const [periodFilter, setDatePeriodFilter] = useState<PeriodDateFilter | undefined>(undefined);
   const kpisQuery = useKpis({ filter: { when: periodFilter } });
 
@@ -116,6 +118,7 @@ export default function OverviewScreen() {
       <AppTabHeader
         SubHeaderComponent={
           <AppSegmentedControl<ChartTab>
+            style={{ height: 56 }}
             options={[
               { label: "Limites", value: ChartTab.Limits },
               { label: "Categorias", value: ChartTab.Categories },
@@ -128,13 +131,18 @@ export default function OverviewScreen() {
           />
         }
       >
-        <IconButton icon="arrow-left" onPress={handlePeriodDateFilterPrevious} />
+        <IconButton style={{ height: 44, width: 44 }} icon="arrow-left" onPress={handlePeriodDateFilterPrevious} />
 
         <Text variant="titleLarge" numberOfLines={1}>
           {periodDateLabel}
         </Text>
 
-        <IconButton icon="arrow-right" onPress={handlePeriodDateFilterNext} disabled={!periodFilter?.ge && !periodFilter?.le} />
+        <IconButton
+          style={{ height: 44, width: 44 }}
+          icon="arrow-right"
+          onPress={handlePeriodDateFilterNext}
+          disabled={!periodFilter?.ge && !periodFilter?.le}
+        />
       </AppTabHeader>
 
       <ScrollView style={{ flex: 1 }}>

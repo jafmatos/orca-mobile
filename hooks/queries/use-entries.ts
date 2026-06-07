@@ -11,7 +11,7 @@ export interface UseEntriesOptions {
 
 export const useEntries = (options?: UseEntriesOptions) => {
   const entriesQuery = useInfiniteQuery({
-    queryKey: QueryKeys.Entry.getEntries(),
+    queryKey: QueryKeys.Entry.getEntries(options?.filter),
     queryFn: async ({ pageParam }) => {
       const data = await EntryService.list({
         query: {

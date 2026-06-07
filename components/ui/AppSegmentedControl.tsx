@@ -1,12 +1,13 @@
 import React from "react";
 import { View, Pressable, ViewProps } from "react-native";
-import { Text } from "react-native-paper";
+import { Icon, Text } from "react-native-paper";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { Conditional } from "@/components/utils/Conditional";
 
 export interface AppSegmentedControlOption<T = string> {
   label: string;
   value: T;
+  icon?: string;
 }
 
 export interface AppSegmentedControlProps<T = string> extends ViewProps {
@@ -14,6 +15,8 @@ export interface AppSegmentedControlProps<T = string> extends ViewProps {
   value?: T;
   onChange: (value: T | undefined) => void;
   allowUnselect?: boolean;
+  activeColor?: string;
+  inactiveColor?: string;
 }
 
 export function AppSegmentedControl<T = string>({
@@ -22,12 +25,14 @@ export function AppSegmentedControl<T = string>({
   onChange,
   allowUnselect = false,
   className,
+  activeColor,
+  inactiveColor,
   ...props
 }: AppSegmentedControlProps<T>) {
   const theme = useAppTheme();
 
   const handlePress = (optionValue: T) => {
-    if (allowUnselect && value === optionValue) {
+		if (allowUnselect && value === optionValue) {
       onChange(undefined);
     } else {
       onChange(optionValue);
@@ -38,20 +43,24 @@ export function AppSegmentedControl<T = string>({
     <View {...props} className={`flex flex-row ${className || ""}`}>
       {options.map((option, index) => {
         const isSelected = value === option.value;
+        const textColor = isSelected ? (activeColor || theme.colors.primary) : (inactiveColor || theme.colors.onSurfaceVariant);
+
         return (
           <Pressable
             key={index}
             onPress={() => handlePress(option.value)}
-            className="relative flex-1 items-center justify-center min-h-[48px]"
+            className="relative flex-1 min-h-[48px] flex flex-row gap-3 items-center justify-center"
           >
             <Conditional
               if={isSelected}
-              _then={<View className="absolute h-1 w-full rounded-sm bottom-0" style={{ backgroundColor: theme.colors.primary }} />}
+              _then={<View className="absolute h-1 w-full rounded-sm bottom-0" style={{ backgroundColor: activeColor || theme.colors.primary }} />}
             />
-            <Text 
-              variant="labelLarge" 
-              style={{ color: isSelected ? theme.colors.primary : theme.colors.onSurfaceVariant }}
-            >
+
+            {option.icon && (
+              <Icon source={option.icon} size={16} color={textColor} />
+            )}
+
+            <Text variant="labelLarge" style={{ color: textColor }}>
               {option.label}
             </Text>
           </Pressable>

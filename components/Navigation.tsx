@@ -20,6 +20,10 @@ export interface DrawerNavigationItemProps {
 
 export interface NavigationProps {
   SubHeaderComponent?: React.ReactNode;
+  backgroundColor?: string;
+  contentColor?: string;
+  hideShadow?: boolean;
+  colored?: boolean;
 }
 
 function DrawerNavigationItem(props: DrawerNavigationItemProps) {
@@ -59,23 +63,52 @@ export function Navigation(props?: NavigationProps) {
 
   const closeDrawer = () => setIsDrawerOpen(false);
 
+  const backgroundColor = props?.colored ? theme.colors.primary : theme.colors.background;
+  const contentColor = props?.colored ? theme.colors.onPrimary : theme.colors.onBackground;
+  const buttonBackgroundColor = props?.colored ? "rgba(255, 255, 255, 0.15)" : theme.colors.backdrop;
+
   return (
     <>
       <View
         className="flex"
         style={{
-          backgroundColor: theme.colors.background,
-          boxShadow: `0 1px 1px -1px ${theme.colors.outlineVariant}`,
+          backgroundColor,
+          boxShadow: props?.hideShadow ? "none" : `0 1px 1px -1px ${theme.colors.outlineVariant}`,
           zIndex: 1,
         }}
       >
         <View className="h-[72px] px-4 flex flex-row justify-between items-center">
-          <AppAvatar url={user?.avatar?.url} fallback={user?.name[0].toUpperCase()} />
+          <View style={{ backgroundColor: "transparent", borderRadius: 100 }}>
+            <AppAvatar
+              url={user?.avatar?.url}
+              fallback={user?.name[0].toUpperCase()}
+              color={contentColor}
+              backgroundColor={buttonBackgroundColor}
+            />
+          </View>
 
-          <View className="flex flex-row items-center gap-4">
-            <AppHideableCurrencyToggle size={24} />
+          <View className="flex flex-row items-center gap-3">
+            <AppHideableCurrencyToggle
+              size={22}
+              color={contentColor}
+              style={{
+                backgroundColor: buttonBackgroundColor,
+                borderRadius: 100,
+                width: 44,
+                height: 44,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            />
 
-            <IconButton icon="menu" onPress={() => setIsDrawerOpen(true)} size={32} style={{ margin: 0 }} />
+            <IconButton
+              icon="menu"
+              onPress={() => setIsDrawerOpen(true)}
+              size={24}
+              iconColor={contentColor}
+              containerColor={buttonBackgroundColor}
+              style={{ margin: 0, width: 44, height: 44 }}
+            />
           </View>
         </View>
 
@@ -92,7 +125,12 @@ export function Navigation(props?: NavigationProps) {
           }}
         >
           <View className="flex flex-row gap-2 items-center">
-            <AppAvatar url={user?.avatar?.url} fallback={user?.name[0].toUpperCase()} />
+            <AppAvatar
+              url={user?.avatar?.url}
+              fallback={user?.name[0].toUpperCase()}
+              color={theme.colors.onBackground}
+              backgroundColor={buttonBackgroundColor}
+            />
 
             <View style={{ flexShrink: 1, gap: 4 }} className="flex flex-col">
               <Text
@@ -100,6 +138,7 @@ export function Navigation(props?: NavigationProps) {
                 ellipsizeMode="tail"
                 numberOfLines={1}
                 style={{
+                  flexShrink: 1,
                   color: theme.colors.onBackground,
                 }}
               >

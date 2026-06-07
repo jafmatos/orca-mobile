@@ -14,36 +14,37 @@ export interface BalanceCardProps {
 
 export function BalanceCard(props: BalanceCardProps) {
   const theme = useAppTheme();
-  const textColor = theme.colors.onSurface;
-  const secondaryTextColor = theme.colors.onSurfaceVariant;
 
   return (
     <Surface
       style={{
         borderRadius: theme.roundness,
-        borderLeftWidth: 4,
-        borderLeftColor: theme.colors.primary,
+        backgroundColor: theme.colors.primary,
         padding: 20,
-        height: 110,
+        height: 120,
       }}
+      elevation={2}
       className="w-full flex flex-col justify-between"
     >
       <View className="flex flex-row justify-between items-center">
         <View className="flex flex-row items-center gap-2">
-          <Icon source="wallet-outline" size={16} color={theme.colors.primary} />
-          <Text variant="titleSmall" style={{ color: secondaryTextColor, fontWeight: "500" }}>
+          <Icon source="wallet-outline" size={18} color={theme.colors.onPrimary} />
+          <Text variant="titleSmall" style={{ color: theme.colors.onPrimary, opacity: 0.9, fontWeight: "500" }}>
             Saldo disponível
           </Text>
         </View>
 
-        <AppHideableCurrencyToggle size={18} />
+        <AppHideableCurrencyToggle size={20} color={theme.colors.onPrimary} />
       </View>
 
       <View>
         {props.loading ? (
-          <AppSkeleton height={32} width={150} />
+          <AppSkeleton height={36} width={150} color={theme.colors.onPrimaryContainer} />
         ) : (
-          <AppHideableCurrencyText variant="headlineMedium" style={{ fontWeight: "bold", color: textColor, letterSpacing: -0.5 }}>
+          <AppHideableCurrencyText
+            variant="headlineMedium"
+            style={{ fontWeight: "bold", color: theme.colors.onPrimary, letterSpacing: -0.5 }}
+          >
             {currencyFormatter.format(props.amount || 0)}
           </AppHideableCurrencyText>
         )}

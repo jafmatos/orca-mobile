@@ -5,20 +5,20 @@ import { Text, TextInput } from "react-native-paper";
 import { AppBottomSheet } from "./AppBottomSheet";
 import { BottomSheetRef } from "jam-bottomsheet";
 
-export interface SelectOption {
+export interface SelectOption<T = string> {
   label: string;
-  value: string;
+  value: T;
 }
 
-export interface AppSelectProps extends Omit<React.ComponentProps<typeof TextInput>, "value" | "onChange"> {
-  value: SelectOption["value"];
+export interface AppSelectProps<T = string> extends Omit<React.ComponentProps<typeof TextInput>, "value" | "onChange"> {
+  value: SelectOption<T>["value"];
   emptyLabel?: string;
   closeOnSelect?: boolean;
-  options: SelectOption[];
-  onChange?: (value: string) => void;
+  options: SelectOption<T>[];
+  onChange?: (value: T) => void;
 }
 
-export function AppSelect({ value, emptyLabel = "Nenhuma das opções", closeOnSelect, options, onChange, ...props }: AppSelectProps) {
+export function AppSelect<T = string>({ value, emptyLabel, closeOnSelect, options, onChange, ...props }: AppSelectProps<T>) {
   const theme = useAppTheme();
   const textInputRef = useRef(null);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
@@ -39,7 +39,7 @@ export function AppSelect({ value, emptyLabel = "Nenhuma das opções", closeOnS
     (textInputRef.current as any)?.blur();
   };
 
-  const handleOptionPress = (option: SelectOption) => {
+  const handleOptionPress = (option: SelectOption<T>) => {
     onChange?.(option.value);
 
     closeOnSelect &&
@@ -49,6 +49,8 @@ export function AppSelect({ value, emptyLabel = "Nenhuma das opções", closeOnS
   };
 
   const currentOption = options.find((option) => option.value === value);
+
+  const allOptions = emptyLabel ? [{ label: emptyLabel, value: "" }, ...options] : options;
 
   return (
     <>
@@ -74,11 +76,11 @@ export function AppSelect({ value, emptyLabel = "Nenhuma das opções", closeOnS
 
       <AppBottomSheet imperative portalHostName="select" style={{ zIndex: 101 }} fullscreen expandable={false} ref={bottomSheetRef}>
         <View>
-          {[{ label: emptyLabel, value: "" }, ...options].map((option) => {
+          {allOptions.map((option) => {
             return (
               <Pressable
-                key={option.value}
-                onPress={() => handleOptionPress(option)}
+                key={String(option.value)}
+                onPress={() => handleOptionPress(option as SelectOption<T>)}
                 className="rounded-lg w-full py-4 px-6"
                 style={{
                   backgroundColor: option.value === (value || "") ? theme.colors.surfaceVariant : "transparent",

@@ -30,7 +30,7 @@ export function AppSkeleton({ fromOpacity = 0.3, toOpacity = 0.8, ...props }: Ap
       style={{
         borderRadius: theme.roundness,
         opacity: opacitySharedValue,
-        backgroundColor: theme.colors.surfaceVariant,
+        backgroundColor: props.color || theme.colors.surfaceVariant,
         height: props.height || "100%",
         width: props.width || "100%",
       }}

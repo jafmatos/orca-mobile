@@ -1,23 +1,34 @@
-import { Tabs } from "expo-router";
-import React from "react";
 import { KeyboardAvoidingComponent } from "@/components/KeyboardAvoindingComponent";
+import { SafeAreaComponent } from "@/components/SafeAreaComponent";
 import { PortalHost } from "@gorhom/portal";
+import { Tabs, usePathname } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import React from "react";
+import { View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Icon, useTheme } from "react-native-paper";
-import { SafeAreaComponent } from "@/components/SafeAreaComponent";
-import { Navigation } from "@/components/Navigation";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function TabLayout() {
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
+  const pathname = usePathname();
+
+  const isHomeScreen = pathname === "/" || pathname === "";
+  const topSafeAreaBg = isHomeScreen ? theme.colors.primary : theme.colors.background;
+  const statusBarStyle = isHomeScreen ? "light" : theme.dark ? "light" : "dark";
 
   return (
     <GestureHandlerRootView>
+      <StatusBar style={statusBarStyle} backgroundColor="transparent" translucent />
       <KeyboardAvoidingComponent
         style={{
           position: "relative",
           backgroundColor: theme.colors.background,
         }}
       >
+        <View style={{ position: "absolute", top: 0, left: 0, right: 0, height: insets.top, backgroundColor: topSafeAreaBg, zIndex: 1 }} />
+
         <SafeAreaComponent className="grow" keyboardHandled>
           <Tabs
             screenOptions={{
@@ -95,6 +106,7 @@ export default function TabLayout() {
       </KeyboardAvoidingComponent>
 
       <PortalHost name="drawer" />
+      <PortalHost name="search-overlay" />
       <PortalHost name="bottomsheet" />
       <PortalHost name="fullscreen-overlay" />
       <PortalHost name="modal" />
