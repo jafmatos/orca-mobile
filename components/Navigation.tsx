@@ -129,7 +129,7 @@ export function Navigation(props?: NavigationProps) {
               url={user?.avatar?.url}
               fallback={user?.name[0].toUpperCase()}
               color={theme.colors.onBackground}
-              backgroundColor={buttonBackgroundColor}
+              backgroundColor={theme.colors.backdrop}
             />
 
             <View style={{ flexShrink: 1, gap: 4 }} className="flex flex-col">
@@ -158,6 +158,7 @@ export function Navigation(props?: NavigationProps) {
             <DrawerNavigationItem onPressCallback={closeDrawer} to={"/overview"} icon="chart-donut" text="Visão Geral" />
             <DrawerNavigationItem onPressCallback={closeDrawer} to={"/analyses"} icon="creation" text="Análises" />
             <DrawerNavigationItem onPressCallback={closeDrawer} to={"/profile"} icon="account" text="Meu Perfil" />
+            <DrawerNavigationItem onPressCallback={closeDrawer} to={"/open-finance/links"} icon="bank" text="Open Finance" />
           </View>
 
           <Button

@@ -9,7 +9,7 @@ export function TabbedLayout(props: React.ComponentProps<typeof View>) {
     <View className={`grow ${props.className}`} style={{ backgroundColor: theme.colors.background }}>
       {props.children}
 
-      <AppToast topOffset={8} />
+      <AppToast topOffset={80} />
     </View>
   );
 }

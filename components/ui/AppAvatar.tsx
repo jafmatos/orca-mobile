@@ -17,8 +17,8 @@ export function AppAvatar({ size = 48, url, fallback, backgroundColor, color }: 
       <Avatar.Text
         size={size}
         label={fallback?.[0].toUpperCase() || ""}
-        color={color}
-        style={{ backgroundColor: backgroundColor || theme.colors.primary, borderRadius: size / 2 }}
+        color={color || theme.colors.onBackground}
+        style={{ backgroundColor: backgroundColor || theme.colors.backdrop, borderRadius: size / 2 }}
       />
     );
   }

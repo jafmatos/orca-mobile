@@ -47,18 +47,6 @@ export default function ProfileScreen() {
   const updateAcceptsNotificationsMutation = useMutation({
     mutationFn: (args: { acceptsNotifications: boolean }) => ProfileService.update(args),
     onSuccess: ({ user }) => {
-      if (user.acceptsNotifications) {
-        toast.success({
-          title: "Notificações ativadas!",
-          description: "Você receberá notificações de lembretes.",
-        });
-      } else {
-        toast.success({
-          title: "Notificações desativadas!",
-          description: "Você não receberá notificações de lembretes.",
-        });
-      }
-
       queryClient.setQueryData(QueryKeys.User.getAuthUser(), { user });
     },
     onError: (error: any) => {

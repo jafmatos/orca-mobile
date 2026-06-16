@@ -11,7 +11,7 @@ export function FullScreenLayout(props: PropsWithChildren) {
     <KeyboardAvoidingComponent style={{ backgroundColor: theme.colors.background }}>
       <SafeAreaComponent style={{ flex: 1 }}>
         {props.children}
-        <AppToast />
+        <AppToast topOffset={80} />
       </SafeAreaComponent>
     </KeyboardAvoidingComponent>
   );

@@ -1,12 +1,11 @@
 import { EntryListItem } from "@/components/entries/EntryListItem";
 import { TabbedLayout } from "@/components/layouts/TabbedLayout";
 import { Navigation } from "@/components/Navigation";
-import { BalanceCard } from "@/components/overview/BalanceCard";
 import { ExpenseCard } from "@/components/overview/ExpenseCard";
 import { IncomeCard } from "@/components/overview/IncomeCard";
-import { ScheduleListItem } from "@/components/schedules/ScheduleListItem";
 import { AppHideableCurrencyText } from "@/components/ui/AppHideableCurrencyText";
 import { AppSkeleton } from "@/components/ui/AppSkeleton";
+import { Conditional } from "@/components/utils/Conditional";
 import { useAuthUser } from "@/hooks/queries/use-auth-user";
 import { useEntries } from "@/hooks/queries/use-entries";
 import { useKpis } from "@/hooks/queries/use-kpis";
@@ -197,37 +196,35 @@ export default function HomeScreen() {
               </ScrollView>
             </View>
 
-            <View className="py-4 px-4">
-              <View className="flex flex-row justify-between items-center mb-3">
-                <Text variant="titleMedium" style={{ fontWeight: "bold", letterSpacing: -0.2 }}>
-                  Lançamentos Recentes
-                </Text>
-                <Button onPress={() => router.goToEntries()} compact>
-                  Ver Todos
-                </Button>
-              </View>
+            <Conditional
+              if={!entriesQuery.isPending && !entriesQuery.isFetching && !!recentEntries.length}
+              _then={
+                <View className="py-4 px-4">
+                  <View className="flex flex-row justify-between items-center mb-3">
+                    <Text variant="titleMedium" style={{ fontWeight: "bold", letterSpacing: -0.2 }}>
+                      Lançamentos Recentes
+                    </Text>
+                    <Button onPress={() => router.goToEntries()} compact>
+                      Ver Todos
+                    </Button>
+                  </View>
 
-              {entriesQuery.isPending || entriesQuery.isFetching ? (
-                <View className="flex gap-4">
-                  <AppSkeleton height={70} />
-                  <AppSkeleton height={70} />
-                  <AppSkeleton height={70} />
+                  {entriesQuery.isPending || entriesQuery.isFetching ? (
+                    <View className="flex gap-4">
+                      <AppSkeleton height={70} />
+                      <AppSkeleton height={70} />
+                      <AppSkeleton height={70} />
+                    </View>
+                  ) : (
+                    <View className="flex gap-4">
+                      {recentEntries.map((entry) => (
+                        <EntryListItem key={entry.id} data={entry} onPress={() => router.goToEntries()} />
+                      ))}
+                    </View>
+                  )}
                 </View>
-              ) : recentEntries.length === 0 ? (
-                <Surface
-                  className="p-6 rounded-xl flex items-center justify-center border"
-                  style={{ borderColor: theme.colors.outlineVariant }}
-                >
-                  <Text style={{ color: theme.colors.onSurfaceVariant }}>Não há lançamentos registrados</Text>
-                </Surface>
-              ) : (
-                <View className="flex gap-4">
-                  {recentEntries.map((entry) => (
-                    <EntryListItem key={entry.id} data={entry} onPress={() => router.goToEntries()} />
-                  ))}
-                </View>
-              )}
-            </View>
+              }
+            />
           </View>
         </ScrollView>
       </View>

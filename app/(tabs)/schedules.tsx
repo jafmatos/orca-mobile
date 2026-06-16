@@ -16,7 +16,7 @@ import { ApiErrorResponseData } from "@/models/ApiErrorResponseData";
 import { EntryTypes } from "@/models/Entry";
 import { PaginatedData } from "@/models/PaginatedData";
 import { Schedule, ScheduleFrequency, ScheduleCycleStatus } from "@/models/Schedule";
-import { RemoveScheduleReturnType, ScheduleService, SwitchScheduleReturnType } from "@/services/Api/ScheduleApiService";
+import { RemoveScheduleReturnType, ScheduleService } from "@/services/Api/ScheduleApiService";
 import { DeleteEntryReturnType, EntryService } from "@/services/Api/EntryApiService";
 import { currencyFormatter } from "@/utils/currencyFormatter";
 import { QueryKeys } from "@/utils/QueryKeys";
@@ -25,7 +25,7 @@ import { useRouter } from "expo-router";
 import { BottomSheetRef } from "jam-bottomsheet";
 import React, { useCallback, useState } from "react";
 import { View } from "react-native";
-import { Checkbox, FAB, IconButton, SegmentedButtons, Text } from "react-native-paper";
+import { Checkbox, FAB, IconButton, Text } from "react-native-paper";
 import { CreateScheduleOccurrenceReturnType, ScheduleOccurrenceService } from "@/services/Api/ScheduleOccurrenceApiService";
 import { AppSegmentedControl } from "@/components/ui/AppSegmentedControl";
 
@@ -121,10 +121,6 @@ export default function SchedulesScreen() {
       return data;
     },
     onSuccess: (data, variables) => {
-      toast.success({
-        title: "Agendamento atualizado!",
-      });
-
       queryClient.invalidateQueries({ queryKey: QueryKeys.Schedule.getSchedules(), refetchType: "all" });
 
       queryClient.invalidateQueries({ queryKey: QueryKeys.Overview.all(), refetchType: "all" });
@@ -135,7 +131,6 @@ export default function SchedulesScreen() {
       closeScheduleDetail();
     },
     onError: (error: any) => {
-      console.log(error.response.data);
       if (error.response?.data instanceof ApiErrorResponseData) {
         toast.error({
           title: "Ops...",
@@ -151,10 +146,6 @@ export default function SchedulesScreen() {
       return data;
     },
     onSuccess: (data, variables) => {
-      toast.success({
-        title: "Agendamento desmarcado!",
-      });
-
       queryClient.invalidateQueries({ queryKey: QueryKeys.Schedule.getSchedules(), refetchType: "all" });
 
       queryClient.invalidateQueries({ queryKey: QueryKeys.Overview.all(), refetchType: "all" });

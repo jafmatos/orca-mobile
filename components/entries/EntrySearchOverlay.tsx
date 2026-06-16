@@ -194,7 +194,7 @@ export const EntrySearchOverlay = React.forwardRef<EntrySearchOverlayRef, EntryS
             backgroundColor: theme.colors.backdrop,
           }}
           inputStyle={{ minHeight: 44, color: theme.colors.onBackground }}
-					placeholderTextColor={theme.colors.onSurfaceDisabled}
+          placeholderTextColor={theme.colors.onSurfaceDisabled}
           placeholder="Pesquisar..."
           value={filterForm.values.text || ""}
           onChangeText={filterForm.makeSetter("text")}

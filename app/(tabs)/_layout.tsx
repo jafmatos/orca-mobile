@@ -101,6 +101,12 @@ export default function TabLayout() {
                 href: null,
               }}
             />
+            <Tabs.Screen
+              name="open-finance"
+              options={{
+                href: null,
+              }}
+            />
           </Tabs>
         </SafeAreaComponent>
       </KeyboardAvoidingComponent>
