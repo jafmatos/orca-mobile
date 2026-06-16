@@ -23,6 +23,7 @@ export interface NavigationProps {
   backgroundColor?: string;
   contentColor?: string;
   hideShadow?: boolean;
+  hideCurrencyToggle?: boolean;
   colored?: boolean;
 }
 
@@ -55,7 +56,7 @@ function DrawerNavigationItem(props: DrawerNavigationItemProps) {
   );
 }
 
-export function Navigation(props?: NavigationProps) {
+export function Navigation(props: NavigationProps) {
   const theme = useAppTheme();
   const router = useAppRouter();
   const user = useAuthUser();
@@ -88,18 +89,22 @@ export function Navigation(props?: NavigationProps) {
           </View>
 
           <View className="flex flex-row items-center gap-3">
-            <AppHideableCurrencyToggle
-              size={22}
-              color={contentColor}
-              style={{
-                backgroundColor: buttonBackgroundColor,
-                borderRadius: 100,
-                width: 44,
-                height: 44,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            />
+            {!props.hideCurrencyToggle ? (
+              <AppHideableCurrencyToggle
+                size={22}
+                color={contentColor}
+                style={{
+                  backgroundColor: buttonBackgroundColor,
+                  borderRadius: 100,
+                  width: 44,
+                  height: 44,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              />
+            ) : (
+              <></>
+            )}
 
             <IconButton
               icon="menu"

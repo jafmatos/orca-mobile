@@ -27,7 +27,9 @@ export function EndOfListWithLoading(props: EndOfListWithLoadingProps) {
   if (props.isEmpty) {
     return (
       <EndOfListWithLoadingContainer>
-        <Text variant="bodyMedium">{props.emptyListText}</Text>
+        <Text variant="bodyMedium" className="!text-center">
+          {props.emptyListText}
+        </Text>
       </EndOfListWithLoadingContainer>
     );
   }
@@ -35,7 +37,7 @@ export function EndOfListWithLoading(props: EndOfListWithLoadingProps) {
   if (props.isOnEnd) {
     return (
       <EndOfListWithLoadingContainer>
-        <Text variant="bodyMedium" style={{ marginTop: 16 }}>
+        <Text variant="bodyMedium" className="!text-center" style={{ marginTop: 16 }}>
           {props.endOfListText}
         </Text>
       </EndOfListWithLoadingContainer>

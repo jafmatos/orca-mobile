@@ -3,7 +3,7 @@ import { SafeAreaComponent } from "@/components/SafeAreaComponent";
 import { PortalHost } from "@gorhom/portal";
 import { Tabs, usePathname } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React from "react";
+import React, { useMemo } from "react";
 import { View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Icon, useTheme } from "react-native-paper";
@@ -14,9 +14,12 @@ export default function TabLayout() {
   const insets = useSafeAreaInsets();
   const pathname = usePathname();
 
-  const isHomeScreen = pathname === "/" || pathname === "";
-  const topSafeAreaBg = isHomeScreen ? theme.colors.primary : theme.colors.background;
-  const statusBarStyle = isHomeScreen ? "light" : theme.dark ? "light" : "dark";
+  const isHomeScreen = useMemo(() => pathname === "/" || pathname === "", [pathname]);
+  const topSafeAreaBg = useMemo(() => (isHomeScreen ? theme.colors.primary : theme.colors.background), [isHomeScreen, theme]);
+  const statusBarStyle = useMemo(
+    () => (isHomeScreen ? (theme.dark ? "dark" : "light") : theme.dark ? "light" : "dark"),
+    [isHomeScreen, theme],
+  );
 
   return (
     <GestureHandlerRootView>

@@ -56,10 +56,19 @@ export class ScheduleQueryKeys {
   }
 }
 
+export class AIAnalysisQueryKeys {
+  private static readonly baseKey = "ai-analyses";
+
+  public static getAnalyses() {
+    return [this.baseKey, "list"];
+  }
+}
+
 export class QueryKeys {
   public static readonly User = UserQueryKeys;
   public static readonly Entry = EntryQueryKeys;
   public static readonly Category = CategoryQueryKeys;
   public static readonly Overview = OverviewQueryKeys;
   public static readonly Schedule = ScheduleQueryKeys;
+  public static readonly AIAnalysis = AIAnalysisQueryKeys;
 }

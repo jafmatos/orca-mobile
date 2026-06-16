@@ -164,7 +164,7 @@ export default function ProfileScreen() {
 
   return (
     <TabbedLayout>
-      <Navigation />
+      <Navigation hideCurrencyToggle />
 
       <ScrollView style={{ flex: 1 }} contentContainerClassName="p-4 flex gap-6" showsVerticalScrollIndicator={false}>
         <Surface className="!p-4 relative" style={{ borderRadius: theme.roundness }}>

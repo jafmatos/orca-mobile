@@ -2,10 +2,11 @@ import { useAppTheme } from "@/hooks/use-app-theme";
 import { useCallback, useEffect } from "react";
 import Animated, { useSharedValue, withRepeat, withSpring, withTiming } from "react-native-reanimated";
 import { scheduleOnUI } from "react-native-worklets";
+import { DimensionValue } from "react-native";
 
 export interface AppSkeletonProps {
-  height?: number;
-  width?: number;
+  height?: DimensionValue;
+  width?: DimensionValue;
   color?: string;
   fromOpacity?: number;
   toOpacity?: number;
