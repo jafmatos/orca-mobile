@@ -10,7 +10,9 @@ import {
   ResetPasswordService,
 } from "@/services/Api/Users/Auth/ResetPasswordApiService";
 import { View } from "react-native";
-import { Button, HelperText, Text, TextInput, useTheme } from "react-native-paper";
+import { Button, HelperText, Text, useTheme } from "react-native-paper";
+import { AppTextInput } from "@/components/ui/AppTextInput";
+import { AppKeyboardDismissing } from "@/components/ui/AppKeyboardDismissing";
 
 type ResetPasswordForm = {
   email: string;
@@ -36,49 +38,54 @@ export default function ResetPasswordScreen() {
 
   return (
     <FullScreenLayout>
-      <View className="w-screen h-full p-6 flex flex-col justify-center">
-        <View className="flex flex-col gap-2">
-          <Text variant="headlineMedium">Recuperar senha</Text>
-          <Text variant="bodyMedium">Esqueceu a senha? Acontece. Digite seu e-mail abaixo e te ajudaremos a recuperar o acesso.</Text>
-          <View className="flex gap-2">
-            <FormField>
-              <TextInput
-                label="Email*"
-                placeholder="Digite seu email"
-                mode="outlined"
-                keyboardType="email-address"
-                value={form.values.email}
-                onChangeText={form.makeSetter("email")}
-                error={form.hasError("email")}
-              />
-              <HelperText type="error" visible={form.hasError("email")}>
-                {form.getError("email")}
-              </HelperText>
-            </FormField>
+      <AppKeyboardDismissing.ScrollView>
+        <View className="p-6 flex flex-col justify-center min-h-full">
+          <View className="flex flex-col gap-2">
+            <Text variant="headlineMedium">Recuperar senha</Text>
+            <Text variant="bodyMedium">Esqueceu a senha? Acontece. Digite seu e-mail abaixo e te ajudaremos a recuperar o acesso.</Text>
+            <View className="flex gap-4">
+              <FormField>
+                <AppTextInput
+                  label="Email*"
+                  placeholder="Digite seu email"
+                  mode="outlined"
+                  keyboardType="email-address"
+                  value={form.values.email}
+                  onChangeText={form.makeSetter("email")}
+                  error={form.hasError("email")}
+                />
+                {form.hasError("email") && (
+                  <HelperText type="error" visible={true}>
+                    {form.getError("email")}
+                  </HelperText>
+                )}
+              </FormField>
 
-            <Button
-              mode="contained"
-              onPress={() =>
-                createResetPasswordKeyMutation.mutateAsync({
-                  ...form.values,
-                  confirmUrl: websiteUrl,
-                })
-              }
-              disabled={createResetPasswordKeyMutation.isPending || form.hasErrors}
-              loading={createResetPasswordKeyMutation.isPending}
-            >
-              Enviar
-            </Button>
-          </View>
+              <Button
+                className="mt-2"
+                mode="contained"
+                onPress={() =>
+                  createResetPasswordKeyMutation.mutateAsync({
+                    ...form.values,
+                    confirmUrl: websiteUrl,
+                  })
+                }
+                disabled={createResetPasswordKeyMutation.isPending || form.hasErrors}
+                loading={createResetPasswordKeyMutation.isPending}
+              >
+                Enviar
+              </Button>
+            </View>
 
-          <View className="mt-2 flex flex-row gap-0 self-center">
-            <Text variant="bodyMedium">Voltar para o </Text>
-            <Text variant="bodyMedium" onPress={() => router.goToSignIn()} style={{ color: theme.colors.primary }}>
-              login
-            </Text>
+            <View className="mt-2 flex flex-row gap-0 self-center">
+              <Text variant="bodyMedium">Voltar para o </Text>
+              <Text variant="bodyMedium" onPress={() => router.goToSignIn()} style={{ color: theme.colors.primary }}>
+                login
+              </Text>
+            </View>
           </View>
         </View>
-      </View>
+      </AppKeyboardDismissing.ScrollView>
     </FullScreenLayout>
   );
 }

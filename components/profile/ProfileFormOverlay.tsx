@@ -3,11 +3,13 @@ import { useAppFormWithMutation } from "@/hooks/use-app-form-with-mutation";
 import { User } from "@/models/User";
 import { ProfileService, UpdateProfileArguments, UpdateProfileReturnType } from "@/services/Api/Users/ProfileApiService";
 import React, { useImperativeHandle, useMemo } from "react";
-import { View } from "react-native";
-import { Button, HelperText, TextInput } from "react-native-paper";
+import { Keyboard, TouchableWithoutFeedback, View } from "react-native";
+import { Button, HelperText } from "react-native-paper";
+import { AppTextInput } from "../ui/AppTextInput";
 import { AppFullScreenOverlay, AppFullScreenOverlayProps, AppFullScreenOverlayRef } from "../ui/AppFullScreenOverlay";
 import { AppSelect } from "../ui/AppSelect";
 import { FormField } from "../ui/FormField";
+import { AppKeyboardDismissing } from "../ui/AppKeyboardDismissing";
 
 export interface UpdateProfileForm {
   name: string;
@@ -62,53 +64,62 @@ export const ProfileFormOverlay = React.forwardRef<ProfileFormOverlayRef, Profil
 
   return (
     <AppFullScreenOverlay ref={categoryFormRef} title="Editar Perfil">
-      <View className="p-4 flex flex-col gap-2">
-        <FormField>
-          <TextInput
-            mode="outlined"
-            label="Nome*"
-            autoCapitalize="words"
-            value={profileForm.values.name}
-            onChangeText={profileForm.makeSetter("name")}
-          />
+      <AppKeyboardDismissing.ScrollView>
+        <View className="p-4 flex flex-col gap-4">
+          <FormField>
+            <AppTextInput
+              mode="outlined"
+              label="Nome*"
+              autoCapitalize="words"
+              value={profileForm.values.name}
+              onChangeText={profileForm.makeSetter("name")}
+            />
 
-          <HelperText type="error" visible={profileForm.hasError("name")}>
-            {profileForm.getError("name")}
-          </HelperText>
-        </FormField>
+            {profileForm.hasError("name") && (
+              <HelperText type="error" visible={true}>
+                {profileForm.getError("name")}
+              </HelperText>
+            )}
+          </FormField>
 
-        <FormField>
-          <TextInput mode="outlined" label="E-mail*" value={profileForm.values.email} onChangeText={profileForm.makeSetter("email")} />
+          <FormField>
+            <AppTextInput mode="outlined" label="E-mail*" value={profileForm.values.email} onChangeText={profileForm.makeSetter("email")} />
 
-          <HelperText type="error" visible={profileForm.hasError("email")}>
-            {profileForm.getError("email")}
-          </HelperText>
-        </FormField>
+            {profileForm.hasError("email") && (
+              <HelperText type="error" visible={true}>
+                {profileForm.getError("email")}
+              </HelperText>
+            )}
+          </FormField>
 
-        <FormField>
-          <AppSelect
-            closeOnSelect
-            mode="outlined"
-            label="Dia do Salário*"
-            value={String(profileForm.values.periodReferenceDay)}
-            options={dayOptions}
-            onChange={(value) => profileForm.setValue("periodReferenceDay", Number(value))}
-          />
+          <FormField>
+            <AppSelect
+              closeOnSelect
+              mode="outlined"
+              label="Dia do Salário*"
+              value={String(profileForm.values.periodReferenceDay)}
+              options={dayOptions}
+              onChange={(value) => profileForm.setValue("periodReferenceDay", Number(value))}
+            />
 
-          <HelperText type="error" visible={profileForm.hasError("periodReferenceDay")}>
-            {profileForm.getError("periodReferenceDay")}
-          </HelperText>
-        </FormField>
+            {profileForm.hasError("periodReferenceDay") && (
+              <HelperText type="error" visible={true}>
+                {profileForm.getError("periodReferenceDay")}
+              </HelperText>
+            )}
+          </FormField>
 
-        <Button
-          mode="contained"
-          onPress={() => profileUpdateMutation.mutateAsync(profileForm.values)}
-          loading={profileUpdateMutation.isPending}
-          disabled={profileUpdateMutation.isPending || profileForm.hasErrors}
-        >
-          Salvar
-        </Button>
-      </View>
+          <Button
+            className="mt-2"
+            mode="contained"
+            onPress={() => profileUpdateMutation.mutateAsync(profileForm.values)}
+            loading={profileUpdateMutation.isPending}
+            disabled={profileUpdateMutation.isPending || profileForm.hasErrors}
+          >
+            Salvar
+          </Button>
+        </View>
+      </AppKeyboardDismissing.ScrollView>
     </AppFullScreenOverlay>
   );
 });

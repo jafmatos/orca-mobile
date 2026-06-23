@@ -12,16 +12,17 @@ import {
   UpdateScheduleReturnType,
 } from "@/services/Api/ScheduleApiService";
 import React, { useImperativeHandle, useMemo } from "react";
-import { View } from "react-native";
-import { Button, HelperText, SegmentedButtons, TextInput } from "react-native-paper";
+import { Keyboard, TouchableWithoutFeedback, View } from "react-native";
+import { Button, HelperText, SegmentedButtons, TextInput as PaperTextInput } from "react-native-paper";
+import { AppTextInput } from "../ui/AppTextInput";
 import { AppCurrencyInput } from "../ui/AppCurrencyInput";
-import { AppDatePicker } from "../ui/AppDatePicker";
 import { AppFullScreenOverlay, AppFullScreenOverlayRef } from "../ui/AppFullScreenOverlay";
 import { AppSelect } from "../ui/AppSelect";
 import { FormField } from "../ui/FormField";
 import { AppDropdownSelect } from "../ui/AppDropdownSelect";
 import { AppTimePicker } from "../ui/AppTimePicker";
 import { ApiErrorResponseData } from "@/models/ApiErrorResponseData";
+import { AppKeyboardDismissing } from "../ui/AppKeyboardDismissing";
 
 export type ScheduleCreateOrUpdateForm = CreateScheduleBody &
   UpdateScheduleBody & {
@@ -61,8 +62,6 @@ export const ScheduleFormOverlay = React.forwardRef<ScheduleFormOverlayRef, Sche
     CreateScheduleReturnType | UpdateScheduleReturnType
   >(scheduleForm, {
     mutationFn: (body) => {
-			console.log(body)
-			
       if (scheduleForm.values.id) return ScheduleService.update(scheduleForm.values.id!, body);
       else return ScheduleService.create(body);
     },
@@ -116,187 +115,204 @@ export const ScheduleFormOverlay = React.forwardRef<ScheduleFormOverlayRef, Sche
       title={!!scheduleForm.values.id ? "Editar agendamento" : "Novo agendamento"}
       onCloseAnimationFinished={() => scheduleForm.clear()}
     >
-      <View className="p-4 flex flex-col gap-2">
-        <FormField className="mb-6">
-          <SegmentedButtons
-            value={scheduleForm.values.type}
-            onValueChange={scheduleForm.makeSetter("type")}
-            buttons={[
-              {
-                label: "Despesa",
-                value: EntryTypes.Expense,
-              },
-              {
-                label: "Receita",
-                value: EntryTypes.Income,
-              },
-            ]}
-            theme={{
-              colors: {
-                secondaryContainer: theme.colors.surfaceVariant,
-                onSecondaryContainer: theme.colors.onSurfaceVariant,
-              },
-            }}
-          />
-        </FormField>
+      <AppKeyboardDismissing.ScrollView>
+        <View className="p-4 flex flex-col gap-4">
+          <FormField>
+            <SegmentedButtons
+              value={scheduleForm.values.type}
+              onValueChange={scheduleForm.makeSetter("type")}
+              buttons={[
+                {
+                  label: "Despesa",
+                  value: EntryTypes.Expense,
+                },
+                {
+                  label: "Receita",
+                  value: EntryTypes.Income,
+                },
+              ]}
+              theme={{
+                colors: {
+                  secondaryContainer: theme.colors.surfaceVariant,
+                  onSecondaryContainer: theme.colors.onSurfaceVariant,
+                },
+              }}
+            />
+          </FormField>
 
-        <FormField>
-          <AppSelect
-            mode="outlined"
-            label="Categoria"
-            value={scheduleForm.values.category?.id || ""}
-            onChange={(id) => scheduleForm.setValue("category", { id })}
-            closeOnSelect
-            options={categoryOptions}
-          />
-
-          <HelperText type="error" visible={scheduleForm.hasError("category")}>
-            {scheduleForm.getError("category")}
-          </HelperText>
-        </FormField>
-
-        <View className="flex flex-row gap-4">
-          <FormField className="grow basis-0">
-            <AppCurrencyInput
+          <FormField>
+            <AppSelect
               mode="outlined"
-              label="Valor"
-              value={scheduleForm.values.amount}
-              defaultValue={0}
-              onChange={scheduleForm.makeSetter("amount")}
-              error={scheduleForm.hasError("amount")}
+              label="Categoria"
+              value={scheduleForm.values.category?.id || ""}
+              onChange={(id) => scheduleForm.setValue("category", { id })}
+              closeOnSelect
+              options={categoryOptions}
             />
 
-            <HelperText type="error" visible={scheduleForm.hasError("amount")}>
-              {scheduleForm.getError("amount")}
-            </HelperText>
-          </FormField>
-        </View>
-
-        <FormField>
-          <TextInput
-            mode="outlined"
-            label="Descrição"
-            value={scheduleForm.values.description}
-            onChangeText={scheduleForm.makeSetter("description")}
-            autoCorrect={false}
-            spellCheck={false}
-            autoComplete="off"
-            right={
-              <TextInput.Affix
-                textStyle={{
-                  color: scheduleForm.values.description.length > 60 ? theme.colors.error : theme.colors.onBackground,
-                }}
-                text={`${scheduleForm.values.description.length}/60`}
-              />
-            }
-          />
-
-          <HelperText type="error" visible={scheduleForm.hasError("description")}>
-            {scheduleForm.getError("description")}
-          </HelperText>
-        </FormField>
-
-        <FormField>
-          <AppDropdownSelect<ScheduleFrequency>
-            label="Frequência"
-            mode="outlined"
-            value={scheduleForm.values.frequency}
-            onChange={scheduleForm.makeSetter("frequency")}
-            options={[
-              {
-                label: "Mensal",
-                value: ScheduleFrequency.Monthly,
-              },
-              {
-                label: "Semanal",
-                value: ScheduleFrequency.Weekly,
-              },
-            ]}
-            theme={{
-              colors: {
-                secondaryContainer: theme.colors.surfaceVariant,
-                onSecondaryContainer: theme.colors.onSurfaceVariant,
-              },
-            }}
-          />
-
-          <HelperText type="error" visible={scheduleForm.hasError("frequency")}>
-            {scheduleForm.getError("frequency")}
-          </HelperText>
-        </FormField>
-
-        <View className="flex flex-row gap-4">
-          {scheduleForm.values.frequency === ScheduleFrequency.Weekly ? (
-            <FormField className="grow basis-0">
-              <AppSelect
-                mode="outlined"
-                label="Dia da Semana"
-                value={scheduleForm.values.dayOfWeek?.toString() || String(new Date().getDay())}
-                onChange={(val) => scheduleForm.setValue("dayOfWeek", parseInt(val))}
-                closeOnSelect
-                options={[
-                  { label: "Domingo", value: "0" },
-                  { label: "Segunda", value: "1" },
-                  { label: "Terça", value: "2" },
-                  { label: "Quarta", value: "3" },
-                  { label: "Quinta", value: "4" },
-                  { label: "Sexta", value: "5" },
-                  { label: "Sábado", value: "6" },
-                ]}
-              />
-
-              <HelperText type="error" visible={scheduleForm.hasError("dayOfWeek")}>
-                {scheduleForm.getError("dayOfWeek")}
+            {scheduleForm.hasError("category") && (
+              <HelperText type="error" visible={true}>
+                {scheduleForm.getError("category")}
               </HelperText>
-            </FormField>
-          ) : (
+            )}
+          </FormField>
+
+          <View className="flex flex-row gap-4">
             <FormField className="grow basis-0">
-              <AppSelect<number>
-                closeOnSelect
+              <AppCurrencyInput
                 mode="outlined"
-                label="Dia do mês"
-                options={dayOfMonthOptions}
-                value={scheduleForm.values.referenceTimestamp.getDate()}
-                onChange={(value) => {
-                  const newValue = new Date(scheduleForm.values.referenceTimestamp);
+                label="Valor"
+                value={scheduleForm.values.amount}
+                defaultValue={0}
+                onChange={scheduleForm.makeSetter("amount")}
+                error={scheduleForm.hasError("amount")}
+              />
 
-                  newValue.setDate(value);
+              {scheduleForm.hasError("amount") && (
+                <HelperText type="error" visible={true}>
+                  {scheduleForm.getError("amount")}
+                </HelperText>
+              )}
+            </FormField>
+          </View>
 
-                  scheduleForm.setValue("referenceTimestamp", newValue);
-                }}
+          <FormField>
+            <AppTextInput
+              mode="outlined"
+              label="Descrição"
+              value={scheduleForm.values.description}
+              onChangeText={scheduleForm.makeSetter("description")}
+              autoCorrect={false}
+              spellCheck={false}
+              autoComplete="off"
+              right={
+                <PaperTextInput.Affix
+                  textStyle={{
+                    color: scheduleForm.values.description.length > 60 ? theme.colors.error : theme.colors.onBackground,
+                  }}
+                  text={`${scheduleForm.values.description.length}/60`}
+                />
+              }
+            />
+
+            {scheduleForm.hasError("description") && (
+              <HelperText type="error" visible={true}>
+                {scheduleForm.getError("description")}
+              </HelperText>
+            )}
+          </FormField>
+
+          <FormField>
+            <AppDropdownSelect<ScheduleFrequency>
+              label="Frequência"
+              mode="outlined"
+              value={scheduleForm.values.frequency}
+              onChange={scheduleForm.makeSetter("frequency")}
+              options={[
+                {
+                  label: "Mensal",
+                  value: ScheduleFrequency.Monthly,
+                },
+                {
+                  label: "Semanal",
+                  value: ScheduleFrequency.Weekly,
+                },
+              ]}
+              theme={{
+                colors: {
+                  secondaryContainer: theme.colors.surfaceVariant,
+                  onSecondaryContainer: theme.colors.onSurfaceVariant,
+                },
+              }}
+            />
+
+            {scheduleForm.hasError("frequency") && (
+              <HelperText type="error" visible={true}>
+                {scheduleForm.getError("frequency")}
+              </HelperText>
+            )}
+          </FormField>
+
+          <View className="flex flex-row gap-4">
+            {scheduleForm.values.frequency === ScheduleFrequency.Weekly ? (
+              <FormField className="grow basis-0">
+                <AppSelect
+                  mode="outlined"
+                  label="Dia da Semana"
+                  value={scheduleForm.values.dayOfWeek?.toString() || String(new Date().getDay())}
+                  onChange={(val) => scheduleForm.setValue("dayOfWeek", parseInt(val))}
+                  closeOnSelect
+                  options={[
+                    { label: "Domingo", value: "0" },
+                    { label: "Segunda", value: "1" },
+                    { label: "Terça", value: "2" },
+                    { label: "Quarta", value: "3" },
+                    { label: "Quinta", value: "4" },
+                    { label: "Sexta", value: "5" },
+                    { label: "Sábado", value: "6" },
+                  ]}
+                />
+
+                {scheduleForm.hasError("dayOfWeek") && (
+                  <HelperText type="error" visible={true}>
+                    {scheduleForm.getError("dayOfWeek")}
+                  </HelperText>
+                )}
+              </FormField>
+            ) : (
+              <FormField className="grow basis-0">
+                <AppSelect<number>
+                  closeOnSelect
+                  mode="outlined"
+                  label="Dia do mês"
+                  options={dayOfMonthOptions}
+                  value={scheduleForm.values.referenceTimestamp.getDate()}
+                  onChange={(value) => {
+                    const newValue = new Date(scheduleForm.values.referenceTimestamp);
+
+                    newValue.setDate(value);
+
+                    scheduleForm.setValue("referenceTimestamp", newValue);
+                  }}
+                  error={scheduleForm.hasError("referenceTimestamp")}
+                />
+
+                {scheduleForm.hasError("referenceTimestamp") && (
+                  <HelperText type="error" visible={true}>
+                    {scheduleForm.getError("referenceTimestamp")}
+                  </HelperText>
+                )}
+              </FormField>
+            )}
+
+            <FormField className="grow basis-0">
+              <AppTimePicker
+                mode="outlined"
+                label="Horário"
+                value={scheduleForm.values.referenceTimestamp}
+                onChange={(value) => scheduleForm.setValue("referenceTimestamp", value)}
                 error={scheduleForm.hasError("referenceTimestamp")}
               />
 
-              <HelperText type="error" visible={scheduleForm.hasError("referenceTimestamp")}>
-                {scheduleForm.getError("referenceTimestamp")}
-              </HelperText>
+              {scheduleForm.hasError("referenceTimestamp") && (
+                <HelperText type="error" visible={true}>
+                  {scheduleForm.getError("referenceTimestamp")}
+                </HelperText>
+              )}
             </FormField>
-          )}
+          </View>
 
-          <FormField className="grow basis-0">
-            <AppTimePicker
-              mode="outlined"
-              label="Horário"
-              value={scheduleForm.values.referenceTimestamp}
-              onChange={(value) => scheduleForm.setValue("referenceTimestamp", value)}
-              error={scheduleForm.hasError("referenceTimestamp")}
-            />
-
-            <HelperText type="error" visible={scheduleForm.hasError("referenceTimestamp")}>
-              {scheduleForm.getError("referenceTimestamp")}
-            </HelperText>
-          </FormField>
+          <Button
+            className="mt-2"
+            mode="contained"
+            onPress={() => scheduleCreateOrUpdateMutation.mutateAsync(scheduleForm.values)}
+            loading={scheduleCreateOrUpdateMutation.isPending}
+            disabled={scheduleCreateOrUpdateMutation.isPending || scheduleForm.hasErrors}
+          >
+            Pronto
+          </Button>
         </View>
-
-        <Button
-          mode="contained"
-          onPress={() => scheduleCreateOrUpdateMutation.mutateAsync(scheduleForm.values)}
-          loading={scheduleCreateOrUpdateMutation.isPending}
-          disabled={scheduleCreateOrUpdateMutation.isPending || scheduleForm.hasErrors}
-        >
-          Pronto
-        </Button>
-      </View>
+      </AppKeyboardDismissing.ScrollView>
     </AppFullScreenOverlay>
   );
 });

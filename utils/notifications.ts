@@ -44,13 +44,11 @@ export async function subscribeToPushNotifications() {
   ).data;
 
   if (pushTokenString) {
-    const data = await PushSubscriptionService.create({
+    await PushSubscriptionService.create({
       provider: PushSubscriptionProvider.Expo,
       expoPushToken: pushTokenString,
       platform: Platform.OS,
     });
-
-    console.log(data);
   }
 }
 

@@ -1,6 +1,5 @@
-import { PropsWithChildren } from "react";
 import { View } from "react-native";
-import { ActivityIndicator, Text } from "react-native-paper";
+import { ActivityIndicator, Button, Text, useTheme } from "react-native-paper";
 
 export type EndOfListWithLoadingProps = {
   isLoading?: boolean;
@@ -8,18 +7,17 @@ export type EndOfListWithLoadingProps = {
   isOnEnd?: boolean;
   endOfListText: string;
   emptyListText: string;
-  LoadingComponent?: React.ReactNode;
 };
 
 const EndOfListWithLoadingContainer = (props: React.ComponentProps<typeof View>) => {
-  return <View {...props} className={`h-[160px] flex flex-row justify-center items-start ${props.className ?? ""}`} />;
+  return <View {...props} className={`h-[160px] flex flex-row justify-center items-start pt-8 ${props.className ?? ""}`} />;
 };
 
 export function EndOfListWithLoading(props: EndOfListWithLoadingProps) {
   if (props.isLoading) {
     return (
       <EndOfListWithLoadingContainer>
-        <ActivityIndicator style={{ marginTop: 32 }} />
+        <ActivityIndicator />
       </EndOfListWithLoadingContainer>
     );
   }
@@ -37,7 +35,7 @@ export function EndOfListWithLoading(props: EndOfListWithLoadingProps) {
   if (props.isOnEnd) {
     return (
       <EndOfListWithLoadingContainer>
-        <Text variant="bodyMedium" className="!text-center" style={{ marginTop: 16 }}>
+        <Text variant="bodyMedium" className="!text-center">
           {props.endOfListText}
         </Text>
       </EndOfListWithLoadingContainer>

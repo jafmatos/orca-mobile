@@ -39,17 +39,30 @@ export type ExportEntriesArguments = {
   };
 };
 
-export type CreateEntryBody = {
-  type: EntryTypes;
-  category?: {
-    id: string;
-  };
-  amount: number;
-  description?: string;
-  when: Date;
-};
+export type CreateEntryBody =
+  | {
+      type: EntryTypes;
+      category?: {
+        id: string;
+      };
+      amount: number;
+      description?: string;
+      when: Date;
+    }
+  | FormData;
 
 export type CreateEntryReturnType = {
+  entry: Entry;
+};
+
+export type CreateSmartEntryBody =
+  | {
+      text: string;
+      now: Date;
+    }
+  | FormData;
+
+export type CreateSmartEntryReturnType = {
   entry: Entry;
 };
 
@@ -96,6 +109,14 @@ export class EntryService {
     return data;
   }
 
+  private static async _createSmart(body: CreateSmartEntryBody): Promise<CreateSmartEntryReturnType> {
+    const { data } = await $axios.post(`${this.path}/smart`, body, {
+      headers: body instanceof FormData ? { "Content-Type": "multipart/form-data" } : undefined,
+    });
+
+    return data;
+  }
+
   private static async _update(id: Entry["id"], body: UpdateEntryBody): Promise<UpdateEntryReturnType> {
     const { data } = await $axios.put(`${this.path}/${id}`, body);
 
@@ -109,8 +130,9 @@ export class EntryService {
   }
 
   public static readonly list = EntryService._list.bind(EntryService);
-  public static readonly exportEntries = EntryService._exportEntries.bind(EntryService);
   public static readonly create = EntryService._create.bind(EntryService);
   public static readonly update = EntryService._update.bind(EntryService);
   public static readonly delete = EntryService._delete.bind(EntryService);
+  public static readonly exportEntries = EntryService._exportEntries.bind(EntryService);
+  public static readonly createSmart = EntryService._createSmart.bind(EntryService);
 }

@@ -1,6 +1,5 @@
 import { useAuthUser } from "@/hooks/queries/use-auth-user";
 import { useCategories } from "@/hooks/queries/use-categories";
-import { useEntries } from "@/hooks/queries/use-entries";
 import { useAppForm } from "@/hooks/use-app-form";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useAppToast } from "@/hooks/use-app-toast";
@@ -11,7 +10,9 @@ import { File, Paths } from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import { BottomSheetRef } from "jam-bottomsheet";
 import React, { useState } from "react";
-import { Keyboard, TouchableWithoutFeedback, View } from "react-native";
+import { Keyboard, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { AppLayoutConstants } from "@/constants/layout";
 import { Button, Chip, IconButton, Searchbar, Text } from "react-native-paper";
 import { AppBottomSheet } from "../ui/AppBottomSheet";
 import { AppChipSelect } from "../ui/AppChipSelect";
@@ -86,6 +87,8 @@ export const EntrySearchOverlay = React.forwardRef<EntrySearchOverlayRef, EntryS
 
   const toast = useAppToast();
   const theme = useAppTheme();
+  const insets = useSafeAreaInsets();
+  const toastOffset = insets.top + AppLayoutConstants.headerHeight + AppLayoutConstants.toastBaseOffset;
   const filterForm = useAppForm<EntryFilterForm>({
     category: undefined,
     text: "",
@@ -124,27 +127,16 @@ export const EntrySearchOverlay = React.forwardRef<EntrySearchOverlayRef, EntryS
       toast.error({
         title: "Ops...",
         description: error.message || "Erro desconhecido",
+        topOffset: toastOffset,
       });
     },
     onSuccess: () => {
-      toast.success({
-        title: "Lançamentos exportados!",
-        description: "O arquivo foi salvo com sucesso.",
-      });
       closeEntryExport();
     },
   });
 
   const categoryQuery = useCategories();
   const user = useAuthUser();
-
-  const entriesQuery = useEntries({
-    filter,
-  });
-
-  const entries = React.useMemo(() => {
-    return entriesQuery.data?.pages.flatMap((page) => page.data) || [];
-  }, [entriesQuery.data]);
 
   React.useImperativeHandle(ref, () => {
     return {
@@ -163,8 +155,8 @@ export const EntrySearchOverlay = React.forwardRef<EntrySearchOverlayRef, EntryS
 
   const handleApplyFilters = () => {
     const values = filterForm.values;
-    setFilter(values);
 
+    setFilter(values);
     setActiveFilters({
       type: values.type ? filterTypeOptionsMap.get(values.type) : undefined,
       category: values.category ? categoryQuery.data?.data.find((c) => c.id === values.category)?.name : undefined,
@@ -173,117 +165,63 @@ export const EntrySearchOverlay = React.forwardRef<EntrySearchOverlayRef, EntryS
     closeEntryFilter();
   };
 
-  const TopBar = (
-    <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
-      <View className="flex flex-1 flex-row items-center gap-2 h-full w-full">
-        <IconButton
-          size={24}
-          style={{ marginLeft: 0, width: 44, height: 44 }}
-          iconColor={theme.colors.onBackground}
-          icon="arrow-left"
-          onPress={() => overlayRef.current?.close()}
-        />
-
-        <Searchbar
-          ref={searchBarRef}
-          style={{
-            flex: 1,
-            height: 44,
-            borderRadius: 22,
-            marginRight: 8,
-            backgroundColor: theme.colors.backdrop,
-          }}
-          inputStyle={{ minHeight: 44, color: theme.colors.onBackground }}
-          placeholderTextColor={theme.colors.onSurfaceDisabled}
-          placeholder="Pesquisar..."
-          value={filterForm.values.text || ""}
-          onChangeText={filterForm.makeSetter("text")}
-          onIconPress={() => setFilter(filterForm.values)}
-          onClearIconPress={() => {
-            const updatedFilter = filterForm.setValue("text", "");
-            setFilter(updatedFilter);
-          }}
-          onSubmitEditing={() => setFilter(filterForm.values)}
-        />
-
-        <IconButton
-          mode="contained"
-          theme={{ colors: { surfaceVariant: theme.colors.backdrop, primary: theme.colors.onBackground } }}
-          style={{ marginLeft: 0, width: 44, height: 44 }}
-          icon="tune"
-          size={24}
-          onPress={openEntryFilter}
-        />
-
-        <IconButton
-          mode="contained"
-          theme={{ colors: { surfaceVariant: theme.colors.backdrop, primary: theme.colors.onBackground } }}
-          style={{ marginLeft: 0, width: 44, height: 44 }}
-          icon="download"
-          size={24}
-          onPress={openEntryExport}
-        />
-      </View>
-    </TouchableWithoutFeedback>
-  );
-
-  const ListHeader = React.useMemo(() => {
-    return (
-      <View>
-        {Object.values(activeFilters).filter((v) => !!v).length > 0 && (
-          <View className="flex flex-row flex-wrap gap-2 pb-4">
-            {activeFilters.type && (
-              <Chip
-                compact
-                mode="outlined"
-                onClose={() => {
-                  const updatedFilter = filterForm.setValue("type", undefined);
-                  setActiveFilters({ ...activeFilters, type: undefined });
-                  setFilter(updatedFilter);
-                }}
-              >
-                {activeFilters.type}
-              </Chip>
-            )}
-
-            {activeFilters.when && (
-              <Chip
-                compact
-                mode="outlined"
-                onClose={() => {
-                  const updatedFilter = filterForm.setValue("when", undefined);
-                  setFilterDateOption(undefined);
-                  setActiveFilters({ ...activeFilters, when: undefined });
-                  setFilter(updatedFilter);
-                }}
-              >
-                {activeFilters.when}
-              </Chip>
-            )}
-
-            {activeFilters.category && (
-              <Chip
-                compact
-                mode="outlined"
-                onClose={() => {
-                  const updatedFilter = filterForm.setValue("category", undefined);
-                  setActiveFilters({ ...activeFilters, category: undefined });
-                  setFilter(updatedFilter);
-                }}
-              >
-                {activeFilters.category}
-              </Chip>
-            )}
-          </View>
-        )}
-      </View>
-    );
-  }, [activeFilters, filterForm]);
-
   return (
-    <AppFullScreenOverlay portalHostName="search-overlay" ref={overlayRef} HeaderComponent={TopBar}>
+    <AppFullScreenOverlay
+      portalHostName="search-overlay"
+      ref={overlayRef}
+      HeaderComponent={
+        <View className="flex flex-1 flex-row items-center gap-2 h-full w-full">
+          <IconButton
+            size={24}
+            style={{ marginLeft: 0, width: 44, height: 44 }}
+            iconColor={theme.colors.onBackground}
+            icon="arrow-left"
+            onPress={() => overlayRef.current?.close()}
+          />
+
+          <Searchbar
+            ref={searchBarRef}
+            style={{
+              flex: 1,
+              height: 44,
+              borderRadius: 22,
+              marginRight: 8,
+              backgroundColor: theme.colors.backdrop,
+            }}
+            inputStyle={{ minHeight: 44, color: theme.colors.onBackground }}
+            placeholderTextColor={theme.colors.onSurfaceDisabled}
+            placeholder="Pesquisar..."
+            value={filterForm.values.text || ""}
+            onChangeText={filterForm.makeSetter("text")}
+            onIconPress={() => setFilter(filterForm.values)}
+            onClearIconPress={() => {
+              const updatedFilter = filterForm.setValue("text", "");
+              setFilter(updatedFilter);
+            }}
+            onSubmitEditing={() => setFilter(filterForm.values)}
+          />
+
+          <IconButton
+            mode="contained"
+            theme={{ colors: { surfaceVariant: theme.colors.backdrop, primary: theme.colors.onBackground } }}
+            style={{ marginLeft: 0, width: 44, height: 44 }}
+            icon="tune"
+            size={24}
+            onPress={openEntryFilter}
+          />
+
+          <IconButton
+            mode="contained"
+            theme={{ colors: { surfaceVariant: theme.colors.backdrop, primary: theme.colors.onBackground } }}
+            style={{ marginLeft: 0, width: 44, height: 44 }}
+            icon="download"
+            size={24}
+            onPress={openEntryExport}
+          />
+        </View>
+      }
+    >
       <EntryList
-        data={entries}
         renderItem={({ item }) => (
           <EntryListItem
             data={item}
@@ -292,9 +230,58 @@ export const EntrySearchOverlay = React.forwardRef<EntrySearchOverlayRef, EntryS
             }}
           />
         )}
-        ListHeaderComponent={ListHeader}
-        filter={filter}
-      />
+          ListHeaderComponent={
+            <View>
+              {Object.values(activeFilters).filter((v) => !!v).length > 0 && (
+                <View className="flex flex-row flex-wrap gap-2 pb-4">
+                  {activeFilters.type && (
+                    <Chip
+                      compact
+                      mode="outlined"
+                      onClose={() => {
+                        const updatedFilter = filterForm.setValue("type", undefined);
+                        setActiveFilters({ ...activeFilters, type: undefined });
+                        setFilter(updatedFilter);
+                      }}
+                    >
+                      {activeFilters.type}
+                    </Chip>
+                  )}
+
+                  {activeFilters.when && (
+                    <Chip
+                      compact
+                      mode="outlined"
+                      onClose={() => {
+                        const updatedFilter = filterForm.setValue("when", undefined);
+                        setFilterDateOption(undefined);
+                        setActiveFilters({ ...activeFilters, when: undefined });
+                        setFilter(updatedFilter);
+                      }}
+                    >
+                      {activeFilters.when}
+                    </Chip>
+                  )}
+
+                  {activeFilters.category && (
+                    <Chip
+                      compact
+                      mode="outlined"
+                      onClose={() => {
+                        const updatedFilter = filterForm.setValue("category", undefined);
+                        setActiveFilters({ ...activeFilters, category: undefined });
+                        setFilter(updatedFilter);
+                      }}
+                    >
+                      {activeFilters.category}
+                    </Chip>
+                  )}
+                </View>
+              )}
+            </View>
+          }
+          filter={filter}
+        />
 
       <AppBottomSheet imperative ref={filterBottomSheetRef} fullscreen>
         <View className="flex flex-col gap-4">

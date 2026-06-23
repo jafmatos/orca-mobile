@@ -10,6 +10,7 @@ import { Button, Divider, Icon, IconButton, Text } from "react-native-paper";
 import { AppAvatar } from "./ui/AppAvatar";
 import { AppDrawer } from "./ui/AppDrawer";
 import { AppHideableCurrencyToggle } from "./ui/AppHideableCurrencyToggle";
+import { AppLayoutConstants } from "@/constants/layout";
 
 export interface DrawerNavigationItemProps {
   icon?: string;
@@ -78,7 +79,10 @@ export function Navigation(props: NavigationProps) {
           zIndex: 1,
         }}
       >
-        <View className="h-[72px] px-4 flex flex-row justify-between items-center">
+        <View
+          className="px-4 flex flex-row justify-between items-center"
+          style={{ height: AppLayoutConstants.headerHeight }}
+        >
           <View style={{ backgroundColor: "transparent", borderRadius: 100 }}>
             <AppAvatar
               url={user?.avatar?.url}
@@ -163,7 +167,6 @@ export function Navigation(props: NavigationProps) {
             <DrawerNavigationItem onPressCallback={closeDrawer} to={"/overview"} icon="chart-donut" text="Visão Geral" />
             <DrawerNavigationItem onPressCallback={closeDrawer} to={"/analyses"} icon="creation" text="Análises" />
             <DrawerNavigationItem onPressCallback={closeDrawer} to={"/profile"} icon="account" text="Meu Perfil" />
-            <DrawerNavigationItem onPressCallback={closeDrawer} to={"/open-finance/links"} icon="bank" text="Open Finance" />
           </View>
 
           <Button

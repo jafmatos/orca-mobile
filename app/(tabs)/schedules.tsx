@@ -25,6 +25,8 @@ import { useRouter } from "expo-router";
 import { BottomSheetRef } from "jam-bottomsheet";
 import React, { useCallback, useState } from "react";
 import { View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { AppLayoutConstants } from "@/constants/layout";
 import { Checkbox, FAB, IconButton, Text } from "react-native-paper";
 import { CreateScheduleOccurrenceReturnType, ScheduleOccurrenceService } from "@/services/Api/ScheduleOccurrenceApiService";
 import { AppSegmentedControl } from "@/components/ui/AppSegmentedControl";
@@ -85,6 +87,8 @@ export default function SchedulesScreen() {
   const toast = useAppToast();
   const theme = useAppTheme();
   const queryClient = useQueryClient();
+  const insets = useSafeAreaInsets();
+  const toastOffset = insets.top + AppLayoutConstants.headerHeight + AppLayoutConstants.subHeaderHeight + AppLayoutConstants.toastBaseOffset;
 
   const scheduleDeleteMutation = useMutation<RemoveScheduleReturnType, Error, Schedule>({
     mutationFn: (schedule) => ScheduleService.remove(schedule.id),
@@ -92,20 +96,11 @@ export default function SchedulesScreen() {
       toast.error({
         title: "Ops...",
         description: error.message || "Erro desconhecido",
+        topOffset: toastOffset,
       });
     },
     onSuccess: (data, variables) => {
-      toast.success({
-        title: "Agendamento removido!",
-      });
-
-      queryClient.setQueryData(QueryKeys.Schedule.getSchedules(), (oldData: InfiniteData<PaginatedData<Schedule>> | undefined) => {
-        if (!oldData) return oldData;
-        return {
-          ...oldData,
-          pages: oldData.pages.map((page) => ({ ...page, data: page.data.filter((schedule) => schedule.id !== variables.id) })),
-        };
-      });
+      queryClient.invalidateQueries({ queryKey: QueryKeys.Schedule.getSchedules(), refetchType: "all" });
 
       setSelectedScheduleContext(undefined);
       closeScheduleDetail();
@@ -135,6 +130,7 @@ export default function SchedulesScreen() {
         toast.error({
           title: "Ops...",
           description: error.response.data.message || "Erro desconhecido",
+          topOffset: toastOffset,
         });
       }
     },
@@ -156,11 +152,11 @@ export default function SchedulesScreen() {
       closeScheduleDetail();
     },
     onError: (error: any) => {
-      console.log(error.response?.data);
       if (error.response?.data instanceof ApiErrorResponseData) {
         toast.error({
           title: "Ops...",
           description: error.response.data.message || "Erro desconhecido",
+          topOffset: toastOffset,
         });
       }
     },
@@ -224,7 +220,7 @@ export default function SchedulesScreen() {
       <Navigation
         SubHeaderComponent={
           <AppSegmentedControl
-            style={{ height: 56 }}
+            style={{ height: AppLayoutConstants.subHeaderHeight }}
             className="w-full"
             value={viewMode}
             onChange={(value) => setViewMode(value as "list" | "calendar")}
@@ -261,46 +257,13 @@ export default function SchedulesScreen() {
       )}
 
       <AppFabOverlay>
-        <FAB icon="plus" customSize={80} onPress={() => openScheduleForm()} />
+        <FAB icon="plus" size="large" onPress={() => openScheduleForm()} />
       </AppFabOverlay>
 
       <ScheduleFormOverlay
         ref={scheduleFormOverlayRef}
         onSuccess={(schedule, mode) => {
-          if (mode === "editing") {
-            toast.success({
-              title: "Agendamento editado!",
-            });
-          } else {
-            toast.success({
-              title: "Agendamento cadastrado!",
-            });
-          }
-
-          queryClient.setQueryData(QueryKeys.Schedule.getSchedules(), (oldData: InfiniteData<PaginatedData<Schedule>> | undefined) => {
-            if (!oldData) return oldData;
-
-            if (mode === "editing") {
-              return {
-                ...oldData,
-                pages: oldData.pages.map((page) => ({
-                  ...page,
-                  data: page.data.map((item) => (item.id === schedule.id ? schedule : item)),
-                })),
-              };
-            } else {
-              return {
-                ...oldData,
-                pages: [
-                  {
-                    ...oldData.pages[0],
-                    data: [schedule, ...oldData.pages[0].data],
-                  },
-                  ...oldData.pages.slice(1),
-                ],
-              };
-            }
-          });
+          queryClient.invalidateQueries({ queryKey: QueryKeys.Schedule.getSchedules(), refetchType: "all" });
 
           closeScheduleForm();
         }}

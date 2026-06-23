@@ -16,6 +16,8 @@ import { QueryKeys } from "@/utils/QueryKeys";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import * as ImagePicker from "expo-image-picker";
 import { useEffect, useRef } from "react";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { AppLayoutConstants } from "@/constants/layout";
 import { Pressable, ScrollView, View } from "react-native";
 import { Button, Icon, IconButton, Surface, Switch, Text } from "react-native-paper";
 
@@ -25,6 +27,8 @@ export default function ProfileScreen() {
   const router = useAppRouter();
   const toast = useAppToast();
   const queryClient = useQueryClient();
+  const insets = useSafeAreaInsets();
+  const toastOffset = insets.top + AppLayoutConstants.headerHeight + AppLayoutConstants.toastBaseOffset;
 
   const avatarBottomSheetRef = useRef<AppBottomSheetRef>(null);
   const profileFormOverlayRef = useRef<ProfileFormOverlayRef>(null);
@@ -53,6 +57,7 @@ export default function ProfileScreen() {
       toast.error({
         title: "Ops...",
         description: error.response?.data?.message || error.message || "Erro ao atualizar perfil",
+        topOffset: toastOffset,
       });
     },
   });
@@ -60,11 +65,6 @@ export default function ProfileScreen() {
   const uploadAvatarMutation = useMutation({
     mutationFn: (formData: FormData) => AvatarService.update(formData),
     onSuccess: (updatedUser) => {
-      toast.success({
-        title: "Foto atualizada!",
-        description: "Seu avatar foi atualizado com sucesso.",
-      });
-
       queryClient.setQueryData(QueryKeys.User.getAuthUser(), { user: updatedUser });
 
       queryClient.invalidateQueries({ queryKey: QueryKeys.User.getAuthUser() });
@@ -73,6 +73,7 @@ export default function ProfileScreen() {
       toast.error({
         title: "Ops...",
         description: error.response?.data?.message || error.message || "Erro ao atualizar avatar",
+        topOffset: toastOffset,
       });
     },
   });
@@ -80,11 +81,6 @@ export default function ProfileScreen() {
   const removeAvatarMutation = useMutation({
     mutationFn: () => AvatarService.remove(),
     onSuccess: (updatedUser) => {
-      toast.success({
-        title: "Foto removida!",
-        description: "Seu avatar foi removido.",
-      });
-
       queryClient.setQueryData(QueryKeys.User.getAuthUser(), { user: updatedUser });
       queryClient.invalidateQueries({ queryKey: QueryKeys.User.getAuthUser() });
     },
@@ -92,6 +88,7 @@ export default function ProfileScreen() {
       toast.error({
         title: "Ops...",
         description: error.response?.data?.message || error.message || "Erro ao remover avatar",
+        topOffset: toastOffset,
       });
     },
   });
@@ -105,6 +102,7 @@ export default function ProfileScreen() {
       toast.error({
         title: "Permissão necessária",
         description: "Precisamos de permissão para acessar a galeria.",
+        topOffset: toastOffset,
       });
       return;
     }
@@ -130,6 +128,7 @@ export default function ProfileScreen() {
       toast.error({
         title: "Permissão necessária",
         description: "Precisamos de permissão para usar a câmera.",
+        topOffset: toastOffset,
       });
 
       return;
@@ -307,11 +306,6 @@ export default function ProfileScreen() {
       <ProfileFormOverlay
         ref={profileFormOverlayRef}
         onSuccess={(user) => {
-          toast.success({
-            title: "Perfil atualizado!",
-            description: "Suas alterações foram salvas com sucesso.",
-          });
-
           queryClient.setQueryData(QueryKeys.User.getAuthUser(), { user });
 
           queryClient.invalidateQueries({ queryKey: QueryKeys.User.getAuthUser() });

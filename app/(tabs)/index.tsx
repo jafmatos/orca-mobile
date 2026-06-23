@@ -6,6 +6,7 @@ import { IncomeCard } from "@/components/overview/IncomeCard";
 import { AppHideableCurrencyText } from "@/components/ui/AppHideableCurrencyText";
 import { AppSkeleton } from "@/components/ui/AppSkeleton";
 import { Conditional } from "@/components/utils/Conditional";
+import { useAnalyses } from "@/hooks/queries/use-ai-analyses";
 import { useAuthUser } from "@/hooks/queries/use-auth-user";
 import { useEntries } from "@/hooks/queries/use-entries";
 import { useKpis } from "@/hooks/queries/use-kpis";
@@ -16,7 +17,7 @@ import { ScheduleCycleStatus } from "@/models/Schedule";
 import { currencyFormatter } from "@/utils/currencyFormatter";
 import { useMemo } from "react";
 import { Pressable, ScrollView, View } from "react-native";
-import { Badge, Button, IconButton, Surface, Text } from "react-native-paper";
+import { Badge, Button, Divider, IconButton, List, Surface, Text } from "react-native-paper";
 
 export function ShortcutCard({
   icon,
@@ -65,6 +66,7 @@ export default function HomeScreen() {
   const kpisQuery = useKpis();
   const entriesQuery = useEntries();
   const schedulesQuery = useSchedules();
+  const analysesQuery = useAnalyses();
 
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
@@ -90,6 +92,10 @@ export default function HomeScreen() {
 
     return allEntries.slice(0, 3);
   }, [entriesQuery.data]);
+
+  const recentAnalysis = useMemo(() => {
+    return analysesQuery.data?.pages?.[0]?.data?.[0];
+  }, [analysesQuery.data]);
 
   const { pendingSchedules, pendingCount } = useMemo(() => {
     const allSchedules = schedulesQuery.data?.pages.flatMap((page) => page.data) || [];
@@ -134,6 +140,15 @@ export default function HomeScreen() {
 
     return { pendingSchedules: pendingList.slice(0, 3), pendingCount: count };
   }, [schedulesQuery.data]);
+
+  const hasActiveSubscription = !!user?.subscription && ["active", "trialing"].includes(user.subscription.status);
+  const showAntonioPlans = !!(
+    hasActiveSubscription &&
+    !analysesQuery.isPending &&
+    !analysesQuery.isFetching &&
+    !!recentAnalysis &&
+    recentAnalysis.output.actions.length > 0
+  );
 
   return (
     <TabbedLayout className="flex-1">
@@ -197,32 +212,76 @@ export default function HomeScreen() {
             </View>
 
             <Conditional
-              if={!entriesQuery.isPending && !entriesQuery.isFetching && !!recentEntries.length}
+              if={showAntonioPlans}
               _then={
-                <View className="py-4 px-4">
+                <View className="px-4 mb-8">
                   <View className="flex flex-row justify-between items-center mb-3">
                     <Text variant="titleMedium" style={{ fontWeight: "bold", letterSpacing: -0.2 }}>
-                      Lançamentos Recentes
+                      Planos de Ação do Antônio
                     </Text>
-                    <Button onPress={() => router.goToEntries()} compact>
-                      Ver Todos
+
+                    <Button onPress={() => router.goToAnalyses()} compact>
+                      Ver Tudo
                     </Button>
                   </View>
 
-                  {entriesQuery.isPending || entriesQuery.isFetching ? (
-                    <View className="flex gap-4">
-                      <AppSkeleton height={70} />
-                      <AppSkeleton height={70} />
-                      <AppSkeleton height={70} />
-                    </View>
-                  ) : (
-                    <View className="flex gap-4">
-                      {recentEntries.map((entry) => (
-                        <EntryListItem key={entry.id} data={entry} onPress={() => router.goToEntries()} />
+                  <View className="flex flex-col">
+                    <List.AccordionGroup>
+                      {recentAnalysis?.output.actions.slice(0, 3).map((action, i) => (
+                        <View key={i} className="flex gap-1">
+                          <List.Accordion
+                            id={i.toString()}
+                            title={action.title}
+                            titleNumberOfLines={3}
+                            titleStyle={{ fontSize: 14, color: theme.colors.onSurface, fontWeight: "bold" }}
+                            left={(props) => <List.Icon {...props} icon="lightbulb-on-outline" color={theme.colors.primary} />}
+                            style={{ backgroundColor: "transparent", paddingHorizontal: 0 }}
+                          >
+                            <List.Item
+                              title={`Por quê? ${action.effect}`}
+                              titleNumberOfLines={10}
+                              titleStyle={{ fontSize: 14, color: theme.colors.onSurfaceVariant, fontStyle: "italic" }}
+                              style={{ paddingLeft: 16, paddingRight: 0, paddingTop: 0, paddingBottom: 16 }}
+                            />
+                          </List.Accordion>
+
+                          {i < recentAnalysis.output.actions.length - 1 && <Divider />}
+                        </View>
                       ))}
-                    </View>
-                  )}
+                    </List.AccordionGroup>
+                  </View>
                 </View>
+              }
+              _else={
+                <Conditional
+                  if={!entriesQuery.isPending && !entriesQuery.isFetching && !!recentEntries.length}
+                  _then={
+                    <View className="py-4 px-4">
+                      <View className="flex flex-row justify-between items-center mb-3">
+                        <Text variant="titleMedium" style={{ fontWeight: "bold", letterSpacing: -0.2 }}>
+                          Lançamentos Recentes
+                        </Text>
+                        <Button onPress={() => router.goToEntries()} compact>
+                          Ver Todos
+                        </Button>
+                      </View>
+
+                      {entriesQuery.isPending || entriesQuery.isFetching ? (
+                        <View className="flex gap-4">
+                          <AppSkeleton height={70} />
+                          <AppSkeleton height={70} />
+                          <AppSkeleton height={70} />
+                        </View>
+                      ) : (
+                        <View className="flex gap-4">
+                          {recentEntries.map((entry) => (
+                            <EntryListItem key={entry.id} data={entry} onPress={() => router.goToEntries()} />
+                          ))}
+                        </View>
+                      )}
+                    </View>
+                  }
+                />
               }
             />
           </View>

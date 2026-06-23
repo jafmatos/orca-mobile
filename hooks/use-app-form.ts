@@ -6,10 +6,12 @@ export type AppFormErrors<Form> = (Omit<ApiValidationError, "path"> & { path: ke
 export type AppForm<Form> = {
   values: Form;
   errors: AppFormErrors<Form>;
+  error?: string;
   hasErrors: boolean;
   getError: (key: keyof Form) => string | undefined;
   hasError: (key: keyof Form) => boolean;
   setErrors: React.Dispatch<React.SetStateAction<AppFormErrors<Form>>>;
+  setError: React.Dispatch<React.SetStateAction<string | undefined>>;
   setValue: <Key extends keyof Form>(key: Key, value: Form[Key]) => Form;
   setForm: (form: Form) => Form;
   makeSetter: <Key extends keyof Form>(key: Key) => (value: Form[Key]) => void;
@@ -19,6 +21,7 @@ export type AppForm<Form> = {
 export const useAppForm = <Form>(initialState: Form): AppForm<Form> => {
   const [form, setForm] = useState<Form>(initialState);
   const [errors, setErrors] = useState<AppFormErrors<Form>>([]);
+  const [error, setError] = useState<string | undefined>(undefined);
 
   const settersRef = useRef<{ [key in keyof Form]?: (value: any) => void }>({});
 
@@ -30,6 +33,7 @@ export const useAppForm = <Form>(initialState: Form): AppForm<Form> => {
           [key]: value,
         }));
         setErrors((prevErrors) => prevErrors.filter((error) => error.path !== key));
+        setError(undefined);
       };
     }
     return settersRef.current[key] as (value: Form[Key]) => void;
@@ -46,6 +50,7 @@ export const useAppForm = <Form>(initialState: Form): AppForm<Form> => {
         [key]: value,
       }));
       setErrors((prevErrors) => prevErrors.filter((error) => error.path !== key));
+      setError(undefined);
 
       return newForm;
     },
@@ -61,6 +66,7 @@ export const useAppForm = <Form>(initialState: Form): AppForm<Form> => {
   const clear = useCallback(() => {
     setForm(initialState);
     setErrors([]);
+    setError(undefined);
   }, [initialState]);
 
   const getError = useCallback(
@@ -82,11 +88,13 @@ export const useAppForm = <Form>(initialState: Form): AppForm<Form> => {
   return {
     values: form,
     errors: errors,
+    error: error,
     hasErrors: !!errors.length,
     makeSetter,
     setValue,
     setForm: _setForm,
     setErrors,
+    setError,
     getError,
     hasError,
     clear,

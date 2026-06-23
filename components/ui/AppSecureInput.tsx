@@ -1,15 +1,16 @@
 import { useState } from "react";
-import { TextInput } from "react-native-paper";
+import { TextInput as PaperTextInput } from "react-native-paper";
+import { AppTextInput } from "./AppTextInput";
 
-export type AppSecureInputProps = React.ComponentProps<typeof TextInput>;
+export type AppSecureInputProps = React.ComponentProps<typeof AppTextInput>;
 
 export function AppSecureInput(props: AppSecureInputProps) {
   const [isContentVisible, setIsContentVisible] = useState(false);
 
   return (
-    <TextInput
+    <AppTextInput
       secureTextEntry={!isContentVisible}
-      right={<TextInput.Icon icon={isContentVisible ? "eye" : "eye-off"} onPress={() => setIsContentVisible(!isContentVisible)} />}
+      right={<PaperTextInput.Icon icon={isContentVisible ? "eye" : "eye-off"} onPress={() => setIsContentVisible(!isContentVisible)} />}
       {...props}
     />
   );

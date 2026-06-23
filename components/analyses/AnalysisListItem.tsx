@@ -1,15 +1,14 @@
 import { useAppTheme } from "@/hooks/use-app-theme";
-import { AIAnalysis } from "@/models/AIAnalysis";
-import { LinearGradient } from "expo-linear-gradient";
+import { Analysis } from "@/models/Analysis";
 import React from "react";
 import { Pressable, View } from "react-native";
 import { Icon, Surface, Text } from "react-native-paper";
 
-export interface AIAnalysisListItemProps extends React.ComponentProps<typeof Pressable> {
-  analysis: AIAnalysis;
+export interface AnalysisListItemProps extends React.ComponentProps<typeof Pressable> {
+  analysis: Analysis;
 }
 
-export function AIAnalysisListItem({ analysis, ...pressableProps }: AIAnalysisListItemProps) {
+export function AnalysisListItem({ analysis, ...pressableProps }: AnalysisListItemProps) {
   const theme = useAppTheme();
 
   const issuesCount = analysis.output.issues.length;

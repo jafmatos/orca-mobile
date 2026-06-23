@@ -14,6 +14,7 @@ import { BottomSheetProvider } from "jam-bottomsheet";
 import * as SplashScreen from "expo-splash-screen";
 import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from "@expo-google-fonts/inter";
 import { useEffect } from "react";
+import { AppToast } from "@/components/AppToast";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -90,6 +91,8 @@ export default function RootLayout() {
               </Stack>
 
               <SystemBars style={appThemeName === "dark" ? "light" : "dark"} />
+							
+              <AppToast />
             </QueryClientProvider>
           </BottomSheetProvider>
         </PortalProvider>

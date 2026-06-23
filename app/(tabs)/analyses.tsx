@@ -1,34 +1,38 @@
-import { AIAnalysisList } from "@/components/analyses/AIAnalysisList";
-import { AIAnalysisListItem } from "@/components/analyses/AIAnalysisListItem";
-import { AIAnalysisGenerationLoadingOverlay } from "@/components/analyses/AIAnalysisGenerationLoadingOverlay";
+import { AnalysisGenerationLoadingOverlay } from "@/components/analyses/AnalysisGenerationLoadingOverlay";
+import { AnalysisList } from "@/components/analyses/AnalysisList";
+import { AnalysisListItem } from "@/components/analyses/AnalysisListItem";
 import { TabbedLayout } from "@/components/layouts/TabbedLayout";
 import { Navigation } from "@/components/Navigation";
+import { AppAntonioAvatar } from "@/components/ui/AppAntonioAvatar";
 import { AppBottomSheet } from "@/components/ui/AppBottomSheet";
 import { AppConfirmationDialog } from "@/components/ui/AppConfirmationDialog";
 import { AppFabOverlay } from "@/components/ui/AppFabOverlay";
 import { AppSkeleton } from "@/components/ui/AppSkeleton";
+import { AppLayoutConstants } from "@/constants/layout";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useAppToast } from "@/hooks/use-app-toast";
-import { AIAnalysis } from "@/models/AIAnalysis";
+import { Analysis } from "@/models/Analysis";
 import { ApiErrorResponseData } from "@/models/ApiErrorResponseData";
-import { AIAnalysisService, CreateAIAnalysisReturnType, DeleteAIAnalysisReturnType } from "@/services/Api/AIAnalysisApiService";
+import { AnalysisService, CreateAnalysisReturnType, DeleteAnalysisReturnType } from "@/services/Api/AnalysisApiService";
 import { QueryKeys } from "@/utils/QueryKeys";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { LinearGradient } from "expo-linear-gradient";
 import { BottomSheetRef } from "jam-bottomsheet";
 import React, { useCallback, useState } from "react";
 import { ScrollView, View } from "react-native";
 import { Divider, FAB, Icon, IconButton, Text } from "react-native-paper";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function AnalysesScreen() {
-  const [selectedAnalysis, setSelectedAnalysis] = useState<AIAnalysis>();
+  const [selectedAnalysis, setSelectedAnalysis] = useState<Analysis>();
   const detailBottomSheetRef = React.useRef<BottomSheetRef>(null);
 
   const theme = useAppTheme();
   const toast = useAppToast();
   const queryClient = useQueryClient();
+  const insets = useSafeAreaInsets();
+  const toastOffset = insets.top + AppLayoutConstants.headerHeight + AppLayoutConstants.toastBaseOffset;
 
-  const openAnalysisDetail = useCallback((analysis: AIAnalysis) => {
+  const openAnalysisDetail = useCallback((analysis: Analysis) => {
     detailBottomSheetRef.current?.open({
       onFinished: () => setSelectedAnalysis(analysis),
     });
@@ -40,14 +44,14 @@ export default function AnalysesScreen() {
     });
   }, []);
 
-  const createAnalysisMutation = useMutation<CreateAIAnalysisReturnType, Error, void>({
+  const createAnalysisMutation = useMutation<CreateAnalysisReturnType, Error, void>({
     mutationFn: async () => {
-      return AIAnalysisService.create();
+      return AnalysisService.create();
     },
     onSuccess: (data) => {
-      queryClient.setQueryData(QueryKeys.AIAnalysis.getAnalyses(), (oldData: any) => {
+      queryClient.setQueryData(QueryKeys.Analysis.getAnalyses(), (oldData: any) => {
         if (!oldData || !oldData.pages) return oldData;
-        
+
         const newPages = [...oldData.pages];
 
         if (newPages.length > 0) {
@@ -56,7 +60,7 @@ export default function AnalysesScreen() {
             data: [data.analysis, ...newPages[0].data],
           };
         }
-        
+
         return {
           ...oldData,
           pages: newPages,
@@ -70,25 +74,25 @@ export default function AnalysesScreen() {
         toast.error({
           title: "Ops...",
           description: error.response.data.message || "Erro ao gerar análise",
+          topOffset: toastOffset,
         });
       } else {
         toast.error({
           title: "Ops...",
           description: "Ocorreu um erro inesperado ao gerar a análise.",
+          topOffset: toastOffset,
         });
       }
     },
   });
 
-  const deleteAnalysisMutation = useMutation<DeleteAIAnalysisReturnType, Error, string>({
+  const deleteAnalysisMutation = useMutation<DeleteAnalysisReturnType, Error, string>({
     mutationFn: async (id) => {
-      return AIAnalysisService.delete(id);
+      return AnalysisService.delete(id);
     },
     onSuccess: () => {
-      toast.success({
-        title: "Análise removida!",
-      });
-      queryClient.invalidateQueries({ queryKey: QueryKeys.AIAnalysis.getAnalyses(), refetchType: "all" });
+      queryClient.invalidateQueries({ queryKey: QueryKeys.Analysis.getAnalyses(), refetchType: "all" });
+
       closeAnalysisDetail();
     },
     onError: (error: any) => {
@@ -96,14 +100,15 @@ export default function AnalysesScreen() {
         toast.error({
           title: "Ops...",
           description: error.response.data.message || "Erro ao remover análise",
+          topOffset: toastOffset,
         });
       }
     },
   });
 
   const renderItem = useCallback(
-    ({ item }: { item: AIAnalysis }) => {
-      return <AIAnalysisListItem analysis={item} onPress={() => openAnalysisDetail(item)} />;
+    ({ item }: { item: Analysis }) => {
+      return <AnalysisListItem analysis={item} onPress={() => openAnalysisDetail(item)} />;
     },
     [openAnalysisDetail],
   );
@@ -112,16 +117,11 @@ export default function AnalysesScreen() {
     <TabbedLayout>
       <Navigation hideCurrencyToggle />
 
-      <AIAnalysisList
+      <AnalysisList
         renderItem={renderItem}
         ListHeaderComponent={
           <View className="flex flex-col items-center mt-4 mb-8">
-            <LinearGradient
-              colors={[theme.colors.primary, theme.colors.tertiary]}
-              style={{ borderRadius: 24, padding: 24, justifyContent: "center", alignItems: "center", marginBottom: 16 }}
-            >
-              <Icon source="robot-outline" size={48} color={theme.colors.onPrimary} />
-            </LinearGradient>
+            <AppAntonioAvatar size="large" className="mb-4" />
 
             <Text variant="headlineSmall" style={{ fontWeight: "900", textAlign: "center" }}>
               Olá, eu sou o Antônio!
@@ -140,7 +140,7 @@ export default function AnalysesScreen() {
 
       <AppFabOverlay>
         <FAB
-          customSize={80}
+          size="large"
           icon="creation"
           theme={{
             colors: {
@@ -153,7 +153,7 @@ export default function AnalysesScreen() {
         />
       </AppFabOverlay>
 
-      <AIAnalysisGenerationLoadingOverlay visible={createAnalysisMutation.isPending} />
+      <AnalysisGenerationLoadingOverlay visible={createAnalysisMutation.isPending} />
 
       <AppBottomSheet
         imperative
@@ -168,12 +168,7 @@ export default function AnalysesScreen() {
             <View className="flex flex-col gap-6">
               <View className="flex flex-row justify-between items-start gap-4">
                 <View className="flex flex-row gap-4 flex-1">
-                  <LinearGradient
-                    colors={[theme.colors.primary, theme.colors.tertiary]}
-                    style={{ borderRadius: 16, padding: 12, justifyContent: "center", alignItems: "center" }}
-                  >
-                    <Icon source="robot-outline" size={32} color={theme.colors.onPrimary} />
-                  </LinearGradient>
+                  <AppAntonioAvatar size="medium" />
 
                   <View className="flex flex-col gap-1" style={{ flexShrink: 1 }}>
                     <Text style={{ fontWeight: "bold" }} variant="titleLarge">

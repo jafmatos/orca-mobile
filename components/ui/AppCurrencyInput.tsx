@@ -8,11 +8,14 @@ export interface AppCurrencyInputProps extends Omit<React.ComponentProps<typeof 
   onChange?: (value: number) => void;
 }
 
-export function AppCurrencyInput({ value, defaultValue, onChange, ...props }: AppCurrencyInputProps) {
+export function AppCurrencyInput({ value, defaultValue, onChange, onFocus, onBlur, ...props }: AppCurrencyInputProps) {
   const [_value, _setValue] = React.useState(value || defaultValue);
+  const isFocused = React.useRef(false);
 
   useEffect(() => {
-    _setValue(value);
+    if (!isFocused.current || value === 0 || value === undefined) {
+      _setValue(value);
+    }
   }, [value]);
 
   return (
@@ -29,6 +32,14 @@ export function AppCurrencyInput({ value, defaultValue, onChange, ...props }: Ap
           _setValue(newValue);
           onChange?.(newValue);
         }
+      }}
+      onFocus={(e) => {
+        isFocused.current = true;
+        if (onFocus) onFocus(e as any);
+      }}
+      onBlur={(e) => {
+        isFocused.current = false;
+        if (onBlur) onBlur(e as any);
       }}
       mode="outlined"
       maxLength={23}

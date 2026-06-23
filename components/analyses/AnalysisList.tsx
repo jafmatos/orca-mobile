@@ -1,24 +1,25 @@
-import { AIAnalysis } from "@/models/AIAnalysis";
-import { useAIAnalyses } from "@/hooks/queries/use-ai-analyses";
+import { useAnalyses } from "@/hooks/queries/use-ai-analyses";
+import { Analysis } from "@/models/Analysis";
+import { PaginatedData } from "@/models/PaginatedData";
+import { useMemo } from "react";
 import { FlatList, ListRenderItem, View } from "react-native";
 import { EndOfListWithLoading } from "../EndOfListWithLoading";
-import { useMemo } from "react";
-import { PaginatedData } from "@/models/PaginatedData";
+import { AppKeyboardDismissing } from "../ui/AppKeyboardDismissing";
 
-export interface AIAnalysisListProps extends Partial<React.ComponentProps<typeof FlatList<AIAnalysis>>> {
-  renderItem: ListRenderItem<AIAnalysis>;
-  onFetchSuccess?: (data?: PaginatedData<AIAnalysis>) => void;
+export interface AnalysisListProps extends Partial<React.ComponentProps<typeof FlatList<Analysis>>> {
+  renderItem: ListRenderItem<Analysis>;
+  onFetchSuccess?: (data?: PaginatedData<Analysis>) => void;
 }
 
-export function AIAnalysisList(props: AIAnalysisListProps) {
-  const analysesQuery = useAIAnalyses({
+export function AnalysisList(props: AnalysisListProps) {
+  const analysesQuery = useAnalyses({
     onSuccess: props.onFetchSuccess,
   });
 
   const analyses = useMemo(() => analysesQuery.data?.pages.flatMap((page) => page.data) || [], [analysesQuery.data]);
 
   return (
-    <FlatList
+    <AppKeyboardDismissing.FlatList
       style={{ flex: 1 }}
       contentContainerClassName="p-4 pb-32"
       ItemSeparatorComponent={() => <View className="h-4" />}

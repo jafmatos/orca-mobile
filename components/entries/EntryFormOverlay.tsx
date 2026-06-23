@@ -11,8 +11,9 @@ import {
   UpdateEntryReturnType,
 } from "@/services/Api/EntryApiService";
 import React, { useImperativeHandle, useMemo } from "react";
-import { View } from "react-native";
-import { Button, HelperText, SegmentedButtons, TextInput } from "react-native-paper";
+import { ScrollView, View } from "react-native";
+import { Button, HelperText, SegmentedButtons, TextInput as PaperTextInput } from "react-native-paper";
+import { AppTextInput } from "../ui/AppTextInput";
 import { AppCurrencyInput } from "../ui/AppCurrencyInput";
 import { AppDatePicker } from "../ui/AppDatePicker";
 import { AppFullScreenOverlay, AppFullScreenOverlayRef } from "../ui/AppFullScreenOverlay";
@@ -91,8 +92,8 @@ export const EntryFormOverlay = React.forwardRef<EntryFormOverlayRef, EntryFormO
       title={!!entryForm.values.id ? "Editar lançamento" : "Novo lançamento"}
       onCloseAnimationFinished={() => entryForm.clear()}
     >
-      <View className="p-4 flex flex-col gap-2">
-        <FormField className="mb-6">
+      <ScrollView contentContainerClassName="p-4 flex flex-col gap-4" keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+        <FormField>
           <SegmentedButtons
             value={entryForm.values.type}
             onValueChange={entryForm.makeSetter("type")}
@@ -125,9 +126,11 @@ export const EntryFormOverlay = React.forwardRef<EntryFormOverlayRef, EntryFormO
             options={categoryOptions}
           />
 
-          <HelperText type="error" visible={entryForm.hasError("category")}>
-            {entryForm.getError("category")}
-          </HelperText>
+          {entryForm.hasError("category") && (
+            <HelperText type="error" visible={true}>
+              {entryForm.getError("category")}
+            </HelperText>
+          )}
         </FormField>
 
         <View className="flex flex-row items-center gap-4">
@@ -141,9 +144,11 @@ export const EntryFormOverlay = React.forwardRef<EntryFormOverlayRef, EntryFormO
               error={entryForm.hasError("amount")}
             />
 
-            <HelperText type="error" visible={entryForm.hasError("amount")}>
-              {entryForm.getError("amount")}
-            </HelperText>
+            {entryForm.hasError("amount") && (
+              <HelperText type="error" visible={true}>
+                {entryForm.getError("amount")}
+              </HelperText>
+            )}
           </FormField>
 
           <FormField className="grow basis-0">
@@ -155,14 +160,16 @@ export const EntryFormOverlay = React.forwardRef<EntryFormOverlayRef, EntryFormO
               error={entryForm.hasError("when")}
             />
 
-            <HelperText type="error" visible={entryForm.hasError("when")}>
-              {entryForm.getError("when")}
-            </HelperText>
+            {entryForm.hasError("when") && (
+              <HelperText type="error" visible={true}>
+                {entryForm.getError("when")}
+              </HelperText>
+            )}
           </FormField>
         </View>
 
         <FormField>
-          <TextInput
+          <AppTextInput
             mode="outlined"
             label="Descrição"
             value={entryForm.values.description}
@@ -171,7 +178,7 @@ export const EntryFormOverlay = React.forwardRef<EntryFormOverlayRef, EntryFormO
             spellCheck={false}
             autoComplete="off"
             right={
-              <TextInput.Affix
+              <PaperTextInput.Affix
                 textStyle={{
                   color: entryForm.values.description.length > 60 ? theme.colors.error : theme.colors.onBackground,
                 }}
@@ -180,12 +187,15 @@ export const EntryFormOverlay = React.forwardRef<EntryFormOverlayRef, EntryFormO
             }
           />
 
-          <HelperText type="error" visible={entryForm.hasError("description")}>
-            {entryForm.getError("description")}
-          </HelperText>
+          {entryForm.hasError("description") && (
+            <HelperText type="error" visible={true}>
+              {entryForm.getError("description")}
+            </HelperText>
+          )}
         </FormField>
 
         <Button
+          className="mt-2"
           mode="contained"
           onPress={() => entryCreateOrUpdateMutation.mutateAsync(entryForm.values)}
           loading={entryCreateOrUpdateMutation.isPending}
@@ -193,7 +203,7 @@ export const EntryFormOverlay = React.forwardRef<EntryFormOverlayRef, EntryFormO
         >
           Pronto
         </Button>
-      </View>
+      </ScrollView>
     </AppFullScreenOverlay>
   );
 });

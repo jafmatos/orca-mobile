@@ -24,6 +24,7 @@ export default function TabLayout() {
   return (
     <GestureHandlerRootView>
       <StatusBar style={statusBarStyle} backgroundColor="transparent" translucent />
+			
       <KeyboardAvoidingComponent
         style={{
           position: "relative",
@@ -101,12 +102,6 @@ export default function TabLayout() {
               name="analyses"
               options={{
                 title: "Análises",
-                href: null,
-              }}
-            />
-            <Tabs.Screen
-              name="open-finance"
-              options={{
                 href: null,
               }}
             />

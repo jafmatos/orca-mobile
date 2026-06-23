@@ -12,6 +12,8 @@ import { AppTextSwitch } from "@/components/ui/AppTextSwitch";
 import { AppSkeleton } from "@/components/ui/AppSkeleton";
 import { AppHideableCurrencyToggle } from "@/components/ui/AppHideableCurrencyToggle";
 
+import { AppErrorState } from "@/components/ui/AppErrorState";
+
 export enum MonthlyEvolutionChartMode {
   Balance = "balance",
   Cashflow = "cashflow",
@@ -222,10 +224,18 @@ export function MonthlyEvolutionChart(props: MonthlyEvolutionChartProps) {
     return data;
   }, [historyData, theme.colors.primary, theme.colors.outlineVariant, theme.colors.onSurfaceVariant, theme.roundness]);
 
+  if (monthlyEvolutionQuery.isError) {
+    return (
+      <View className="p-6">
+        <AppErrorState message={monthlyEvolutionQuery.error?.message} onRetry={() => monthlyEvolutionQuery.refetch()} />
+      </View>
+    );
+  }
+
   return (
     <AppChartContainer className="py-6">
       <AppChartContainer.Content className="flex gap-4">
-        <View className="flex flex-row gap-4 items-center">
+        <View className="flex flex-row gap-4 items-center px-6">
           <AppChartContainer.Title>Evolução Mensal</AppChartContainer.Title>
 
           <AppHideableCurrencyToggle size={18} />

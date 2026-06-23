@@ -14,6 +14,8 @@ import { View } from "react-native";
 import { FlatList } from "react-native-gesture-handler";
 import { ProgressBar, Text } from "react-native-paper";
 
+import { AppErrorState } from "@/components/ui/AppErrorState";
+
 export interface LimitsMonitorChartRef {
   query: UseQueryResult<GetExpenseByCategoryReturnType, Error>;
 }
@@ -115,6 +117,14 @@ export const LimitsMonitorChart = React.forwardRef<LimitsMonitorChartRef, Limits
       query: expenseByCategoryQuery,
     };
   });
+
+  if (expenseByCategoryQuery.isError) {
+    return (
+      <View className="p-6">
+        <AppErrorState message={expenseByCategoryQuery.error?.message} onRetry={() => expenseByCategoryQuery.refetch()} />
+      </View>
+    );
+  }
 
   return (
     <AppChartContainer className="p-6">

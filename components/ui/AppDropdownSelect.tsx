@@ -33,6 +33,7 @@ export function AppDropdownSelect<T extends string | number>({
 
   const toggleOpen = () => {
     if (props.disabled) return;
+
     Keyboard.dismiss();
     setIsOpen(!isOpen);
   };

@@ -13,6 +13,8 @@ import { FlatList, View } from "react-native";
 import { PieChart, pieDataItem } from "react-native-gifted-charts";
 import { Text } from "react-native-paper";
 
+import { AppErrorState } from "@/components/ui/AppErrorState";
+
 export interface ExpenseByCategoryChartRef {
   query: UseQueryResult<GetExpenseByCategoryReturnType, Error>;
 }
@@ -61,6 +63,14 @@ export const ExpenseByCategoryChart = React.forwardRef<ExpenseByCategoryChartRef
         query: expenseByCategoryQuery,
       };
     });
+
+    if (expenseByCategoryQuery.isError) {
+      return (
+        <View className="p-6">
+          <AppErrorState message={expenseByCategoryQuery.error?.message} onRetry={() => expenseByCategoryQuery.refetch()} />
+        </View>
+      );
+    }
 
     return (
       <AppChartContainer className="p-6">

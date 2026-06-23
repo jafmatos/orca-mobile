@@ -16,11 +16,15 @@ import { QueryKeys } from "@/utils/QueryKeys";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { AppLayoutConstants } from "@/constants/layout";
 import { FAB } from "react-native-paper";
 
 export default function CategoriesScreen() {
   const queryClient = useQueryClient();
   const toast = useAppToast();
+  const insets = useSafeAreaInsets();
+  const toastOffset = insets.top + AppLayoutConstants.headerHeight + AppLayoutConstants.subHeaderHeight + AppLayoutConstants.toastBaseOffset;
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [selectedType, setSelectedType] = useState<CategoryTypes | undefined>(undefined);
   const categoryDeleteDialogRef = useRef<AppConfirmationDialogRef>(null);
@@ -41,18 +45,12 @@ export default function CategoriesScreen() {
       toast.error({
         title: "Ops...",
         description: error.message || "Erro desconhecido",
+        topOffset: toastOffset,
       });
     },
     onSuccess: () => {
-      toast.success({
-        title: "Categoria removida!",
-        description: "Atualize a lista para ver as modificações.",
-      });
-
       refreshList();
-
       queryClient.invalidateQueries({ queryKey: QueryKeys.Overview.getKpis() });
-
       queryClient.invalidateQueries({ queryKey: QueryKeys.Overview.getExpenseByCategory() });
     },
   });
@@ -100,7 +98,7 @@ export default function CategoriesScreen() {
       <Navigation
         SubHeaderComponent={
           <AppSegmentedControl<CategoryTypes>
-            style={{ height: 56 }}
+            style={{ height: AppLayoutConstants.subHeaderHeight }}
             allowUnselect
             options={[
               { label: "Despesas", value: CategoryTypes.Expense },
@@ -115,7 +113,7 @@ export default function CategoriesScreen() {
       <CategoryList renderItem={renderItem} data={categories} />
 
       <AppFabOverlay>
-        <FAB icon="plus" customSize={80} onPress={openCategoryForm} />
+        <FAB icon="plus" size="large" onPress={openCategoryForm} />
       </AppFabOverlay>
 
       <AppConfirmationDialog
@@ -135,36 +133,8 @@ export default function CategoriesScreen() {
       <CategoryFormOverlay
         ref={categoryFormRef}
         onSuccess={(category, mode) => {
-          if (mode === "editing") {
-            toast.success({
-              title: "Categoria editada!",
-              description: "A lista foi atualizada com sucesso.",
-            });
-          } else {
-            toast.success({
-              title: "Categoria cadastrada!",
-              description: "A lista foi atualizada com sucesso.",
-            });
-          }
-
-          queryClient.setQueryData<any>(QueryKeys.Category.getCategories(), (oldData: any) => {
-            if (!oldData) return oldData;
-
-            if (mode === "editing") {
-              return {
-                ...oldData,
-                data: oldData.data.map((c: Category) => (c.id === category.id ? category : c)),
-              };
-            } else {
-              return {
-                ...oldData,
-                data: [...oldData.data, category],
-              };
-            }
-          });
-
           queryClient.invalidateQueries({ queryKey: [QueryKeys.Overview.getKpis()[0]] });
-          queryClient.invalidateQueries({ queryKey: QueryKeys.Category.getCategories() });
+          refreshList();
           closeCategoryForm();
         }}
       />

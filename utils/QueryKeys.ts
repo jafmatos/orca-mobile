@@ -15,7 +15,7 @@ export class EntryQueryKeys {
 
   public static getEntriesFiltered(queryKey: readonly unknown[]) {
     const baseListKey = this.getEntries();
-		
+
     return queryKey[0] === baseListKey[0] && queryKey[1] === baseListKey[1] && queryKey.length > baseListKey.length;
   }
 }
@@ -56,8 +56,8 @@ export class ScheduleQueryKeys {
   }
 }
 
-export class AIAnalysisQueryKeys {
-  private static readonly baseKey = "ai-analyses";
+export class AnalysisQueryKeys {
+  private static readonly baseKey = "analyses";
 
   public static getAnalyses() {
     return [this.baseKey, "list"];
@@ -70,5 +70,5 @@ export class QueryKeys {
   public static readonly Category = CategoryQueryKeys;
   public static readonly Overview = OverviewQueryKeys;
   public static readonly Schedule = ScheduleQueryKeys;
-  public static readonly AIAnalysis = AIAnalysisQueryKeys;
+  public static readonly Analysis = AnalysisQueryKeys;
 }

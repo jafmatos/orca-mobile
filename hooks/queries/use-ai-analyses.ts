@@ -1,19 +1,19 @@
-import { AIAnalysisService, ListAIAnalysesArguments } from "@/services/Api/AIAnalysisApiService";
+import { Analysis } from "@/models/Analysis";
+import { PaginatedData } from "@/models/PaginatedData";
+import { AnalysisService, ListAnalysesArguments } from "@/services/Api/AnalysisApiService";
 import { QueryKeys } from "@/utils/QueryKeys";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { AIAnalysis } from "@/models/AIAnalysis";
-import { PaginatedData } from "@/models/PaginatedData";
 
-export interface UseAIAnalysesOptions {
-  onSuccess?: (data?: PaginatedData<AIAnalysis>) => void;
-  variables?: ListAIAnalysesArguments;
+export interface UseAnalysesOptions {
+  onSuccess?: (data?: PaginatedData<Analysis>) => void;
+  variables?: ListAnalysesArguments;
 }
 
-export const useAIAnalyses = (options?: UseAIAnalysesOptions) => {
+export const useAnalyses = (options?: UseAnalysesOptions) => {
   return useInfiniteQuery({
-    queryKey: QueryKeys.AIAnalysis.getAnalyses(),
+    queryKey: QueryKeys.Analysis.getAnalyses(),
     queryFn: async ({ pageParam = 1 }) => {
-      const data = await AIAnalysisService.list({
+      const data = await AnalysisService.list({
         query: {
           page: pageParam,
           perPage: 10,
@@ -30,8 +30,8 @@ export const useAIAnalyses = (options?: UseAIAnalysesOptions) => {
     },
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
-      if (lastPage.meta.currentPage < lastPage.meta.lastPage) {
-        return lastPage.meta.currentPage + 1;
+      if (lastPage.meta.page < lastPage.meta.pages) {
+        return lastPage.meta.page + 1;
       }
       return undefined;
     },

@@ -1,4 +1,5 @@
 import { FullScreenLayout } from "@/components/layouts/FullScreenLayout";
+import { AppKeyboardDismissing } from "@/components/ui/AppKeyboardDismissing";
 import { AppOTPInput } from "@/components/ui/AppOTPInput";
 import { FormField } from "@/components/ui/FormField";
 import { useAppForm } from "@/hooks/use-app-form";
@@ -32,36 +33,42 @@ export default function ConfirmSignUpScreen() {
 
   return (
     <FullScreenLayout>
-      <View className="w-screen h-full p-6 flex flex-col justify-center">
-        <View className="flex flex-col gap-2">
-          <Text variant="headlineMedium">Nós te enviamos um código!</Text>
-          <Text variant="bodyMedium">Para confirmar o cadastro, digite o código que te enviamos pelo e-mail.</Text>
-          <View className="flex gap-2">
-            <FormField>
-              <AppOTPInput
-                label="Código*"
-                placeholder="Digite o código de verificação"
-                mode="outlined"
-                value={form.values.otp}
-                onChangeText={form.makeSetter("otp")}
-                error={form.hasError("otp")}
-              />
-              <HelperText type="error" visible={form.hasError("otp")}>
-                {form.getError("otp")}
-              </HelperText>
-            </FormField>
+      <AppKeyboardDismissing.ScrollView>
+        <View className="p-6 flex flex-col justify-center min-h-full">
+          <View className="flex flex-col gap-2">
+            <Text variant="headlineMedium">Nós te enviamos um código!</Text>
+            <Text variant="bodyMedium">Para confirmar o cadastro, digite o código que te enviamos pelo e-mail.</Text>
 
-            <Button
-              mode="contained"
-              onPress={() => confirmSignUpMutation.mutateAsync(form.values)}
-              disabled={form.values.otp?.length !== 6 || form.hasErrors || confirmSignUpMutation.isPending}
-              loading={confirmSignUpMutation.isPending}
-            >
-              Confirmar
-            </Button>
+            <View className="flex gap-4">
+              <FormField>
+                <AppOTPInput
+                  label="Código*"
+                  placeholder="Digite o código de verificação"
+                  mode="outlined"
+                  value={form.values.otp}
+                  onChangeText={form.makeSetter("otp")}
+                  error={form.hasError("otp")}
+                />
+                {form.hasError("otp") && (
+                  <HelperText type="error" visible={true}>
+                    {form.getError("otp")}
+                  </HelperText>
+                )}
+              </FormField>
+
+              <Button
+                className="mt-2"
+                mode="contained"
+                onPress={() => confirmSignUpMutation.mutateAsync(form.values)}
+                disabled={form.values.otp?.length !== 6 || form.hasErrors || confirmSignUpMutation.isPending}
+                loading={confirmSignUpMutation.isPending}
+              >
+                Confirmar
+              </Button>
+            </View>
           </View>
         </View>
-      </View>
+      </AppKeyboardDismissing.ScrollView>
     </FullScreenLayout>
   );
 }

@@ -3,6 +3,7 @@ import Toast from "react-native-toast-message";
 export type AppToastArguments = {
   title?: string;
   description?: string;
+  topOffset?: number;
 };
 
 export const useAppToast = () => {
@@ -11,6 +12,7 @@ export const useAppToast = () => {
       type: "success",
       text1: props.title,
       text2: props.description,
+      topOffset: props.topOffset,
     });
   };
 
@@ -19,6 +21,7 @@ export const useAppToast = () => {
       type: "warning",
       text1: props.title,
       text2: props.description,
+      topOffset: props.topOffset,
     });
   };
 
@@ -27,6 +30,7 @@ export const useAppToast = () => {
       type: "error",
       text1: props.title,
       text2: props.description,
+      topOffset: props.topOffset,
     });
   };
 

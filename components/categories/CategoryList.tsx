@@ -4,9 +4,11 @@ import { useMemo } from "react";
 import { ListRenderItem, View } from "react-native";
 import { FlatList } from "react-native-gesture-handler";
 import { EndOfListWithLoading } from "../EndOfListWithLoading";
+import { AppErrorState } from "../ui/AppErrorState";
+import { AppKeyboardDismissing } from "../ui/AppKeyboardDismissing";
 
 export interface CategoryListProps {
-  data: ArrayLike<Category>;
+  data?: ArrayLike<Category>;
   ListHeaderComponent?: React.ReactElement;
   renderItem: ListRenderItem<Category>;
 }
@@ -14,12 +16,18 @@ export interface CategoryListProps {
 export const CategoryList = (props: CategoryListProps) => {
   const categoriesQuery = useCategories();
 
-  const categories = useMemo(() => {
+  const internalCategories = useMemo(() => {
     return categoriesQuery.data?.data;
   }, [categoriesQuery.data]);
 
+  const categories = props.data || internalCategories;
+
+  if (categoriesQuery.isError && (!categories || categories.length === 0)) {
+    return <AppErrorState message={categoriesQuery.error?.message} onRetry={() => categoriesQuery.refetch()} />;
+  }
+
   return (
-    <FlatList
+    <AppKeyboardDismissing.FlatList
       style={{ flex: 1 }}
       ListHeaderComponent={props.ListHeaderComponent}
       ListFooterComponent={
@@ -34,7 +42,7 @@ export const CategoryList = (props: CategoryListProps) => {
         </View>
       }
       contentContainerClassName="py-4"
-      data={props.data || categories}
+      data={categories}
       renderItem={props.renderItem}
       ItemSeparatorComponent={() => <View className="h-4" />}
     />

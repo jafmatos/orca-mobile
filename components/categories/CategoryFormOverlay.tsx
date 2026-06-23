@@ -10,11 +10,13 @@ import {
   UpdateCategoryReturnType,
 } from "@/services/Api/CategoryApiService";
 import React, { useImperativeHandle } from "react";
-import { View } from "react-native";
-import { Button, HelperText, SegmentedButtons, TextInput } from "react-native-paper";
+import { Keyboard, View } from "react-native";
+import { Button, HelperText, SegmentedButtons, TextInput as PaperTextInput } from "react-native-paper";
+import { AppTextInput } from "../ui/AppTextInput";
 import { AppCurrencyInput } from "../ui/AppCurrencyInput";
 import { AppFullScreenOverlay, AppFullScreenOverlayProps, AppFullScreenOverlayRef } from "../ui/AppFullScreenOverlay";
 import { FormField } from "../ui/FormField";
+import { AppKeyboardDismissing } from "../ui/AppKeyboardDismissing";
 
 export type CategoryCreateOrUpdateForm = Required<CreateCategoryBody & UpdateCategoryBody> & {
   id?: Category["id"];
@@ -55,6 +57,7 @@ export const CategoryFormOverlay = React.forwardRef<CategoryFormOverlayRef, Cate
     CreateCategoryReturnType | UpdateCategoryReturnType
   >(categoryForm, {
     mutationFn: (body) => {
+      console.log(body);
       if (categoryForm.values.id) return CategoryService.update(categoryForm.values.id!, body);
       else return CategoryService.create(body);
     },
@@ -72,88 +75,95 @@ export const CategoryFormOverlay = React.forwardRef<CategoryFormOverlayRef, Cate
       title={categoryForm.values.id ? "Editar categoria" : "Nova categoria"}
       onCloseAnimationFinished={() => categoryForm.clear()}
     >
-      <View className="p-4 flex flex-col gap-2">
-        <FormField className="mb-6">
-          <SegmentedButtons
-            value={categoryForm.values.type}
-            onValueChange={(type) => {
-              categoryForm.setForm({
-                ...categoryForm.values,
-                type,
-                limit:
-                  type === CategoryTypes.Income
-                    ? null
-                    : {
-                        ...categoryForm.values.limit,
-                        amount: categoryForm.values.limit?.amount || 0,
-                      },
-              });
-            }}
-            buttons={[
-              {
-                label: "Despesa",
-                value: CategoryTypes.Expense,
-              },
-              {
-                label: "Receita",
-                value: CategoryTypes.Income,
-              },
-            ]}
-            theme={{
-              colors: {
-                secondaryContainer: theme.colors.surfaceVariant,
-                onSecondaryContainer: theme.colors.onSurfaceVariant,
-              },
-            }}
-          />
-        </FormField>
+      <AppKeyboardDismissing.ScrollView>
+        <View className="p-4 flex flex-col gap-4">
+          <FormField>
+            <SegmentedButtons
+              value={categoryForm.values.type}
+              onValueChange={(type) => {
+                categoryForm.setForm({
+                  ...categoryForm.values,
+                  type,
+                  limit:
+                    type === CategoryTypes.Income
+                      ? null
+                      : {
+                          ...categoryForm.values.limit,
+                          amount: categoryForm.values.limit?.amount || 0,
+                        },
+                });
+              }}
+              buttons={[
+                {
+                  label: "Despesa",
+                  value: CategoryTypes.Expense,
+                },
+                {
+                  label: "Receita",
+                  value: CategoryTypes.Income,
+                },
+              ]}
+              theme={{
+                colors: {
+                  secondaryContainer: theme.colors.surfaceVariant,
+                  onSecondaryContainer: theme.colors.onSurfaceVariant,
+                },
+              }}
+            />
+          </FormField>
 
-        <FormField>
-          <TextInput
-            mode="outlined"
-            label="Nome*"
-            placeholder="Nome da categoria"
-            value={categoryForm.values.name}
-            onChangeText={categoryForm.makeSetter("name")}
-            right={
-              <TextInput.Affix
-                textStyle={{
-                  color: categoryForm.values.name.length > 40 ? theme.colors.error : theme.colors.onBackground,
-                }}
-                text={`${categoryForm.values.name.length}/40`}
-              />
-            }
-          />
+          <FormField>
+            <AppTextInput
+              mode="outlined"
+              label="Nome*"
+              placeholder="Nome da categoria"
+              value={categoryForm.values.name}
+              onChangeText={categoryForm.makeSetter("name")}
+              right={
+                <PaperTextInput.Affix
+                  textStyle={{
+                    color: categoryForm.values.name.length > 40 ? theme.colors.error : theme.colors.onBackground,
+                  }}
+                  text={`${categoryForm.values.name.length}/40`}
+                />
+              }
+            />
 
-          <HelperText type="error" visible={categoryForm.hasError("name")}>
-            {categoryForm.getError("name")}
-          </HelperText>
-        </FormField>
+            {categoryForm.hasError("name") && (
+              <HelperText type="error" visible={true}>
+                {categoryForm.getError("name")}
+              </HelperText>
+            )}
+          </FormField>
 
-        <FormField>
-          <AppCurrencyInput
-            mode="outlined"
-            label="Limite"
-            placeholder="Limite"
-            value={categoryForm.values.limit?.amount}
-            onChange={(value) => categoryForm.setValue("limit", value ? { ...categoryForm.values.limit, amount: value } : null)}
-            disabled={categoryForm.values.type === CategoryTypes.Income}
-          />
+          <FormField>
+            <AppCurrencyInput
+              mode="outlined"
+              label="Limite"
+              placeholder="Limite"
+              value={categoryForm.values.limit?.amount}
+              onChange={(value) => categoryForm.setValue("limit", value ? { ...categoryForm.values.limit, amount: value } : null)}
+              disabled={categoryForm.values.type === CategoryTypes.Income}
+            />
 
-          <HelperText type="error" visible={categoryForm.hasError("limit")}>
-            {categoryForm.getError("limit")}
-          </HelperText>
-        </FormField>
+            {categoryForm.hasError("limit") && (
+              <HelperText type="error" visible={true}>
+                {categoryForm.getError("limit")}
+              </HelperText>
+            )}
+          </FormField>
 
-        <Button
-          mode="contained"
-          onPress={() => categoryCreateOrUpdateMutation.mutateAsync(categoryForm.values)}
-          loading={categoryCreateOrUpdateMutation.isPending}
-          disabled={categoryCreateOrUpdateMutation.isPending || categoryForm.hasErrors}
-        >
-          Pronto
-        </Button>
-      </View>
+          <Button
+            className="mt-2"
+            mode="contained"
+            onPress={() => categoryCreateOrUpdateMutation.mutateAsync(categoryForm.values)}
+            loading={categoryCreateOrUpdateMutation.isPending}
+            disabled={categoryCreateOrUpdateMutation.isPending || categoryForm.hasErrors}
+          >
+            Pronto
+          </Button>
+        </View>
+      </AppKeyboardDismissing.ScrollView>
     </AppFullScreenOverlay>
   );
 });

@@ -55,7 +55,13 @@
         }
       ],
       "expo-font",
-      "expo-notifications"
+      "expo-notifications",
+      [
+        "expo-av",
+        {
+          "microphonePermission": "Permita o acesso ao microfone para ditar seus lançamentos."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

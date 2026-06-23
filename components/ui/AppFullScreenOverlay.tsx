@@ -7,6 +7,7 @@ import Animated, { useAnimatedReaction, useAnimatedStyle, useSharedValue, withSp
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { scheduleOnRN, scheduleOnUI } from "react-native-worklets";
 import { Conditional } from "../utils/Conditional";
+import { AppKeyboardDismissing } from "./AppKeyboardDismissing";
 
 export type AnimationCallback = () => void;
 
@@ -19,6 +20,7 @@ export interface AppFullScreenOverlayProps extends Omit<React.ComponentProps<typ
   portalHostName?: string;
   title?: string;
   HeaderComponent?: React.ReactNode;
+  HeaderRightComponent?: React.ReactNode;
   backdropOpacity?: number;
   animationDuration?: number;
   onOpenAnimationStarted?: AnimationCallback;
@@ -53,7 +55,9 @@ export const AppFullScreenOverlay = React.forwardRef<AppFullScreenOverlayRef, Ap
   const backdropColor = theme.colors.backdrop;
   const isVisibleSharedValue = useSharedValue(false);
 
-  const dismissKeyboard = () => Keyboard.dismiss();
+  const dismissKeyboard = () => {
+    Keyboard.dismiss();
+  };
 
   const open = useCallback(
     (hooks?: AnimationHooks) => {
@@ -209,28 +213,33 @@ export const AppFullScreenOverlay = React.forwardRef<AppFullScreenOverlayRef, Ap
               boxShadow: `0 1px 3px -2px ${theme.colors.outlineVariant}`,
             }}
           >
-            <Conditional
-              if={!!props.HeaderComponent}
-              _then={props.HeaderComponent}
-              _else={
-                <View className="flex-row gap-2 items-center">
-                  <IconButton
-                    size={24}
-                    style={{ marginLeft: 0, width: 44, height: 44 }}
-                    iconColor={theme.colors.onBackground}
-                    icon="arrow-left"
-                    onPress={() => scheduleOnRN(close)}
-                  />
+            <AppKeyboardDismissing.View>
+              <Conditional
+                if={!!props.HeaderComponent}
+                _then={props.HeaderComponent}
+                _else={
+                  <View className="flex-row gap-2 items-center flex-1 justify-between">
+                    <View className="flex-row gap-2 items-center flex-1 pr-4">
+                      <IconButton
+                        size={24}
+                        style={{ marginLeft: 0, width: 44, height: 44 }}
+                        iconColor={theme.colors.onBackground}
+                        icon="arrow-left"
+                        onPress={() => scheduleOnRN(close)}
+                      />
 
-                  <Text variant="titleLarge">{props.title ?? ""}</Text>
-                </View>
-              }
-            />
+                      <Text variant="titleLarge" numberOfLines={1} style={{ flexShrink: 1 }}>
+                        {props.title ?? ""}
+                      </Text>
+                    </View>
+                    {props.HeaderRightComponent && <View>{props.HeaderRightComponent}</View>}
+                  </View>
+                }
+              />
+            </AppKeyboardDismissing.View>
           </View>
 
-          <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-            <View style={{ flex: 1 }}>{props.children}</View>
-          </TouchableWithoutFeedback>
+          <View style={{ flex: 1 }}>{props.children}</View>
         </Animated.View>
       </Animated.View>
     </Portal>

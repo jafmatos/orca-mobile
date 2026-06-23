@@ -2,9 +2,11 @@ import Toast, { BaseToast, ToastConfigParams } from "react-native-toast-message"
 import { View } from "react-native";
 import { Icon } from "react-native-paper";
 import { useAppTheme } from "@/hooks/use-app-theme";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export function AppToast(props: React.ComponentProps<typeof Toast>) {
   const theme = useAppTheme();
+  const insets = useSafeAreaInsets();
 
   const makeToast = (color: string, icon?: React.ReactNode) => {
     // eslint-disable-next-line react/display-name
@@ -43,6 +45,7 @@ export function AppToast(props: React.ComponentProps<typeof Toast>) {
       {...props}
       autoHide
       position="top"
+      topOffset={props.topOffset ?? insets.top + 8}
       swipeable
       visibilityTime={5000}
       config={{

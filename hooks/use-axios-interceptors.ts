@@ -25,7 +25,6 @@ export const useAxiosInterceptors = () => {
   $axios.interceptors.response.use(
     (response) => response,
     (error) => {
-      console.log(error);
       if (error instanceof AxiosError && error.response?.status === 401) {
         AppAuthenticationTokenStore.remove();
 

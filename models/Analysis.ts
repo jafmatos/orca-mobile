@@ -1,4 +1,4 @@
-export interface AIAnalysis {
+export interface Analysis {
   id: string;
   inputTokens?: number;
   outputTokens?: number;

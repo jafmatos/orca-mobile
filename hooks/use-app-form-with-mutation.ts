@@ -3,7 +3,11 @@ import { useMutation, UseMutationOptions } from "@tanstack/react-query";
 import { AxiosError, isAxiosError } from "axios";
 import { AppForm } from "./use-app-form";
 import { useAppToast } from "./use-app-toast";
-import { ApiErrorResponseData } from "@/models/ApiErrorResponseData";
+import { isApiValidationError } from "@/utils/isApiValidationError";
+
+export interface AppMutationOptions<TData, TError, TVariables> extends UseMutationOptions<TData, TError, TVariables> {
+  toastOffset?: number;
+}
 
 export const useAppFormWithMutation = <
   Form,
@@ -12,7 +16,7 @@ export const useAppFormWithMutation = <
   TError = AxiosError<Error & { errors?: ApiValidationError[] }>,
 >(
   appForm: AppForm<Form>,
-  mutationConfig: UseMutationOptions<TData, TError, TVariables>,
+  mutationConfig: AppMutationOptions<TData, TError, TVariables>
 ) => {
   const toast = useAppToast();
   const mutation = useMutation<TData, TError, TVariables>({
@@ -26,8 +30,9 @@ export const useAppFormWithMutation = <
         return;
       }
 
-      if (err.response?.status === 422 && err.response.data instanceof ApiErrorResponseData) {
+      if (err.response?.status === 422 && isApiValidationError(err.response?.data)) {
         appForm.setErrors((err.response.data.errors || []) as any);
+        appForm.setError(err.response.data.message);
 
         return;
       }
@@ -35,6 +40,7 @@ export const useAppFormWithMutation = <
       toast.error({
         title: "Ops...",
         description: err.response?.data.message || "Erro desconhecido",
+        topOffset: mutationConfig.toastOffset,
       });
     },
   });
