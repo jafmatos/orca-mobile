@@ -1,23 +1,15 @@
 import { useCategories } from "@/hooks/queries/use-categories";
-import { AppForm, useAppForm } from "@/hooks/use-app-form";
-import { useAppFormWithMutation } from "@/hooks/use-app-form-with-mutation";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { Entry, EntryTypes } from "@/models/Entry";
-import {
-  CreateEntryBody,
-  CreateEntryReturnType,
-  EntryService,
-  UpdateEntryBody,
-  UpdateEntryReturnType,
-} from "@/services/Api/EntryApiService";
+import { CreateEntryBody, UpdateEntryBody } from "@/services/Api/EntryApiService";
 import React, { useImperativeHandle, useMemo } from "react";
 import { ScrollView, View } from "react-native";
-import { Button, HelperText, SegmentedButtons, TextInput as PaperTextInput } from "react-native-paper";
-import { AppTextInput } from "../ui/AppTextInput";
+import { Button, HelperText, IconButton, TextInput as PaperTextInput, SegmentedButtons } from "react-native-paper";
 import { AppCurrencyInput } from "../ui/AppCurrencyInput";
 import { AppDatePicker } from "../ui/AppDatePicker";
 import { AppFullScreenOverlay, AppFullScreenOverlayRef } from "../ui/AppFullScreenOverlay";
 import { AppSelect } from "../ui/AppSelect";
+import { AppTextInput } from "../ui/AppTextInput";
 import { FormField } from "../ui/FormField";
 
 export type EntryCreateOrUpdateForm = Required<CreateEntryBody & UpdateEntryBody> & {
@@ -25,58 +17,38 @@ export type EntryCreateOrUpdateForm = Required<CreateEntryBody & UpdateEntryBody
 };
 
 export interface EntryFormOverlayProps {
-  onSuccess: (entry: Entry, mode: "creating" | "editing") => void;
+  title: string;
+  values: EntryCreateOrUpdateForm;
+  errors?: Partial<Record<keyof EntryCreateOrUpdateForm, string>>;
+  hasErrors?: boolean;
+  isSubmitting?: boolean;
+  submitButtonText: string;
+  onChange: <Key extends keyof EntryCreateOrUpdateForm>(key: Key, value: EntryCreateOrUpdateForm[Key]) => void;
+  onSubmit: () => void;
+  onDelete?: () => void;
 }
 
-export type EntryFormOverlayRef = AppFullScreenOverlayRef & {
-  form: AppForm<EntryCreateOrUpdateForm>;
-};
+export type EntryFormOverlayRef = AppFullScreenOverlayRef;
 
 export const EntryFormOverlay = React.forwardRef<EntryFormOverlayRef, EntryFormOverlayProps>(function EntryForm(
   props: EntryFormOverlayProps,
   ref,
 ) {
   const theme = useAppTheme();
-  const entryForm = useAppForm<EntryCreateOrUpdateForm>({
-    type: EntryTypes.Expense,
-    category: {
-      id: "",
-    },
-    amount: 0,
-    description: "",
-    when: new Date(),
-  });
   const categoryQuery = useCategories();
   const overlayRef = React.useRef<AppFullScreenOverlayRef>(null);
 
-  const { mutation: entryCreateOrUpdateMutation } = useAppFormWithMutation<
-    EntryCreateOrUpdateForm,
-    CreateEntryBody & UpdateEntryBody,
-    CreateEntryReturnType | UpdateEntryReturnType
-  >(entryForm, {
-    mutationFn: (body) => {
-      if (entryForm.values.id) return EntryService.update(entryForm.values.id!, body);
-      else return EntryService.create(body);
-    },
-    onSuccess: (data) => {
-      entryForm.clear();
-
-      props.onSuccess?.(data.entry, entryForm.values.id ? "editing" : "creating");
-    },
-  });
-
   useImperativeHandle(ref, () => {
     return {
-      open: () => overlayRef.current?.open(),
-      close: () => overlayRef.current?.close(),
-      form: entryForm,
+      open: (...params: Parameters<AppFullScreenOverlayRef["open"]>) => overlayRef.current?.open(...params),
+      close: (...params: Parameters<AppFullScreenOverlayRef["close"]>) => overlayRef.current?.close(...params),
     };
   });
 
   const categoryOptions = useMemo(() => {
     return (
       categoryQuery.data?.data
-        .filter((category) => category.type === (entryForm.values.type as string))
+        .filter((category) => category.type === (props.values.type as string))
         .map((category) => {
           return {
             label: category.name,
@@ -84,19 +56,27 @@ export const EntryFormOverlay = React.forwardRef<EntryFormOverlayRef, EntryFormO
           };
         }) || []
     );
-  }, [categoryQuery.data?.data, entryForm.values.type]);
+  }, [categoryQuery.data?.data, props.values.type]);
 
   return (
-    <AppFullScreenOverlay
-      ref={overlayRef}
-      title={!!entryForm.values.id ? "Editar lançamento" : "Novo lançamento"}
-      onCloseAnimationFinished={() => entryForm.clear()}
+    <AppFullScreenOverlay 
+      ref={overlayRef} 
+      title={props.title}
+      HeaderRightComponent={
+        props.onDelete ? (
+          <IconButton icon="trash-can-outline" iconColor={theme.colors.error} onPress={props.onDelete} />
+        ) : undefined
+      }
     >
-      <ScrollView contentContainerClassName="p-4 flex flex-col gap-4" keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerClassName="p-4 flex flex-col gap-4"
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
         <FormField>
           <SegmentedButtons
-            value={entryForm.values.type}
-            onValueChange={entryForm.makeSetter("type")}
+            value={props.values.type}
+            onValueChange={(value) => props.onChange("type", value)}
             buttons={[
               {
                 label: "Despesa",
@@ -120,15 +100,15 @@ export const EntryFormOverlay = React.forwardRef<EntryFormOverlayRef, EntryFormO
           <AppSelect
             mode="outlined"
             label="Categoria"
-            value={entryForm.values.category?.id}
-            onChange={(id) => entryForm.setValue("category", { id })}
+            value={props.values.category?.id}
+            onChange={(id) => props.onChange("category", { id })}
             closeOnSelect
             options={categoryOptions}
           />
 
-          {entryForm.hasError("category") && (
+          {props.errors?.category && (
             <HelperText type="error" visible={true}>
-              {entryForm.getError("category")}
+              {props.errors?.category}
             </HelperText>
           )}
         </FormField>
@@ -138,15 +118,14 @@ export const EntryFormOverlay = React.forwardRef<EntryFormOverlayRef, EntryFormO
             <AppCurrencyInput
               mode="outlined"
               label="Valor"
-              value={entryForm.values.amount}
+              value={props.values.amount}
               defaultValue={0}
-              onChange={entryForm.makeSetter("amount")}
-              error={entryForm.hasError("amount")}
+              onChange={(value) => props.onChange("amount", value)}
             />
 
-            {entryForm.hasError("amount") && (
+            {props.errors?.amount && (
               <HelperText type="error" visible={true}>
-                {entryForm.getError("amount")}
+                {props.errors?.amount}
               </HelperText>
             )}
           </FormField>
@@ -155,14 +134,14 @@ export const EntryFormOverlay = React.forwardRef<EntryFormOverlayRef, EntryFormO
             <AppDatePicker
               mode="outlined"
               label="Data"
-              value={entryForm.values.when}
-              onChange={entryForm.makeSetter("when")}
-              error={entryForm.hasError("when")}
+              value={props.values.when}
+              onChange={(value) => props.onChange("when", value)}
+              error={!!props.errors?.when}
             />
 
-            {entryForm.hasError("when") && (
+            {props.errors?.when && (
               <HelperText type="error" visible={true}>
-                {entryForm.getError("when")}
+                {props.errors?.when}
               </HelperText>
             )}
           </FormField>
@@ -172,24 +151,24 @@ export const EntryFormOverlay = React.forwardRef<EntryFormOverlayRef, EntryFormO
           <AppTextInput
             mode="outlined"
             label="Descrição"
-            value={entryForm.values.description}
-            onChangeText={entryForm.makeSetter("description")}
+            value={props.values.description}
+            onChangeText={(value) => props.onChange("description", value)}
             autoCorrect={false}
             spellCheck={false}
             autoComplete="off"
             right={
               <PaperTextInput.Affix
                 textStyle={{
-                  color: entryForm.values.description.length > 60 ? theme.colors.error : theme.colors.onBackground,
+                  color: props.values.description.length > 60 ? theme.colors.error : theme.colors.onBackground,
                 }}
-                text={`${entryForm.values.description.length}/60`}
+                text={`${props.values.description.length}/60`}
               />
             }
           />
 
-          {entryForm.hasError("description") && (
+          {props.errors?.description && (
             <HelperText type="error" visible={true}>
-              {entryForm.getError("description")}
+              {props.errors?.description}
             </HelperText>
           )}
         </FormField>
@@ -197,11 +176,11 @@ export const EntryFormOverlay = React.forwardRef<EntryFormOverlayRef, EntryFormO
         <Button
           className="mt-2"
           mode="contained"
-          onPress={() => entryCreateOrUpdateMutation.mutateAsync(entryForm.values)}
-          loading={entryCreateOrUpdateMutation.isPending}
-          disabled={entryCreateOrUpdateMutation.isPending || entryForm.hasErrors}
+          onPress={props.onSubmit}
+          loading={props.isSubmitting}
+          disabled={props.isSubmitting || props.hasErrors}
         >
-          Pronto
+          {props.submitButtonText}
         </Button>
       </ScrollView>
     </AppFullScreenOverlay>

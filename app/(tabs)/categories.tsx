@@ -1,7 +1,6 @@
 import { Navigation } from "@/components/Navigation";
 import { CategoryFormOverlay, CategoryFormOverlayRef } from "@/components/categories/CategoryFormOverlay";
 import { CategoryList } from "@/components/categories/CategoryList";
-import { CategoryListHeader } from "@/components/categories/CategoryListHeader";
 import { CategoryListItem } from "@/components/categories/CategoryListItem";
 import { TabbedLayout } from "@/components/layouts/TabbedLayout";
 import { AppConfirmationDialog, AppConfirmationDialogRef } from "@/components/ui/AppConfirmationDialog";
@@ -21,10 +20,12 @@ import { AppLayoutConstants } from "@/constants/layout";
 import { FAB } from "react-native-paper";
 
 export default function CategoriesScreen() {
+  const theme = useAppTheme();
   const queryClient = useQueryClient();
   const toast = useAppToast();
   const insets = useSafeAreaInsets();
-  const toastOffset = insets.top + AppLayoutConstants.headerHeight + AppLayoutConstants.subHeaderHeight + AppLayoutConstants.toastBaseOffset;
+  const toastOffset =
+    insets.top + AppLayoutConstants.headerHeight + AppLayoutConstants.subHeaderHeight + AppLayoutConstants.toastBaseOffset;
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [selectedType, setSelectedType] = useState<CategoryTypes | undefined>(undefined);
   const categoryDeleteDialogRef = useRef<AppConfirmationDialogRef>(null);

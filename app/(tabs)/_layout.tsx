@@ -24,7 +24,7 @@ export default function TabLayout() {
   return (
     <GestureHandlerRootView>
       <StatusBar style={statusBarStyle} backgroundColor="transparent" translucent />
-			
+
       <KeyboardAvoidingComponent
         style={{
           position: "relative",
@@ -33,7 +33,7 @@ export default function TabLayout() {
       >
         <View style={{ position: "absolute", top: 0, left: 0, right: 0, height: insets.top, backgroundColor: topSafeAreaBg, zIndex: 1 }} />
 
-        <SafeAreaComponent className="grow" keyboardHandled>
+        <SafeAreaComponent className="grow">
           <Tabs
             screenOptions={{
               tabBarActiveTintColor: theme.colors.primary,

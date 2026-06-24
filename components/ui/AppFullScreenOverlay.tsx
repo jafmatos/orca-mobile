@@ -44,6 +44,13 @@ export const AppFullScreenOverlay = React.forwardRef<AppFullScreenOverlayRef, Ap
   const SCREEN_HEIGHT = screenDimensions.height;
   const overlayOpenedTranslateX = 0;
   const overlayClosedTranslateX = SCREEN_WIDTH;
+  
+  const {
+    onOpenAnimationStarted,
+    onOpenAnimationFinished,
+    onCloseAnimationStarted,
+    onCloseAnimationFinished,
+  } = props;
 
   const [isOpen, setIsOpen] = useState(false);
 
@@ -66,7 +73,7 @@ export const AppFullScreenOverlay = React.forwardRef<AppFullScreenOverlayRef, Ap
       isVisibleSharedValue.value = true;
 
       if (hooks?.onStarted) scheduleOnRN(hooks.onStarted);
-      if (props.onOpenAnimationStarted) scheduleOnRN(props.onOpenAnimationStarted);
+      if (onOpenAnimationStarted) scheduleOnRN(onOpenAnimationStarted);
 
       isOpenSharedValue.value = true;
       translateXSharedValue.value = withSpring(overlayOpenedTranslateX, { duration: animationDuration });
@@ -74,7 +81,7 @@ export const AppFullScreenOverlay = React.forwardRef<AppFullScreenOverlayRef, Ap
         if (!finished) return;
 
         if (hooks?.onFinished) scheduleOnRN(hooks.onFinished);
-        if (props.onOpenAnimationFinished) scheduleOnRN(props.onOpenAnimationFinished);
+        if (onOpenAnimationFinished) scheduleOnRN(onOpenAnimationFinished);
       });
     },
     [
@@ -83,8 +90,8 @@ export const AppFullScreenOverlay = React.forwardRef<AppFullScreenOverlayRef, Ap
       backdropOpacitySharedValue,
       isOpenSharedValue,
       isVisibleSharedValue,
-      props.onOpenAnimationFinished,
-      props.onOpenAnimationStarted,
+      onOpenAnimationFinished,
+      onOpenAnimationStarted,
       translateXSharedValue,
     ],
   );
@@ -96,7 +103,7 @@ export const AppFullScreenOverlay = React.forwardRef<AppFullScreenOverlayRef, Ap
       scheduleOnRN(dismissKeyboard);
 
       if (hooks?.onStarted) scheduleOnRN(hooks.onStarted);
-      if (props.onCloseAnimationStarted) scheduleOnRN(props.onCloseAnimationStarted);
+      if (onCloseAnimationStarted) scheduleOnRN(onCloseAnimationStarted);
 
       isOpenSharedValue.value = false;
       translateXSharedValue.value = withSpring(overlayClosedTranslateX, { duration: animationDuration });
@@ -104,14 +111,14 @@ export const AppFullScreenOverlay = React.forwardRef<AppFullScreenOverlayRef, Ap
         if (!isFinished) return;
 
         if (hooks?.onFinished) scheduleOnRN(hooks?.onFinished);
-        if (props.onCloseAnimationFinished) scheduleOnRN(props.onCloseAnimationFinished);
+        if (onCloseAnimationFinished) scheduleOnRN(onCloseAnimationFinished);
 
         isVisibleSharedValue.value = false;
       });
     },
     [
-      props.onCloseAnimationStarted,
-      props.onCloseAnimationFinished,
+      onCloseAnimationStarted,
+      onCloseAnimationFinished,
       isOpenSharedValue,
       isVisibleSharedValue,
       translateXSharedValue,

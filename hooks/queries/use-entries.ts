@@ -1,12 +1,12 @@
 import { Entry } from "@/models/Entry";
-import { PaginatedData } from "@/models/PaginatedData";
+import { CursorPaginatedData } from "@/models/PaginatedData";
 import { EntryService, ListEntriesArguments } from "@/services/Api/EntryApiService";
 import { QueryKeys } from "@/utils/QueryKeys";
 import { useInfiniteQuery } from "@tanstack/react-query";
 
 export interface UseEntriesOptions {
   filter?: NonNullable<NonNullable<ListEntriesArguments>["query"]>["filter"];
-  onSuccess?: (data?: PaginatedData<Entry>) => void;
+  onSuccess?: (data?: CursorPaginatedData<Entry>) => void;
 }
 
 export const useEntries = (options?: UseEntriesOptions) => {
@@ -15,7 +15,7 @@ export const useEntries = (options?: UseEntriesOptions) => {
     queryFn: async ({ pageParam }) => {
       const data = await EntryService.list({
         query: {
-          page: pageParam,
+          cursor: pageParam || undefined,
           perPage: 10,
           filter: options?.filter,
         },
@@ -26,11 +26,11 @@ export const useEntries = (options?: UseEntriesOptions) => {
       return data;
     },
     getNextPageParam: (lastPage) => {
-      if (lastPage.meta.page >= lastPage.meta.pages) return;
+      if (!lastPage.meta.nextCursor) return;
 
-      return lastPage.meta.page + 1;
+      return lastPage.meta.nextCursor;
     },
-    initialPageParam: 1,
+    initialPageParam: "",
   });
 
   return entriesQuery;

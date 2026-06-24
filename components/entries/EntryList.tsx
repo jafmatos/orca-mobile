@@ -1,7 +1,7 @@
 import { useEntries } from "@/hooks/queries/use-entries";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { Entry } from "@/models/Entry";
-import { PaginatedData } from "@/models/PaginatedData";
+import { CursorPaginatedData } from "@/models/PaginatedData";
 import { ListEntriesArguments } from "@/services/Api/EntryApiService";
 import { QueryKeys } from "@/utils/QueryKeys";
 import { useQueryClient } from "@tanstack/react-query";
@@ -16,7 +16,7 @@ export type EntryFilter = Required<ListEntriesArguments>["query"]["filter"];
 export interface EntryListProps extends Omit<React.ComponentProps<typeof FlatList<Entry>>, "data"> {
   filter?: EntryFilter;
   onRefresh?: () => void;
-  onFetchSuccess?: (data?: PaginatedData<Entry>) => void;
+  onFetchSuccess?: (data?: CursorPaginatedData<Entry>) => void;
 }
 
 export function EntryList({ filter, onRefresh, onFetchSuccess, ...props }: EntryListProps) {
@@ -37,11 +37,22 @@ export function EntryList({ filter, onRefresh, onFetchSuccess, ...props }: Entry
   };
 
   const entries = useMemo(() => {
-    return entryQuery.data?.pages.reduce((entries, page) => {
-      entries.push(...page.data);
+    const allEntries =
+      entryQuery.data?.pages.reduce((entries, page) => {
+        entries.push(...page.data);
 
-      return entries;
-    }, [] as Entry[]);
+        return entries;
+      }, [] as Entry[]) || [];
+
+    const seen = new Set();
+
+    return allEntries.filter((entry) => {
+      if (seen.has(entry.id)) return false;
+
+      seen.add(entry.id);
+
+      return true;
+    });
   }, [entryQuery.data?.pages]);
 
   if (entryQuery.isError && (!entries || entries.length === 0)) {

@@ -3,8 +3,9 @@ import { useCallback, useRef, useState } from "react";
 
 export type AppFormErrors<Form> = (Omit<ApiValidationError, "path"> & { path: keyof Form })[];
 
-export type AppForm<Form> = {
+export type AppForm<Form, Metadata = any> = {
   values: Form;
+  metadata?: Metadata;
   errors: AppFormErrors<Form>;
   error?: string;
   hasErrors: boolean;
@@ -14,12 +15,14 @@ export type AppForm<Form> = {
   setError: React.Dispatch<React.SetStateAction<string | undefined>>;
   setValue: <Key extends keyof Form>(key: Key, value: Form[Key]) => Form;
   setForm: (form: Form) => Form;
+  setMetadata: React.Dispatch<React.SetStateAction<Metadata | undefined>>;
   makeSetter: <Key extends keyof Form>(key: Key) => (value: Form[Key]) => void;
   clear: () => void;
 };
 
-export const useAppForm = <Form>(initialState: Form): AppForm<Form> => {
+export const useAppForm = <Form, Metadata = any>(initialState: Form, _metadata?: Metadata): AppForm<Form, Metadata> => {
   const [form, setForm] = useState<Form>(initialState);
+  const [metadata, setMetadata] = useState<Metadata | undefined>(_metadata);
   const [errors, setErrors] = useState<AppFormErrors<Form>>([]);
   const [error, setError] = useState<string | undefined>(undefined);
 
@@ -87,6 +90,7 @@ export const useAppForm = <Form>(initialState: Form): AppForm<Form> => {
 
   return {
     values: form,
+    metadata: metadata,
     errors: errors,
     error: error,
     hasErrors: !!errors.length,
@@ -95,6 +99,7 @@ export const useAppForm = <Form>(initialState: Form): AppForm<Form> => {
     setForm: _setForm,
     setErrors,
     setError,
+    setMetadata,
     getError,
     hasError,
     clear,

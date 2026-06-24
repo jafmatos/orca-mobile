@@ -1,6 +1,7 @@
 import "../global.css";
 import { configureReanimatedLogger, ReanimatedLogLevel } from "react-native-reanimated";
 import { Stack } from "expo-router";
+import { AxiosError } from "axios";
 import { useAppThemeName } from "@/hooks/use-app-theme-name";
 import { SystemBars } from "react-native-edge-to-edge";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -27,7 +28,26 @@ export const unstable_settings = {
   anchor: "(tabs)",
 };
 
-const queryClient = new QueryClient();
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: (failureCount, error) => {
+        if (error instanceof AxiosError && error.response?.status === 401) {
+          return false;
+        }
+        return failureCount < 3;
+      },
+    },
+    mutations: {
+      retry: (failureCount, error) => {
+        if (error instanceof AxiosError && error.response?.status === 401) {
+          return false;
+        }
+        return failureCount < 3;
+      },
+    },
+  },
+});
 
 export default function RootLayout() {
   useAxiosInterceptors();

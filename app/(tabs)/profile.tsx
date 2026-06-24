@@ -1,6 +1,7 @@
 import { TabbedLayout } from "@/components/layouts/TabbedLayout";
 import { Navigation } from "@/components/Navigation";
 import { ProfileFormOverlay, ProfileFormOverlayRef } from "@/components/profile/ProfileFormOverlay";
+import { SubscriptionPromoCard } from "@/components/profile/SubscriptionPromoCard";
 import { AppAvatar } from "@/components/ui/AppAvatar";
 import { AppBottomSheet, AppBottomSheetRef } from "@/components/ui/AppBottomSheet";
 import { useAuthUser } from "@/hooks/queries/use-auth-user";
@@ -259,32 +260,35 @@ export default function ProfileScreen() {
             Plano e Assinatura
           </Text>
 
-          <Surface style={{ borderRadius: theme.roundness }} className="!p-4 flex flex-col gap-4">
-            <View className="flex flex-row justify-between items-center">
-              <View className="flex flex-row items-center gap-3">
-                <Icon source="star-outline" size={20} color={theme.colors.primary} />
-                <View>
-                  <Text variant="bodyLarge">{user?.subscription ? user.subscription.plan.name : "Plano Gratuito"}</Text>
-                  <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
-                    {user?.subscription
-                      ? `${user.subscription.traducedStatus} • ${currencyFormatter.format(user.subscription.plan.price)}/mês`
-                      : "Recursos básicos de controle financeiro"}
-                  </Text>
+          {user?.subscription ? (
+            <Surface style={{ borderRadius: theme.roundness }} className="!p-4 flex flex-col gap-4">
+              <View className="flex flex-row items-center justify-between">
+                <View className="flex flex-row items-center gap-4 flex-1 pr-4">
+                  <View style={{ backgroundColor: theme.colors.primaryContainer, padding: 12, borderRadius: 999 }}>
+                    <Icon source="star" size={24} color={theme.colors.onPrimaryContainer} />
+                  </View>
+                  <View className="flex-1">
+                    <Text variant="titleMedium" style={{ fontWeight: "bold" }}>
+                      {user.subscription.plan.name}
+                    </Text>
+                    <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
+                      {user.subscription.traducedStatus} • {currencyFormatter.format(user.subscription.plan.price)}/mês
+                    </Text>
+                  </View>
                 </View>
-              </View>
-
-              {!user?.subscription && (
                 <Button
-                  mode="contained-tonal"
+                  mode="outlined"
                   compact
-                  onPress={() => console.log("Upgrade requested")}
+                  onPress={() => console.log("Manage subscription")}
                   style={{ borderRadius: theme.roundness }}
                 >
-                  Upgrade
+                  Gerenciar
                 </Button>
-              )}
-            </View>
-          </Surface>
+              </View>
+            </Surface>
+          ) : (
+            <SubscriptionPromoCard />
+          )}
         </View>
 
         <Button

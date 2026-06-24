@@ -1,3 +1,5 @@
+import { useAuthUser } from "@/hooks/queries/use-auth-user";
+import { SubscriptionPromoCard } from "@/components/profile/SubscriptionPromoCard";
 import { AnalysisGenerationLoadingOverlay } from "@/components/analyses/AnalysisGenerationLoadingOverlay";
 import { AnalysisList } from "@/components/analyses/AnalysisList";
 import { AnalysisListItem } from "@/components/analyses/AnalysisListItem";
@@ -31,6 +33,9 @@ export default function AnalysesScreen() {
   const queryClient = useQueryClient();
   const insets = useSafeAreaInsets();
   const toastOffset = insets.top + AppLayoutConstants.headerHeight + AppLayoutConstants.toastBaseOffset;
+  const user = useAuthUser();
+
+  const hasActiveSubscription = !!user?.subscription && ["active", "trialing"].includes(user.subscription.status);
 
   const openAnalysisDetail = useCallback((analysis: Analysis) => {
     detailBottomSheetRef.current?.open({
@@ -117,10 +122,9 @@ export default function AnalysesScreen() {
     <TabbedLayout>
       <Navigation hideCurrencyToggle />
 
-      <AnalysisList
-        renderItem={renderItem}
-        ListHeaderComponent={
-          <View className="flex flex-col items-center mt-4 mb-8">
+      {!hasActiveSubscription ? (
+        <View className="flex-1 px-4 mt-4">
+          <View className="flex flex-col items-center mb-8 mt-4">
             <AppAntonioAvatar size="large" className="mb-4" />
 
             <Text variant="headlineSmall" style={{ fontWeight: "900", textAlign: "center" }}>
@@ -135,23 +139,48 @@ export default function AnalysesScreen() {
               dinheiro render mais.
             </Text>
           </View>
-        }
-      />
 
-      <AppFabOverlay>
-        <FAB
-          size="large"
-          icon="creation"
-          theme={{
-            colors: {
-              primaryContainer: theme.colors.tertiaryContainer,
-              onPrimaryContainer: theme.colors.onTertiaryContainer,
-            },
-          }}
-          disabled={createAnalysisMutation.isPending}
-          onPress={() => createAnalysisMutation.mutate()}
-        />
-      </AppFabOverlay>
+          <SubscriptionPromoCard />
+        </View>
+      ) : (
+        <>
+          <AnalysisList
+            renderItem={renderItem}
+            ListHeaderComponent={
+              <View className="flex flex-col items-center mt-4 mb-8">
+                <AppAntonioAvatar size="large" className="mb-4" />
+
+                <Text variant="headlineSmall" style={{ fontWeight: "900", textAlign: "center" }}>
+                  Olá, eu sou o Antônio!
+                </Text>
+
+                <Text
+                  variant="bodyLarge"
+                  style={{ color: theme.colors.onSurfaceVariant, textAlign: "center", marginTop: 8, paddingHorizontal: 16 }}
+                >
+                  Sou seu analista financeiro movido a Inteligência Artificial. Analiso seus gastos e crio estratégias personalizadas para o seu
+                  dinheiro render mais.
+                </Text>
+              </View>
+            }
+          />
+
+          <AppFabOverlay>
+            <FAB
+              size="large"
+              icon="creation"
+              theme={{
+                colors: {
+                  primaryContainer: theme.colors.tertiaryContainer,
+                  onPrimaryContainer: theme.colors.onTertiaryContainer,
+                },
+              }}
+              disabled={createAnalysisMutation.isPending}
+              onPress={() => createAnalysisMutation.mutate()}
+            />
+          </AppFabOverlay>
+        </>
+      )}
 
       <AnalysisGenerationLoadingOverlay visible={createAnalysisMutation.isPending} />
 

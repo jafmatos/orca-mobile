@@ -3,6 +3,7 @@ import { TabbedLayout } from "@/components/layouts/TabbedLayout";
 import { Navigation } from "@/components/Navigation";
 import { ExpenseCard } from "@/components/overview/ExpenseCard";
 import { IncomeCard } from "@/components/overview/IncomeCard";
+import { SubscriptionPromoCard } from "@/components/profile/SubscriptionPromoCard";
 import { AppHideableCurrencyText } from "@/components/ui/AppHideableCurrencyText";
 import { AppSkeleton } from "@/components/ui/AppSkeleton";
 import { Conditional } from "@/components/utils/Conditional";
@@ -151,11 +152,11 @@ export default function HomeScreen() {
   );
 
   return (
-    <TabbedLayout className="flex-1">
-      <View style={{ flex: 1, backgroundColor: theme.colors.primary }}>
-        <Navigation colored backgroundColor={theme.colors.primary} hideShadow={true} />
+    <TabbedLayout>
+      <Navigation colored backgroundColor={theme.colors.primary} hideShadow={true} />
 
-        <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+        <View style={{ flex: 1, backgroundColor: theme.colors.primary }}>
           <View className="px-4 pt-2 pb-8">
             <Text variant="titleMedium" theme={{ colors: { onSurface: theme.colors.onPrimary } }}>
               {greeting}, {user?.name.split(" ")[0] || "usuário"}!
@@ -207,9 +208,21 @@ export default function HomeScreen() {
               >
                 <ShortcutCard onPress={() => router.goToSchedules()} icon="clock" label="Agendamentos" badgeCount={pendingCount} />
 
-                <ShortcutCard onPress={() => router.goToAnalyses()} icon="creation" label="Análises" />
+                <Conditional
+                  if={hasActiveSubscription}
+                  _then={<ShortcutCard onPress={() => router.goToAnalyses()} icon="creation" label="Análises" />}
+                />
               </ScrollView>
             </View>
+
+            <Conditional
+              if={!hasActiveSubscription}
+              _then={
+                <View className="px-4 mb-8">
+                  <SubscriptionPromoCard />
+                </View>
+              }
+            />
 
             <Conditional
               if={showAntonioPlans}
@@ -285,8 +298,8 @@ export default function HomeScreen() {
               }
             />
           </View>
-        </ScrollView>
-      </View>
+        </View>
+      </ScrollView>
     </TabbedLayout>
   );
 }

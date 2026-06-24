@@ -1,5 +1,5 @@
 import { EntryDetailBottomSheet } from "@/components/entries/EntryDetailBottomSheet";
-import { EntryFormOverlay, EntryFormOverlayRef } from "@/components/entries/EntryFormOverlay";
+import { EntryManualFormOverlay, EntryManualFormOverlayRef } from "@/components/entries/EntryManualFormOverlay";
 import { EntryList } from "@/components/entries/EntryList";
 import { EntryListItem } from "@/components/entries/EntryListItem";
 import { EntrySearchOverlay, EntrySearchOverlayRef } from "@/components/entries/EntrySearchOverlay";
@@ -8,19 +8,20 @@ import { TabbedLayout } from "@/components/layouts/TabbedLayout";
 import { Navigation } from "@/components/Navigation";
 import { AppFabOverlay } from "@/components/ui/AppFabOverlay";
 import { Conditional } from "@/components/utils/Conditional";
+import { useAuthUser } from "@/hooks/queries/use-auth-user";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { Entry } from "@/models/Entry";
 import { DeleteEntryReturnType, EntryService } from "@/services/Api/EntryApiService";
 import { QueryKeys } from "@/utils/QueryKeys";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { InfiniteData, useMutation, useQueryClient } from "@tanstack/react-query";
 import { BottomSheetRef } from "jam-bottomsheet";
+import { CursorPaginatedData } from "@/models/PaginatedData";
 import React, { useCallback, useState } from "react";
 import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppLayoutConstants } from "@/constants/layout";
 import { Button, FAB, Text } from "react-native-paper";
-import { AppKeyboardDismissing } from "@/components/ui/AppKeyboardDismissing";
 
 export default function EntriesScreen() {
   const toast = useAppToast();
@@ -29,12 +30,14 @@ export default function EntriesScreen() {
   const insets = useSafeAreaInsets();
   const toastOffset =
     insets.top + AppLayoutConstants.headerHeight + AppLayoutConstants.subHeaderHeight + AppLayoutConstants.toastBaseOffset;
+  const user = useAuthUser();
+  const hasActiveSubscription = !!user?.subscription && ["active", "trialing"].includes(user.subscription.status);
 
   const [selectedEntry, setSelectedEntry] = useState<Entry>();
   const [needsRefresh, setNeedsRefresh] = useState(false);
 
   const detailBottomSheetRef = React.useRef<BottomSheetRef>(null);
-  const entryFormOverlayRef = React.useRef<EntryFormOverlayRef>(null);
+  const entryFormOverlayRef = React.useRef<EntryManualFormOverlayRef>(null);
   const entrySearchOverlayRef = React.useRef<EntrySearchOverlayRef>(null);
   const smartEntryOverlayRef = React.useRef<EntrySmartFormOverlayRef>(null);
 
@@ -89,9 +92,19 @@ export default function EntriesScreen() {
 
       queryClient.invalidateQueries({ queryKey: QueryKeys.Overview.getMonthlyEvolution() });
 
-      queryClient.invalidateQueries({
-        predicate: (query) => QueryKeys.Entry.getEntriesFiltered(query.queryKey),
-      });
+      queryClient.setQueriesData<InfiniteData<CursorPaginatedData<Entry>>>(
+        { queryKey: QueryKeys.Entry.getEntries(), exact: false },
+        (oldData) => {
+          if (!oldData) return oldData;
+          return {
+            ...oldData,
+            pages: oldData.pages.map((page) => ({
+              ...page,
+              data: page.data.filter((e) => e.id !== variables.id),
+            })),
+          };
+        },
+      );
 
       setSelectedEntry(undefined);
       closeEntryDetail();
@@ -108,117 +121,149 @@ export default function EntriesScreen() {
 
   return (
     <TabbedLayout>
-        <Navigation
-          SubHeaderComponent={
-            <View style={{ height: AppLayoutConstants.subHeaderHeight }}>
-              <View className="px-4 flex flex-row items-center justify-between gap-2">
-                <Text variant="headlineSmall" style={{ fontWeight: "700" }}>
-                  Extrato
-                </Text>
+      <Navigation
+        SubHeaderComponent={
+          <View style={{ height: AppLayoutConstants.subHeaderHeight }}>
+            <View className="px-4 flex flex-row items-center justify-between gap-2">
+              <Text variant="headlineSmall" style={{ fontWeight: "700" }}>
+                Extrato
+              </Text>
 
-                <Button
-                  icon="magnify"
-                  mode="contained"
-                  theme={{
-                    colors: {
-                      primary: theme.colors.backdrop,
-                      onPrimary: theme.colors.onBackground,
-                      onSurfaceVariant: theme.colors.surfaceDisabled,
-                    },
-                  }}
-                  onPress={openEntrySearchOverlay}
-                >
-                  Pesquisar
-                </Button>
-              </View>
+              <Button
+                icon="magnify"
+                mode="contained"
+                theme={{
+                  colors: {
+                    primary: theme.colors.backdrop,
+                    onPrimary: theme.colors.onBackground,
+                    onSurfaceVariant: theme.colors.surfaceDisabled,
+                  },
+                }}
+                onPress={openEntrySearchOverlay}
+              >
+                Pesquisar
+              </Button>
             </View>
-          }
-        />
+          </View>
+        }
+      />
 
-        <EntryList renderItem={renderItem} onRefresh={() => setNeedsRefresh(false)} />
+      <EntryList renderItem={renderItem} onRefresh={() => setNeedsRefresh(false)} />
 
-        <AppFabOverlay>
-          <Conditional if={needsRefresh} _then={<FAB icon="refresh" size="medium" variant="secondary" onPress={refreshList} />} />
-          <FAB icon="microphone" size="medium" variant="tertiary" onPress={() => openSmartEntryForm()} />
-          <FAB icon="plus" size="large" onPress={() => openEntryForm()} />
-        </AppFabOverlay>
+      <AppFabOverlay>
+        <Conditional if={needsRefresh} _then={<FAB icon="refresh" size="medium" variant="secondary" onPress={refreshList} />} />
+        <Conditional if={hasActiveSubscription} _then={<FAB icon="microphone" size="medium" variant="tertiary" onPress={() => openSmartEntryForm()} />} />
+        <FAB icon="plus" size="large" onPress={() => openEntryForm()} />
+      </AppFabOverlay>
 
-        <EntryFormOverlay
-          ref={entryFormOverlayRef}
-          onSuccess={(entry, mode) => {
-            if (mode === "editing") {
-              setSelectedEntry(entry);
-            }
-
-            queryClient.invalidateQueries({ queryKey: QueryKeys.Overview.getKpis() });
-
-            queryClient.invalidateQueries({ queryKey: QueryKeys.Overview.getExpenseByCategory() });
-
-            queryClient.invalidateQueries({
-              predicate: (query) => QueryKeys.Entry.getEntriesFiltered(query.queryKey),
-            });
-
-            closeEntryForm();
-            setNeedsRefresh(true);
-          }}
-        />
-
-        <EntrySmartFormOverlay
-          ref={smartEntryOverlayRef}
-          onSuccess={(entry) => {
-            queryClient.invalidateQueries({ queryKey: QueryKeys.Overview.getMonthlyEvolution() });
-            queryClient.invalidateQueries({ queryKey: QueryKeys.Overview.getKpis() });
-
-            queryClient.invalidateQueries({ queryKey: QueryKeys.Overview.getExpenseByCategory() });
-
-            queryClient.invalidateQueries({
-              predicate: (query) => QueryKeys.Entry.getEntriesFiltered(query.queryKey),
-            });
-
-            setNeedsRefresh(true);
-          }}
-        />
-
-        <EntrySearchOverlay
-          ref={entrySearchOverlayRef}
-          onEntryPress={(entry) => {
+      <EntryManualFormOverlay
+        ref={entryFormOverlayRef}
+        onSuccess={(entry, mode) => {
+          if (mode === "editing") {
             setSelectedEntry(entry);
-            detailBottomSheetRef.current?.open();
-          }}
-        />
+          }
 
-        <EntryDetailBottomSheet
-          ref={detailBottomSheetRef}
-          entry={selectedEntry}
-          onCloseAnimationFinished={() => setSelectedEntry(undefined)}
-          onDuplicate={(entry) => {
-            entryFormOverlayRef.current?.form.setForm({
-              id: undefined,
-              type: entry.type,
-              category: { id: entry.category?.id || "" },
-              amount: entry.amount,
-              description: entry.description,
-              when: new Date(entry.when),
-            });
+          queryClient.invalidateQueries({ queryKey: QueryKeys.Overview.getKpis() });
 
-            openEntryForm();
-          }}
-          onEdit={(entry) => {
-            entryFormOverlayRef.current?.form.setForm({
-              id: entry.id,
-              type: entry.type,
-              category: { id: entry.category?.id || "" },
-              amount: entry.amount,
-              description: entry.description,
-              when: new Date(entry.when),
-            });
+          queryClient.invalidateQueries({ queryKey: QueryKeys.Overview.getExpenseByCategory() });
 
-            openEntryForm();
-          }}
-          onDelete={async (entry) => {
-            await entryDeleteMutation.mutateAsync(entry);
-          }}
-        />
+          queryClient.setQueriesData<InfiniteData<CursorPaginatedData<Entry>>>(
+            { queryKey: QueryKeys.Entry.getEntries(), exact: false },
+            (oldData) => {
+              if (!oldData) return oldData;
+
+              const newPages = oldData.pages.map((page) => ({ ...page, data: [...page.data] }));
+
+              if (mode === "editing") {
+                for (let i = 0; i < newPages.length; i++) {
+                  newPages[i].data = newPages[i].data.filter((e) => e.id !== entry.id);
+                }
+              }
+
+              newPages[0].data.unshift(entry);
+
+              if (mode === "creating") {
+                const lastPageIndex = newPages.length - 1;
+                newPages[lastPageIndex].data.pop();
+              }
+
+              return { ...oldData, pages: newPages };
+            },
+          );
+
+          closeEntryForm();
+          setNeedsRefresh(true);
+        }}
+      />
+
+      <EntrySmartFormOverlay
+        ref={smartEntryOverlayRef}
+        onSuccess={(entries) => {
+          queryClient.invalidateQueries({ queryKey: QueryKeys.Overview.getMonthlyEvolution() });
+          queryClient.invalidateQueries({ queryKey: QueryKeys.Overview.getKpis() });
+
+          queryClient.invalidateQueries({ queryKey: QueryKeys.Overview.getExpenseByCategory() });
+
+          queryClient.setQueriesData<InfiniteData<CursorPaginatedData<Entry>>>(
+            { queryKey: QueryKeys.Entry.getEntries(), exact: false },
+            (oldData) => {
+              if (!oldData) return oldData;
+
+              const newPages = oldData.pages.map((page) => ({ ...page, data: [...page.data] }));
+
+              newPages[0].data.unshift(...entries);
+
+              const lastPageIndex = newPages.length - 1;
+              newPages[lastPageIndex].data.splice(-entries.length);
+
+              return { ...oldData, pages: newPages };
+            },
+          );
+
+          setNeedsRefresh(true);
+        }}
+      />
+
+      <EntrySearchOverlay
+        ref={entrySearchOverlayRef}
+        onEntryPress={(entry) => {
+          setSelectedEntry(entry);
+          detailBottomSheetRef.current?.open();
+        }}
+      />
+
+      <EntryDetailBottomSheet
+        ref={detailBottomSheetRef}
+        entry={selectedEntry}
+        onCloseAnimationFinished={() => setSelectedEntry(undefined)}
+        onDuplicate={(entry) => {
+          entryFormOverlayRef.current?.form.setForm({
+            id: undefined,
+            type: entry.type,
+            category: { id: entry.category?.id || "" },
+            amount: entry.amount,
+            description: entry.description,
+            when: new Date(entry.when),
+          });
+
+          openEntryForm();
+        }}
+        onEdit={(entry) => {
+          entryFormOverlayRef.current?.form.setForm({
+            id: entry.id,
+            type: entry.type,
+            category: { id: entry.category?.id || "" },
+            amount: entry.amount,
+            description: entry.description,
+            when: new Date(entry.when),
+          });
+
+          openEntryForm();
+        }}
+        onDelete={async (entry) => {
+          await entryDeleteMutation.mutateAsync(entry);
+        }}
+      />
     </TabbedLayout>
   );
 }

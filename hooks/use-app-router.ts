@@ -5,8 +5,8 @@ export function useAppRouter() {
 
   return {
     ...router,
-    goToSignIn: () => router.push("/(auth)/sign-in"),
-    goToSignUp: () => router.push("/(auth)/sign-up"),
+    goToSignIn: () => router.replace("/(auth)/sign-in"),
+    goToSignUp: () => router.replace("/(auth)/sign-up"),
     goToSignUpConfirm: (id: string) =>
       router.push({
         pathname: "/(auth)/sign-up/confirm/[id]",

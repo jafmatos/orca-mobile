@@ -9,7 +9,14 @@ function AppKeyboardDismissingView(props: React.ComponentProps<typeof View>) {
 }
 
 function AppKeyboardDismissingScrollView(props: React.ComponentProps<typeof ScrollView>) {
-  return <ScrollView {...props} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" />;
+  return (
+    <ScrollView
+      {...props}
+      keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="on-drag"
+      contentContainerStyle={[{ flexGrow: 1 }, props.contentContainerStyle]}
+    />
+  );
 }
 
 function AppKeyboardDismissingFlatList<T>(props: React.ComponentProps<typeof FlatList<T>>) {

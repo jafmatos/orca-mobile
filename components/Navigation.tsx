@@ -17,6 +17,7 @@ export interface DrawerNavigationItemProps {
   onPressCallback?: () => void;
   text: string;
   to: React.ComponentProps<typeof Link>["href"];
+  disabled?: boolean;
 }
 
 export interface NavigationProps {
@@ -36,13 +37,14 @@ function DrawerNavigationItem(props: DrawerNavigationItemProps) {
 
   return (
     <Pressable
+      disabled={props.disabled}
       onPress={() => {
         router.push(props.to);
 
         props.onPressCallback?.();
       }}
     >
-      <View className={`relative w-full p-4 flex flex-row items-center gap-3`}>
+      <View className={`relative w-full p-4 flex flex-row items-center gap-3`} style={{ opacity: props.disabled ? 0.5 : 1 }}>
         {props.icon ? <Icon size={18} source={props.icon} color={isActive ? theme.colors.primary : theme.colors.onBackground} /> : <></>}
         <Text
           variant="labelLarge"
@@ -62,6 +64,7 @@ export function Navigation(props: NavigationProps) {
   const router = useAppRouter();
   const user = useAuthUser();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const hasActiveSubscription = !!user?.subscription && ["active", "trialing"].includes(user.subscription.status);
 
   const closeDrawer = () => setIsDrawerOpen(false);
 
@@ -165,7 +168,7 @@ export function Navigation(props: NavigationProps) {
             <DrawerNavigationItem onPressCallback={closeDrawer} to={"/schedules"} icon="clock" text="Agendamentos" />
             <DrawerNavigationItem onPressCallback={closeDrawer} to={"/categories"} icon="bookmark" text="Categorias" />
             <DrawerNavigationItem onPressCallback={closeDrawer} to={"/overview"} icon="chart-donut" text="Visão Geral" />
-            <DrawerNavigationItem onPressCallback={closeDrawer} to={"/analyses"} icon="creation" text="Análises" />
+            <DrawerNavigationItem onPressCallback={closeDrawer} to={"/analyses"} icon="creation" text="Análises" disabled={!hasActiveSubscription} />
             <DrawerNavigationItem onPressCallback={closeDrawer} to={"/profile"} icon="account" text="Meu Perfil" />
           </View>
 

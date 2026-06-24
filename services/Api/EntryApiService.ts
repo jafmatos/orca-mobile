@@ -1,5 +1,5 @@
 import { Entry, EntryTypes } from "@/models/Entry";
-import { PaginatedData } from "@/models/PaginatedData";
+import { CursorPaginatedData, PaginatedData } from "@/models/PaginatedData";
 import { $axios } from "@/utils/$axios";
 import { AxiosResponse } from "axios";
 import qs from "qs";
@@ -20,7 +20,7 @@ export type ListEntriesArguments = {
       column?: string;
       mode?: "ASC" | "DESC";
     };
-    page?: number;
+    cursor?: string;
     perPage?: number;
   };
 };
@@ -63,7 +63,15 @@ export type CreateSmartEntryBody =
   | FormData;
 
 export type CreateSmartEntryReturnType = {
-  entry: Entry;
+  entries: Entry[];
+};
+
+export type CreateBulkEntryBody = {
+  entries: CreateEntryBody[];
+};
+
+export type CreateBulkEntryReturnType = {
+  entries: Entry[];
 };
 
 export type UpdateEntryBody = {
@@ -87,7 +95,7 @@ export type DeleteEntryReturnType = {
 export class EntryService {
   private static readonly path = "/entries";
 
-  private static async _list(options: ListEntriesArguments): Promise<PaginatedData<Entry>> {
+  private static async _list(options: ListEntriesArguments): Promise<CursorPaginatedData<Entry>> {
     const query = qs.stringify(options.query);
     const { data } = await $axios.get(`${this.path}?${query}`);
 
@@ -117,6 +125,12 @@ export class EntryService {
     return data;
   }
 
+  private static async _createBulk(body: CreateBulkEntryBody): Promise<CreateBulkEntryReturnType> {
+    const { data } = await $axios.post(`${this.path}/bulk`, body);
+
+    return data;
+  }
+
   private static async _update(id: Entry["id"], body: UpdateEntryBody): Promise<UpdateEntryReturnType> {
     const { data } = await $axios.put(`${this.path}/${id}`, body);
 
@@ -135,4 +149,5 @@ export class EntryService {
   public static readonly delete = EntryService._delete.bind(EntryService);
   public static readonly exportEntries = EntryService._exportEntries.bind(EntryService);
   public static readonly createSmart = EntryService._createSmart.bind(EntryService);
+  public static readonly createBulk = EntryService._createBulk.bind(EntryService);
 }

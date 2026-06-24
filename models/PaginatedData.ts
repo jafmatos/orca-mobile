@@ -7,3 +7,11 @@ export type PaginatedData<T> = {
     pages: number;
   };
 };
+
+export type CursorPaginatedData<T> = {
+  data: T[];
+  meta: {
+    nextCursor: string | null;
+    take: number;
+  };
+};

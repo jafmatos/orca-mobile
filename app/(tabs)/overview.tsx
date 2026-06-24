@@ -2,14 +2,11 @@ import { TabbedLayout } from "@/components/layouts/TabbedLayout";
 import { ExpenseByCategoryChart, ExpenseByCategoryChartRef } from "@/components/overview/charts/ExpenseByCategoryChart";
 import { LimitsMonitorChart, LimitsMonitorChartRef } from "@/components/overview/charts/LimitsMonitorChart";
 import { MonthlyEvolutionChart } from "@/components/overview/charts/MonthlyEvolutionChart";
-import { ExpenseCard } from "@/components/overview/ExpenseCard";
-import { IncomeCard } from "@/components/overview/IncomeCard";
 import { AppSegmentedControl } from "@/components/ui/AppSegmentedControl";
-import { AppSkeleton } from "@/components/ui/AppSkeleton";
 import { AppTabHeader } from "@/components/ui/AppTabHeader";
 import { useKpis } from "@/hooks/queries/use-kpis";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { ScrollView, View } from "react-native";
+import { ScrollView } from "react-native";
 import { IconButton, Text } from "react-native-paper";
 
 type PeriodDateFilter = {
