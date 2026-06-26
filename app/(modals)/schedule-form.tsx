@@ -1,5 +1,5 @@
 import { useCategories } from "@/hooks/queries/use-categories";
-import { AppForm, useAppForm } from "@/hooks/use-app-form";
+import { useAppForm } from "@/hooks/use-app-form";
 import { useAppFormWithMutation } from "@/hooks/use-app-form-with-mutation";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { EntryTypes } from "@/models/Entry";
@@ -11,37 +11,37 @@ import {
   UpdateScheduleBody,
   UpdateScheduleReturnType,
 } from "@/services/Api/ScheduleApiService";
-import React, { useImperativeHandle, useMemo } from "react";
-import { Keyboard, TouchableWithoutFeedback, View } from "react-native";
+import React, { useMemo, useEffect } from "react";
+import { View } from "react-native";
 import { Button, HelperText, SegmentedButtons, TextInput as PaperTextInput } from "react-native-paper";
-import { AppTextInput } from "../ui/AppTextInput";
-import { AppCurrencyInput } from "../ui/AppCurrencyInput";
-import { AppFullScreenOverlay, AppFullScreenOverlayRef } from "../ui/AppFullScreenOverlay";
-import { AppSelect } from "../ui/AppSelect";
-import { FormField } from "../ui/FormField";
-import { AppDropdownSelect } from "../ui/AppDropdownSelect";
-import { AppTimePicker } from "../ui/AppTimePicker";
+import { AppTextInput } from "@/components/ui/AppTextInput";
+import { AppCurrencyInput } from "@/components/ui/AppCurrencyInput";
+import { AppSelect } from "@/components/ui/AppSelect";
+import { FormField } from "@/components/ui/FormField";
+import { AppDropdownSelect } from "@/components/ui/AppDropdownSelect";
+import { AppTimePicker } from "@/components/ui/AppTimePicker";
 import { ApiErrorResponseData } from "@/models/ApiErrorResponseData";
-import { AppKeyboardDismissing } from "../ui/AppKeyboardDismissing";
+import { AppKeyboardDismissing } from "@/components/ui/AppKeyboardDismissing";
+import { FullScreenLayout } from "@/components/layouts/FullScreenLayout";
+import { AppModalHeader } from "@/components/ui/AppModalHeader";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { QueryKeys } from "@/utils/QueryKeys";
+import { useSchedules } from "@/hooks/queries/use-schedules";
 
 export type ScheduleCreateOrUpdateForm = CreateScheduleBody &
   UpdateScheduleBody & {
     id?: Schedule["id"];
   };
 
-export interface ScheduleFormOverlayProps {
-  onSuccess: (schedule: Schedule, mode: "creating" | "editing") => void;
-}
-
-export type ScheduleFormOverlayRef = AppFullScreenOverlayRef & {
-  form: AppForm<ScheduleCreateOrUpdateForm>;
-};
-
-export const ScheduleFormOverlay = React.forwardRef<ScheduleFormOverlayRef, ScheduleFormOverlayProps>(function ScheduleForm(
-  props: ScheduleFormOverlayProps,
-  ref,
-) {
+export default function ScheduleFormScreen() {
+  const { id } = useLocalSearchParams<{ id?: string }>();
+  const router = useRouter();
+  const queryClient = useQueryClient();
   const theme = useAppTheme();
+  
+  const schedulesQuery = useSchedules();
+
   const scheduleForm = useAppForm<ScheduleCreateOrUpdateForm>({
     type: EntryTypes.Expense,
     category: {
@@ -54,7 +54,25 @@ export const ScheduleFormOverlay = React.forwardRef<ScheduleFormOverlayRef, Sche
     dayOfWeek: undefined,
   });
   const categoryQuery = useCategories();
-  const overlayRef = React.useRef<AppFullScreenOverlayRef>(null);
+
+  useEffect(() => {
+    if (id && schedulesQuery.data?.pages) {
+      const schedules = schedulesQuery.data.pages.flatMap((p) => p.data);
+      const schedule = schedules.find((s) => s.id === id);
+      if (schedule) {
+        scheduleForm.setForm({
+          id: schedule.id,
+          type: schedule.type,
+          category: schedule.category ? { id: schedule.category.id } : { id: "" },
+          amount: schedule.amount,
+          description: schedule.description,
+          referenceTimestamp: new Date(schedule.referenceTimestamp),
+          frequency: schedule.frequency,
+          dayOfWeek: schedule.dayOfWeek,
+        });
+      }
+    }
+  }, [id, schedulesQuery.data?.pages]);
 
   const { mutation: scheduleCreateOrUpdateMutation } = useAppFormWithMutation<
     ScheduleCreateOrUpdateForm,
@@ -67,8 +85,8 @@ export const ScheduleFormOverlay = React.forwardRef<ScheduleFormOverlayRef, Sche
     },
     onSuccess: (data) => {
       scheduleForm.clear();
-
-      props.onSuccess?.(data.schedule, scheduleForm.values.id ? "editing" : "creating");
+      queryClient.invalidateQueries({ queryKey: QueryKeys.Schedule.getSchedules() });
+      router.back();
     },
     onError: (error: any) => {
       if (error.response?.data instanceof ApiErrorResponseData) {
@@ -77,14 +95,6 @@ export const ScheduleFormOverlay = React.forwardRef<ScheduleFormOverlayRef, Sche
         console.error(JSON.stringify(error, null, 2));
       }
     },
-  });
-
-  useImperativeHandle(ref, () => {
-    return {
-      open: () => overlayRef.current?.open(),
-      close: () => overlayRef.current?.close(),
-      form: scheduleForm,
-    };
   });
 
   const categoryOptions = useMemo(() => {
@@ -110,11 +120,8 @@ export const ScheduleFormOverlay = React.forwardRef<ScheduleFormOverlayRef, Sche
   }, []);
 
   return (
-    <AppFullScreenOverlay
-      ref={overlayRef}
-      title={!!scheduleForm.values.id ? "Editar agendamento" : "Novo agendamento"}
-      onCloseAnimationFinished={() => scheduleForm.clear()}
-    >
+    <FullScreenLayout>
+      <AppModalHeader title={!!scheduleForm.values.id ? "Editar agendamento" : "Novo agendamento"} />
       <AppKeyboardDismissing.ScrollView>
         <View className="p-4 flex flex-col gap-4">
           <FormField>
@@ -313,6 +320,6 @@ export const ScheduleFormOverlay = React.forwardRef<ScheduleFormOverlayRef, Sche
           </Button>
         </View>
       </AppKeyboardDismissing.ScrollView>
-    </AppFullScreenOverlay>
+    </FullScreenLayout>
   );
-});
+}

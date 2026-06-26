@@ -9,41 +9,30 @@ import {
   UpdateCategoryBody,
   UpdateCategoryReturnType,
 } from "@/services/Api/CategoryApiService";
-import React, { useImperativeHandle } from "react";
-import { Keyboard, View } from "react-native";
+import React, { useEffect } from "react";
+import { View } from "react-native";
 import { Button, HelperText, SegmentedButtons, TextInput as PaperTextInput } from "react-native-paper";
-import { AppTextInput } from "../ui/AppTextInput";
-import { AppCurrencyInput } from "../ui/AppCurrencyInput";
-import { AppFullScreenOverlay, AppFullScreenOverlayProps, AppFullScreenOverlayRef } from "../ui/AppFullScreenOverlay";
-import { FormField } from "../ui/FormField";
-import { AppKeyboardDismissing } from "../ui/AppKeyboardDismissing";
+import { AppTextInput } from "@/components/ui/AppTextInput";
+import { AppCurrencyInput } from "@/components/ui/AppCurrencyInput";
+import { FormField } from "@/components/ui/FormField";
+import { AppKeyboardDismissing } from "@/components/ui/AppKeyboardDismissing";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useCategories } from "@/hooks/queries/use-categories";
+import { useQueryClient } from "@tanstack/react-query";
+import { QueryKeys } from "@/utils/QueryKeys";
+import { FullScreenLayout } from "@/components/layouts/FullScreenLayout";
+import { AppModalHeader } from "@/components/ui/AppModalHeader";
 
-export type CategoryCreateOrUpdateForm = Required<CreateCategoryBody & UpdateCategoryBody> & {
+type CategoryCreateOrUpdateForm = Required<CreateCategoryBody & UpdateCategoryBody> & {
   id?: Category["id"];
 };
 
-export interface CategoryFormOverlayProps extends Omit<AppFullScreenOverlayProps, "title"> {
-  onSuccess?: (Category: Category, mode: "creating" | "editing") => void;
-}
-
-export interface CategoryFormOverlayRef extends AppFullScreenOverlayRef {
-  form: ReturnType<typeof useAppForm<CategoryCreateOrUpdateForm>>;
-}
-
-export const CategoryFormOverlay = React.forwardRef<CategoryFormOverlayRef, CategoryFormOverlayProps>(function CategoryForm(
-  props: CategoryFormOverlayProps,
-  ref,
-) {
+export default function CategoryFormScreen() {
+  const { id } = useLocalSearchParams<{ id?: string }>();
   const theme = useAppTheme();
-  const categoryFormRef = React.useRef<AppFullScreenOverlayRef>(null);
-
-  useImperativeHandle(ref, () => {
-    return {
-      open: () => categoryFormRef.current?.open(),
-      close: () => categoryFormRef.current?.close(),
-      form: categoryForm,
-    };
-  });
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const categoriesQuery = useCategories();
 
   const categoryForm = useAppForm<CategoryCreateOrUpdateForm>({
     name: "",
@@ -51,30 +40,40 @@ export const CategoryFormOverlay = React.forwardRef<CategoryFormOverlayRef, Cate
     limit: null,
   });
 
+  useEffect(() => {
+    if (id && categoriesQuery.data?.data) {
+      const category = categoriesQuery.data.data.find((c) => c.id === id);
+      if (category) {
+        categoryForm.setForm({
+          id: category.id,
+          name: category.name,
+          type: category.type,
+          limit: category.limit ? { id: category.limit.id, amount: category.limit.amount } : null,
+        });
+      }
+    }
+  }, [id, categoriesQuery.data?.data]);
+
   const { mutation: categoryCreateOrUpdateMutation } = useAppFormWithMutation<
     CategoryCreateOrUpdateForm,
     CreateCategoryBody & UpdateCategoryBody,
     CreateCategoryReturnType | UpdateCategoryReturnType
   >(categoryForm, {
     mutationFn: (body) => {
-      console.log(body);
       if (categoryForm.values.id) return CategoryService.update(categoryForm.values.id!, body);
       else return CategoryService.create(body);
     },
     onSuccess: (data) => {
-      const mode = categoryForm.values.id ? "editing" : "creating";
-      categoryForm.clear();
-
-      props.onSuccess?.(data.category, mode);
+      queryClient.invalidateQueries({ queryKey: QueryKeys.Category.getCategories() });
+      queryClient.invalidateQueries({ queryKey: [QueryKeys.Overview.getKpis()[0]] });
+      
+      router.back();
     },
   });
 
   return (
-    <AppFullScreenOverlay
-      ref={categoryFormRef}
-      title={categoryForm.values.id ? "Editar categoria" : "Nova categoria"}
-      onCloseAnimationFinished={() => categoryForm.clear()}
-    >
+    <FullScreenLayout>
+      <AppModalHeader title={categoryForm.values.id ? "Editar categoria" : "Nova categoria"} />
       <AppKeyboardDismissing.ScrollView>
         <View className="p-4 flex flex-col gap-4">
           <FormField>
@@ -164,6 +163,6 @@ export const CategoryFormOverlay = React.forwardRef<CategoryFormOverlayRef, Cate
           </Button>
         </View>
       </AppKeyboardDismissing.ScrollView>
-    </AppFullScreenOverlay>
+    </FullScreenLayout>
   );
-});
+}

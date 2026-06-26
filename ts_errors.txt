@@ -1,0 +1,11 @@
+app/(modals)/entry-manual-form.tsx(23,37): error TS2353: Object literal may only specify known properties, and 'query' does not exist in type 'UseEntriesOptions'.
+app/(modals)/entry-smart-form.tsx(187,21): error TS2345: Argument of type '(previousDrafts: Entry[]) => (Entry | { amount: number; description: string | undefined; when: Date; type: EntryTypes; category: Category | undefined; id: string; userId: string; categoryId: string; })[]' is not assignable to parameter of type 'SetStateAction<Entry[]>'.
+  Type '(previousDrafts: Entry[]) => (Entry | { amount: number; description: string | undefined; when: Date; type: EntryTypes; category: Category | undefined; id: string; userId: string; categoryId: string; })[]' is not assignable to type '(prevState: Entry[]) => Entry[]'.
+    Type '(Entry | { amount: number; description: string | undefined; when: Date; type: EntryTypes; category: Category | undefined; id: string; userId: string; categoryId: string; })[]' is not assignable to type 'Entry[]'.
+      Type 'Entry | { amount: number; description: string | undefined; when: Date; type: EntryTypes; category: Category | undefined; id: string; userId: string; categoryId: string; }' is not assignable to type 'Entry'.
+        Type '{ amount: number; description: string | undefined; when: Date; type: EntryTypes; category: Category | undefined; id: string; userId: User["id"]; categoryId: Category["id"]; }' is not assignable to type 'Entry'.
+          Types of property 'description' are incompatible.
+            Type 'string | undefined' is not assignable to type 'string'.
+              Type 'undefined' is not assignable to type 'string'.
+components/entries/EntryForm.tsx(99,60): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.

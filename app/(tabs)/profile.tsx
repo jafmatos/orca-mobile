@@ -1,6 +1,5 @@
 import { TabbedLayout } from "@/components/layouts/TabbedLayout";
 import { Navigation } from "@/components/Navigation";
-import { ProfileFormOverlay, ProfileFormOverlayRef } from "@/components/profile/ProfileFormOverlay";
 import { SubscriptionPromoCard } from "@/components/profile/SubscriptionPromoCard";
 import { AppAvatar } from "@/components/ui/AppAvatar";
 import { AppBottomSheet, AppBottomSheetRef } from "@/components/ui/AppBottomSheet";
@@ -10,20 +9,18 @@ import { useAppTheme } from "@/hooks/use-app-theme";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { AvatarService } from "@/services/Api/Users/AvatarApiService";
 import { ProfileService } from "@/services/Api/Users/ProfileApiService";
-import { AppAuthenticationTokenStore } from "@/utils/AuthenticationTokenStore";
-import { currencyFormatter } from "@/utils/currencyFormatter";
-import { subscribeToPushNotifications, unsubscribeToPushNotifications } from "@/utils/notifications";
 import { QueryKeys } from "@/utils/QueryKeys";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import * as ImagePicker from "expo-image-picker";
-import { useEffect, useRef } from "react";
+import { useMemo, useRef } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppLayoutConstants } from "@/constants/layout";
 import { Pressable, ScrollView, View } from "react-native";
-import { Button, Icon, IconButton, Surface, Switch, Text } from "react-native-paper";
+import { Button, Icon, IconButton, Surface, Text } from "react-native-paper";
+import { AppLogoutButton } from "@/components/ui/AppLogoutButton";
 
 export default function ProfileScreen() {
-  const user = useAuthUser();
+  const authUserQuery = useAuthUser();
   const theme = useAppTheme();
   const router = useAppRouter();
   const toast = useAppToast();
@@ -31,37 +28,16 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const toastOffset = insets.top + AppLayoutConstants.headerHeight + AppLayoutConstants.toastBaseOffset;
 
+  const authUser = useMemo(() => {
+    return authUserQuery?.data?.user;
+  }, [authUserQuery.data]);
+
   const avatarBottomSheetRef = useRef<AppBottomSheetRef>(null);
-  const profileFormOverlayRef = useRef<ProfileFormOverlayRef>(null);
 
   const openAvatarBottomSheet = () => avatarBottomSheetRef.current?.open();
   const closeAvatarBottomSheet = () => avatarBottomSheetRef.current?.close();
-  const openProfileFormOverlay = () => profileFormOverlayRef.current?.open();
-  const closeProfileFormOverlay = () => profileFormOverlayRef.current?.close();
 
-  useEffect(() => {
-    if (!user) return;
 
-    profileFormOverlayRef.current?.form.setForm({
-      name: user.name,
-      email: user.email,
-      periodReferenceDay: user.periodReferenceDay,
-    });
-  }, [user]);
-
-  const updateAcceptsNotificationsMutation = useMutation({
-    mutationFn: (args: { acceptsNotifications: boolean }) => ProfileService.update(args),
-    onSuccess: ({ user }) => {
-      queryClient.setQueryData(QueryKeys.User.getAuthUser(), { user });
-    },
-    onError: (error: any) => {
-      toast.error({
-        title: "Ops...",
-        description: error.response?.data?.message || error.message || "Erro ao atualizar perfil",
-        topOffset: toastOffset,
-      });
-    },
-  });
 
   const uploadAvatarMutation = useMutation({
     mutationFn: (formData: FormData) => AvatarService.update(formData),
@@ -166,16 +142,16 @@ export default function ProfileScreen() {
     <TabbedLayout>
       <Navigation hideCurrencyToggle />
 
-      <ScrollView style={{ flex: 1 }} contentContainerClassName="p-4 flex gap-6" showsVerticalScrollIndicator={false}>
-        <Surface className="!p-4 relative" style={{ borderRadius: theme.roundness }}>
-          <View className="flex flex-row items-center gap-4">
+      <ScrollView style={{ flex: 1 }} contentContainerClassName="p-4 flex gap-4" showsVerticalScrollIndicator={false}>
+        <Surface className="relative" style={{ borderRadius: theme.roundness }}>
+          <View className="p-4 flex flex-row items-center gap-4">
             <Pressable
               onPress={() => {
                 openAvatarBottomSheet();
               }}
               className="relative"
             >
-              <AppAvatar url={user?.avatar?.url} fallback={user?.name || "U"} size={60} />
+              <AppAvatar url={authUser?.avatar?.url} fallback={authUser?.name || "U"} size={60} />
 
               <View
                 style={{
@@ -193,7 +169,7 @@ export default function ProfileScreen() {
 
             <View className="flex-1 pr-5">
               <Text numberOfLines={1} ellipsizeMode="tail" variant="titleMedium" style={{ fontWeight: "bold", flexShrink: 1 }}>
-                {user?.name || "Usuário"}
+                {authUser?.name || "Usuário"}
               </Text>
               <Text
                 numberOfLines={1}
@@ -201,7 +177,7 @@ export default function ProfileScreen() {
                 variant="bodyMedium"
                 style={{ color: theme.colors.onSurfaceVariant, flexShrink: 1 }}
               >
-                {user?.email || "email@exemplo.com"}
+                {authUser?.email || "email@exemplo.com"}
               </Text>
             </View>
           </View>
@@ -209,7 +185,7 @@ export default function ProfileScreen() {
           <IconButton
             icon="pencil"
             size={20}
-            onPress={openProfileFormOverlay}
+            onPress={() => router.goToProfileForm()}
             iconColor={theme.colors.onSurfaceVariant}
             style={{
               position: "absolute",
@@ -220,102 +196,50 @@ export default function ProfileScreen() {
           />
         </Surface>
 
-        <View style={{ gap: 8 }}>
-          <Text variant="titleMedium" style={{ fontWeight: "bold", paddingLeft: 4 }}>
-            Configurações
-          </Text>
-          <Surface style={{ borderRadius: theme.roundness }} className="!p-4 flex flex-col gap-4">
-            <View className="flex flex-row justify-between items-center">
-              <View className="flex-1 pr-4">
-                <Text variant="bodyLarge">Notificações</Text>
-                <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
-                  Receber alertas e novidades da conta
-                </Text>
+        {authUser?.subscription ? (
+          <Surface
+            style={{
+              borderRadius: theme.roundness,
+              backgroundColor: theme.colors.primary,
+            }}
+            className="!p-0"
+          >
+            <View className="p-5 flex flex-col gap-3">
+              <View className="flex flex-row justify-between items-center">
+                <View className="flex flex-row items-center gap-2">
+                  <Icon source="crown" size={24} color={theme.colors.onPrimary} />
+                  <Text variant="titleMedium" style={{ fontWeight: "bold", color: theme.colors.onPrimary }}>
+                    {authUser.subscription.plan.name}
+                  </Text>
+                </View>
               </View>
 
-              <Switch
-                value={user?.acceptsNotifications}
-                onValueChange={async (value) => {
-                  try {
-                    if (value) {
-                      await subscribeToPushNotifications();
-                    } else {
-                      await unsubscribeToPushNotifications();
-                    }
-                  } catch (error: any) {
-                    console.log(error.response?.data?.message || error.message);
-                  } finally {
-                    updateAcceptsNotificationsMutation.mutate({ acceptsNotifications: value });
-                  }
-                }}
-                disabled={updateAcceptsNotificationsMutation.isPending}
-                color={theme.colors.primary}
-              />
+              <Text variant="bodyMedium" style={{ color: theme.colors.onPrimary }}>
+                Sua assinatura está{" "}
+                <Text variant="bodyMedium" style={{ fontWeight: "bold", color: theme.colors.onPrimary }}>
+                  {authUser.subscription.traducedStatus.toLowerCase()}
+                </Text>
+              </Text>
+
+              <Button
+                mode="contained"
+                buttonColor={theme.colors.primaryContainer}
+                textColor={theme.colors.primary}
+                className="mt-2"
+                onPress={() => router.goToManageSubscription()}
+                style={{ borderRadius: theme.roundness }}
+              >
+                Gerenciar Assinatura
+              </Button>
             </View>
           </Surface>
-        </View>
+        ) : (
+          <SubscriptionPromoCard />
+        )}
 
-        <View style={{ gap: 8 }}>
-          <Text variant="titleMedium" style={{ fontWeight: "bold", paddingLeft: 4 }}>
-            Plano e Assinatura
-          </Text>
 
-          {user?.subscription ? (
-            <Surface style={{ borderRadius: theme.roundness }} className="!p-4 flex flex-col gap-4">
-              <View className="flex flex-row items-center justify-between">
-                <View className="flex flex-row items-center gap-4 flex-1 pr-4">
-                  <View style={{ backgroundColor: theme.colors.primaryContainer, padding: 12, borderRadius: 999 }}>
-                    <Icon source="star" size={24} color={theme.colors.onPrimaryContainer} />
-                  </View>
-                  <View className="flex-1">
-                    <Text variant="titleMedium" style={{ fontWeight: "bold" }}>
-                      {user.subscription.plan.name}
-                    </Text>
-                    <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
-                      {user.subscription.traducedStatus} • {currencyFormatter.format(user.subscription.plan.price)}/mês
-                    </Text>
-                  </View>
-                </View>
-                <Button
-                  mode="outlined"
-                  compact
-                  onPress={() => console.log("Manage subscription")}
-                  style={{ borderRadius: theme.roundness }}
-                >
-                  Gerenciar
-                </Button>
-              </View>
-            </Surface>
-          ) : (
-            <SubscriptionPromoCard />
-          )}
-        </View>
-
-        <Button
-          mode="contained"
-          icon="logout"
-          buttonColor={theme.colors.error}
-          textColor={theme.colors.onError}
-          style={{ borderRadius: theme.roundness }}
-          onPress={() => {
-            AppAuthenticationTokenStore.remove();
-
-            router.goToSignIn();
-          }}
-        >
-          Sair
-        </Button>
+        <AppLogoutButton />
       </ScrollView>
-
-      <ProfileFormOverlay
-        ref={profileFormOverlayRef}
-        onSuccess={(user) => {
-          queryClient.setQueryData(QueryKeys.User.getAuthUser(), { user });
-
-          queryClient.invalidateQueries({ queryKey: QueryKeys.User.getAuthUser() });
-          closeProfileFormOverlay();
-        }}
-      />
 
       <AppBottomSheet imperative ref={avatarBottomSheetRef}>
         <View className="flex flex-col gap-4 items-center">
@@ -331,7 +255,7 @@ export default function ProfileScreen() {
             Escolher da Galeria
           </Button>
 
-          {user?.avatar?.url && (
+          {authUser?.avatar?.url && (
             <Button
               className="w-full"
               mode="contained"

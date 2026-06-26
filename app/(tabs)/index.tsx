@@ -1,12 +1,18 @@
 import { EntryListItem } from "@/components/entries/EntryListItem";
 import { TabbedLayout } from "@/components/layouts/TabbedLayout";
 import { Navigation } from "@/components/Navigation";
-import { ExpenseCard } from "@/components/overview/ExpenseCard";
-import { IncomeCard } from "@/components/overview/IncomeCard";
 import { SubscriptionPromoCard } from "@/components/profile/SubscriptionPromoCard";
 import { AppHideableCurrencyText } from "@/components/ui/AppHideableCurrencyText";
 import { AppSkeleton } from "@/components/ui/AppSkeleton";
 import { Conditional } from "@/components/utils/Conditional";
+import { ScheduleListItem } from "@/components/schedules/ScheduleListItem";
+import { ScheduleOccurrenceService } from "@/services/Api/ScheduleOccurrenceApiService";
+import { CreateScheduleOccurrenceReturnType } from "@/services/Api/ScheduleOccurrenceApiService";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { InfiniteData } from "@tanstack/react-query";
+import { PaginatedData } from "@/models/PaginatedData";
+import { Schedule } from "@/models/Schedule";
+import { QueryKeys } from "@/utils/QueryKeys";
 import { useAnalyses } from "@/hooks/queries/use-ai-analyses";
 import { useAuthUser } from "@/hooks/queries/use-auth-user";
 import { useEntries } from "@/hooks/queries/use-entries";
@@ -19,6 +25,7 @@ import { currencyFormatter } from "@/utils/currencyFormatter";
 import { useMemo } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import { Badge, Button, Divider, IconButton, List, Surface, Text } from "react-native-paper";
+import { useHasActiveSubscription } from "@/hooks/queries/use-has-active-subscription";
 
 export function ShortcutCard({
   icon,
@@ -60,14 +67,63 @@ export function ShortcutCard({
 }
 
 export default function HomeScreen() {
-  const user = useAuthUser();
+  const authUserQuery = useAuthUser();
+  const hasActiveSubscription = useHasActiveSubscription();
   const theme = useAppTheme();
   const router = useAppRouter();
-
   const kpisQuery = useKpis();
   const entriesQuery = useEntries();
   const schedulesQuery = useSchedules();
   const analysesQuery = useAnalyses();
+  const queryClient = useQueryClient();
+
+  const isResolvingHomeData =
+    authUserQuery.isPending ||
+    schedulesQuery.isPending ||
+    entriesQuery.isPending ||
+    (!!authUserQuery.data?.user?.subscription?.isActive && analysesQuery.isPending);
+
+  const authUser = useMemo(() => authUserQuery.data?.user, [authUserQuery.data]);
+
+  const createOccurrenceMutation = useMutation<CreateScheduleOccurrenceReturnType, Error, { schedule: Schedule }>({
+    mutationFn: async ({ schedule }) => {
+      const data = await ScheduleOccurrenceService.create(schedule.id, {
+        when: new Date(),
+      });
+
+      return data;
+    },
+    onSuccess: (data, variables) => {
+      queryClient.setQueriesData<InfiniteData<PaginatedData<Schedule>>>({ queryKey: QueryKeys.Schedule.getSchedules() }, (oldData) => {
+        if (!oldData) return oldData;
+        return {
+          ...oldData,
+          pages: oldData.pages.map((page) => ({
+            ...page,
+            data: page.data.map((s) => {
+              if (s.id !== variables.schedule.id) return s;
+              let found = false;
+              return {
+                ...s,
+                cycles: s.cycles?.map((cycle) => {
+                  if (!found && cycle.status !== ScheduleCycleStatus.Done) {
+                    found = true;
+                    return { ...cycle, status: ScheduleCycleStatus.Done as any, occurrence: data.occurrence };
+                  }
+                  return cycle;
+                }),
+              };
+            }),
+          })),
+        };
+      });
+
+      queryClient.invalidateQueries({ queryKey: QueryKeys.Overview.getKpis() });
+      queryClient.invalidateQueries({ queryKey: QueryKeys.Overview.getMonthlyEvolution() });
+      queryClient.invalidateQueries({ queryKey: QueryKeys.Overview.getExpenseByCategory() });
+      queryClient.invalidateQueries({ queryKey: QueryKeys.Entry.getEntries() });
+    },
+  });
 
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
@@ -77,15 +133,6 @@ export default function HomeScreen() {
     if (hour < 18) return "Boa tarde";
 
     return "Boa noite";
-  }, []);
-
-  const formattedDate = useMemo(() => {
-    const date = new Date();
-    const weekday = date.toLocaleDateString("pt-BR", { weekday: "long" });
-    const day = date.getDate();
-    const month = date.toLocaleDateString("pt-BR", { month: "long" });
-
-    return `${weekday.charAt(0).toUpperCase() + weekday.slice(1)}, ${day} de ${month}`;
   }, []);
 
   const recentEntries = useMemo(() => {
@@ -142,7 +189,6 @@ export default function HomeScreen() {
     return { pendingSchedules: pendingList.slice(0, 3), pendingCount: count };
   }, [schedulesQuery.data]);
 
-  const hasActiveSubscription = !!user?.subscription && ["active", "trialing"].includes(user.subscription.status);
   const showAntonioPlans = !!(
     hasActiveSubscription &&
     !analysesQuery.isPending &&
@@ -153,151 +199,184 @@ export default function HomeScreen() {
 
   return (
     <TabbedLayout>
-      <Navigation colored backgroundColor={theme.colors.primary} hideShadow={true} />
+      <Navigation colored hideShadow={true} />
 
-      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-        <View style={{ flex: 1, backgroundColor: theme.colors.primary }}>
-          <View className="px-4 pt-2 pb-8">
-            <Text variant="titleMedium" theme={{ colors: { onSurface: theme.colors.onPrimary } }}>
-              {greeting}, {user?.name.split(" ")[0] || "usuário"}!
+      <ScrollView style={{ flex: 1, backgroundColor: theme.colors.primary }} showsVerticalScrollIndicator={false}>
+        <View className="px-4 pt-2 pb-8">
+          <Text variant="titleMedium" theme={{ colors: { onSurface: theme.colors.onPrimary } }}>
+            {authUser ? `${greeting}, ${authUser.name.split(" ")[0]}!` : greeting}
+          </Text>
+
+          <View className="mt-4">
+            {kpisQuery.isPending || kpisQuery.isFetching ? (
+              <AppSkeleton height={36} width={150} color={theme.colors.onPrimaryContainer} />
+            ) : (
+              <AppHideableCurrencyText
+                variant="headlineLarge"
+                theme={{ colors: { onSurface: theme.colors.onPrimary } }}
+                style={{ fontWeight: "bold", letterSpacing: -0.5 }}
+              >
+                {currencyFormatter.format(kpisQuery.data?.status.balance || 0)}
+              </AppHideableCurrencyText>
+            )}
+
+            <Text className="mt-2" variant="bodyMedium" theme={{ colors: { onSurface: theme.colors.onPrimary } }}>
+              Saldo disponível
+            </Text>
+          </View>
+        </View>
+
+        <View
+          className="flex-1 flex flex-col pt-8 pb-20"
+          style={{
+            backgroundColor: theme.colors.background,
+            borderTopLeftRadius: 18,
+            borderTopRightRadius: 18,
+          }}
+        >
+          <View className="mb-4">
+            <Text variant="titleMedium" className="px-4 mb-1" style={{ fontWeight: "bold", letterSpacing: -0.2 }}>
+              Atalhos Rápidos
             </Text>
 
-            <View className="mt-4">
-              {kpisQuery.isPending || kpisQuery.isFetching ? (
-                <AppSkeleton height={36} width={150} color={theme.colors.onPrimaryContainer} />
-              ) : (
-                <AppHideableCurrencyText
-                  variant="headlineLarge"
-                  theme={{ colors: { onSurface: theme.colors.onPrimary } }}
-                  style={{ fontWeight: "bold", letterSpacing: -0.5 }}
-                >
-                  {currencyFormatter.format(kpisQuery.data?.status.balance || 0)}
-                </AppHideableCurrencyText>
-              )}
-
-              <Text className="mt-2" variant="bodyMedium" theme={{ colors: { onSurface: theme.colors.onPrimary } }}>
-                Saldo disponível
-              </Text>
-            </View>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ gap: 16 }}
+              contentContainerClassName="px-4 py-3"
+            >
+              <ShortcutCard onPress={() => router.goToEntryManualForm()} icon="plus" label="Novo Lançamento" />
+              <ShortcutCard onPress={() => router.goToEntrySmartForm()} icon="robot-outline" label="Lanç. Inteligente" />
+              <ShortcutCard onPress={() => router.goToSchedules()} icon="clock" label="Agendamentos" badgeCount={pendingCount} />
+              <ShortcutCard onPress={() => router.goToAnalyses()} icon="creation" label="Análises" />
+            </ScrollView>
           </View>
 
-          <View
-            className="flex-1 flex flex-col pt-6 pb-20"
-            style={{
-              backgroundColor: theme.colors.background,
-              borderTopLeftRadius: 24,
-              borderTopRightRadius: 24,
-              minHeight: 600,
-            }}
-          >
-            <View className="px-4 mb-8 flex flex-row gap-4">
-              <IncomeCard amount={kpisQuery.data?.status.totalIncome} loading={kpisQuery.isPending || kpisQuery.isFetching} />
-              <ExpenseCard amount={kpisQuery.data?.status.totalExpense} loading={kpisQuery.isPending || kpisQuery.isFetching} />
-            </View>
-
-            <View className="mb-4">
-              <Text variant="titleMedium" className="px-4 mb-1" style={{ fontWeight: "bold", letterSpacing: -0.2 }}>
-                Atalhos Rápidos
-              </Text>
-
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ gap: 16 }}
-                contentContainerClassName="px-4 py-3"
-              >
-                <ShortcutCard onPress={() => router.goToSchedules()} icon="clock" label="Agendamentos" badgeCount={pendingCount} />
-
+          <Conditional
+            if={!isResolvingHomeData}
+            _then={
+              <>
                 <Conditional
-                  if={hasActiveSubscription}
-                  _then={<ShortcutCard onPress={() => router.goToAnalyses()} icon="creation" label="Análises" />}
-                />
-              </ScrollView>
-            </View>
-
-            <Conditional
-              if={!hasActiveSubscription}
-              _then={
-                <View className="px-4 mb-8">
-                  <SubscriptionPromoCard />
-                </View>
-              }
-            />
-
-            <Conditional
-              if={showAntonioPlans}
-              _then={
-                <View className="px-4 mb-8">
-                  <View className="flex flex-row justify-between items-center mb-3">
-                    <Text variant="titleMedium" style={{ fontWeight: "bold", letterSpacing: -0.2 }}>
-                      Planos de Ação do Antônio
-                    </Text>
-
-                    <Button onPress={() => router.goToAnalyses()} compact>
-                      Ver Tudo
-                    </Button>
-                  </View>
-
-                  <View className="flex flex-col">
-                    <List.AccordionGroup>
-                      {recentAnalysis?.output.actions.slice(0, 3).map((action, i) => (
-                        <View key={i} className="flex gap-1">
-                          <List.Accordion
-                            id={i.toString()}
-                            title={action.title}
-                            titleNumberOfLines={3}
-                            titleStyle={{ fontSize: 14, color: theme.colors.onSurface, fontWeight: "bold" }}
-                            left={(props) => <List.Icon {...props} icon="lightbulb-on-outline" color={theme.colors.primary} />}
-                            style={{ backgroundColor: "transparent", paddingHorizontal: 0 }}
-                          >
-                            <List.Item
-                              title={`Por quê? ${action.effect}`}
-                              titleNumberOfLines={10}
-                              titleStyle={{ fontSize: 14, color: theme.colors.onSurfaceVariant, fontStyle: "italic" }}
-                              style={{ paddingLeft: 16, paddingRight: 0, paddingTop: 0, paddingBottom: 16 }}
-                            />
-                          </List.Accordion>
-
-                          {i < recentAnalysis.output.actions.length - 1 && <Divider />}
-                        </View>
-                      ))}
-                    </List.AccordionGroup>
-                  </View>
-                </View>
-              }
-              _else={
-                <Conditional
-                  if={!entriesQuery.isPending && !entriesQuery.isFetching && !!recentEntries.length}
+                  if={!hasActiveSubscription}
                   _then={
-                    <View className="py-4 px-4">
-                      <View className="flex flex-row justify-between items-center mb-3">
-                        <Text variant="titleMedium" style={{ fontWeight: "bold", letterSpacing: -0.2 }}>
-                          Lançamentos Recentes
-                        </Text>
-                        <Button onPress={() => router.goToEntries()} compact>
-                          Ver Todos
-                        </Button>
-                      </View>
-
-                      {entriesQuery.isPending || entriesQuery.isFetching ? (
-                        <View className="flex gap-4">
-                          <AppSkeleton height={70} />
-                          <AppSkeleton height={70} />
-                          <AppSkeleton height={70} />
-                        </View>
-                      ) : (
-                        <View className="flex gap-4">
-                          {recentEntries.map((entry) => (
-                            <EntryListItem key={entry.id} data={entry} onPress={() => router.goToEntries()} />
-                          ))}
-                        </View>
-                      )}
+                    <View className="px-4 mb-8">
+                      <SubscriptionPromoCard />
                     </View>
                   }
                 />
-              }
-            />
-          </View>
+
+                <Conditional
+                  if={showAntonioPlans}
+                  _then={
+                    <View className="px-4 mb-8">
+                      <View className="flex flex-row justify-between items-center mb-3">
+                        <Text variant="titleMedium" style={{ fontWeight: "bold", letterSpacing: -0.2 }}>
+                          Planos de Ação do Antônio
+                        </Text>
+
+                        <Button onPress={() => router.goToAnalyses()} compact>
+                          Ver Tudo
+                        </Button>
+                      </View>
+
+                      <View className="flex flex-col">
+                        <List.AccordionGroup>
+                          {recentAnalysis?.output.actions.slice(0, 3).map((action, i) => (
+                            <List.Accordion
+                              key={i}
+                              id={i.toString()}
+                              title={action.title}
+                              titleNumberOfLines={2}
+                              titleStyle={{ fontSize: 14, color: theme.colors.onSurface, fontWeight: "semibold" }}
+                              left={(props) => <List.Icon {...props} icon="lightbulb-on-outline" color={theme.colors.primary} />}
+                              style={{ backgroundColor: "transparent", paddingHorizontal: 0 }}
+                            >
+                              <List.Item
+                                title={`Por quê? ${action.effect}`}
+                                titleNumberOfLines={10}
+                                titleStyle={{ fontSize: 14, color: theme.colors.onSurfaceVariant, fontStyle: "italic" }}
+                                style={{ paddingLeft: 16, paddingRight: 0, paddingTop: 0, paddingBottom: 16 }}
+                              />
+                            </List.Accordion>
+                          ))}
+                        </List.AccordionGroup>
+                      </View>
+                    </View>
+                  }
+                  _else={
+                    <Conditional
+                      if={pendingCount > 0}
+                      _then={
+                        <View className="py-4 px-4">
+                          <View className="flex flex-row justify-between items-center mb-3">
+                            <Text variant="titleMedium" style={{ fontWeight: "bold", letterSpacing: -0.2 }}>
+                              Contas Atrasadas
+                            </Text>
+                            <Button onPress={() => router.goToSchedules()} compact>
+                              Ver Todas
+                            </Button>
+                          </View>
+
+                          <View className="flex gap-4">
+                            {pendingSchedules.map(({ schedule, cycle }) => (
+                              <ScheduleListItem
+                                key={`${schedule.id}-${cycle.expectedDate}`}
+                                schedule={schedule}
+                                onCheckPress={(s) => createOccurrenceMutation.mutate({ schedule: s })}
+                                onPress={() => router.goToSchedules()}
+                              />
+                            ))}
+                          </View>
+                        </View>
+                      }
+                      _else={
+                        <Conditional
+                          if={!entriesQuery.isPending && !entriesQuery.isFetching && !!recentEntries.length}
+                          _then={
+                            <View className="py-4 px-4">
+                              <View className="flex flex-row justify-between items-center mb-3">
+                                <Text variant="titleMedium" style={{ fontWeight: "bold", letterSpacing: -0.2 }}>
+                                  Lançamentos Recentes
+                                </Text>
+                                <Button onPress={() => router.goToEntries()} compact>
+                                  Ver Todos
+                                </Button>
+                              </View>
+
+                              {entriesQuery.isPending || entriesQuery.isFetching ? (
+                                <View className="flex gap-4">
+                                  <AppSkeleton height={70} />
+                                  <AppSkeleton height={70} />
+                                  <AppSkeleton height={70} />
+                                </View>
+                              ) : (
+                                <View className="flex gap-4">
+                                  {recentEntries.map((entry) => (
+                                    <EntryListItem key={entry.id} data={entry} onPress={() => router.goToEntries()} />
+                                  ))}
+                                </View>
+                              )}
+                            </View>
+                          }
+                        />
+                      }
+                    />
+                  }
+                />
+              </>
+            }
+            _else={
+              <View className="px-4 mt-4 flex gap-4">
+                <View className="flex flex-row justify-between items-center mb-1">
+                  <AppSkeleton height={24} width={180} />
+                  <AppSkeleton height={36} width={80} />
+                </View>
+                <AppSkeleton height={70} />
+                <AppSkeleton height={70} />
+                <AppSkeleton height={70} />
+              </View>
+            }
+          />
         </View>
       </ScrollView>
     </TabbedLayout>

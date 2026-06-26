@@ -1,7 +1,8 @@
 import "../global.css";
 import { configureReanimatedLogger, ReanimatedLogLevel } from "react-native-reanimated";
 import { Stack } from "expo-router";
-import { AxiosError } from "axios";
+import { ThemeProvider, DefaultTheme, DarkTheme } from "@react-navigation/native";
+import { AxiosError, isAxiosError } from "axios";
 import { useAppThemeName } from "@/hooks/use-app-theme-name";
 import { SystemBars } from "react-native-edge-to-edge";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -10,12 +11,13 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 import { paperDarkThemeColors } from "@/themes/paper-dark-theme-colors";
 import { paperLightThemeColors } from "@/themes/paper-light-theme-colors";
 import { configureFonts, MD3DarkTheme, MD3LightTheme, PaperProvider } from "react-native-paper";
-import { PortalProvider } from "@gorhom/portal";
+import { PortalHost, PortalProvider } from "@gorhom/portal";
 import { BottomSheetProvider } from "jam-bottomsheet";
 import * as SplashScreen from "expo-splash-screen";
 import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from "@expo-google-fonts/inter";
 import { useEffect } from "react";
 import { AppToast } from "@/components/AppToast";
+import * as SystemUI from "expo-system-ui";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -32,19 +34,14 @@ export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: (failureCount, error) => {
-        if (error instanceof AxiosError && error.response?.status === 401) {
-          return false;
-        }
-        return failureCount < 3;
+				if (!isAxiosError(error)) return failureCount < 3;
+				if (error.response?.status === 401) return false;
+
+				return failureCount < 3;
       },
     },
     mutations: {
-      retry: (failureCount, error) => {
-        if (error instanceof AxiosError && error.response?.status === 401) {
-          return false;
-        }
-        return failureCount < 3;
-      },
+      retry: false
     },
   },
 });
@@ -69,6 +66,10 @@ export default function RootLayout() {
   const paperColors = appThemeName === "dark" ? paperDarkThemeColors : paperLightThemeColors;
   const paperTheme = appThemeName === "dark" ? MD3DarkTheme : MD3LightTheme;
 
+  useEffect(() => {
+    SystemUI.setBackgroundColorAsync(paperColors.background);
+  }, [paperColors.background]);
+
   if (!loaded && !error) {
     return null;
   }
@@ -84,8 +85,17 @@ export default function RootLayout() {
     }),
   ) as typeof paperTheme.fonts;
 
+  const reactNavigationTheme = {
+    ...(appThemeName === "dark" ? DarkTheme : DefaultTheme),
+    colors: {
+      ...(appThemeName === "dark" ? DarkTheme.colors : DefaultTheme.colors),
+      background: paperColors.background,
+    },
+  };
+
   return (
-    <PaperProvider
+    <ThemeProvider value={reactNavigationTheme}>
+      <PaperProvider
       theme={{
         ...paperTheme,
         dark: appThemeName === "dark",
@@ -97,19 +107,29 @@ export default function RootLayout() {
         <PortalProvider>
           <BottomSheetProvider>
             <QueryClientProvider client={queryClient}>
-              <Stack
-                screenOptions={{
-                  headerShown: false,
-                }}
-              >
+                <Stack
+                  screenOptions={{
+                    headerShown: false,
+                    contentStyle: { backgroundColor: paperColors.background },
+                  }}
+                >
                 <Stack.Screen name="(tabs)" />
                 <Stack.Screen name="(auth)/sign-in" />
                 <Stack.Screen name="(auth)/sign-up/index" />
                 <Stack.Screen name="(auth)/sign-up/confirm/[id]" />
                 <Stack.Screen name="(auth)/reset-password/index" />
                 <Stack.Screen name="(auth)/reset-password/confirm/[id]" />
+                <Stack.Screen name="(modals)/category-form" options={{ presentation: "modal" }} />
+                <Stack.Screen name="(modals)/entry-manual-form" options={{ presentation: "modal" }} />
+                <Stack.Screen name="(modals)/entry-smart-form" options={{ presentation: "modal" }} />
+                <Stack.Screen name="(modals)/entry-search" options={{ presentation: "modal" }} />
+                <Stack.Screen name="(modals)/schedule-form" options={{ presentation: "modal" }} />
+                <Stack.Screen name="(modals)/profile-form" options={{ presentation: "modal" }} />
+                <Stack.Screen name="(modals)/manage-subscription" options={{ presentation: "modal" }} />
+                <Stack.Screen name="(modals)/settings" options={{ presentation: "modal" }} />
               </Stack>
 
+              <PortalHost name="select" />
               <SystemBars style={appThemeName === "dark" ? "light" : "dark"} />
 							
               <AppToast />
@@ -118,5 +138,6 @@ export default function RootLayout() {
         </PortalProvider>
       </KeyboardProvider>
     </PaperProvider>
+    </ThemeProvider>
   );
 }

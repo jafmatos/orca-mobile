@@ -1,5 +1,4 @@
 import { Navigation } from "@/components/Navigation";
-import { CategoryFormOverlay, CategoryFormOverlayRef } from "@/components/categories/CategoryFormOverlay";
 import { CategoryList } from "@/components/categories/CategoryList";
 import { CategoryListItem } from "@/components/categories/CategoryListItem";
 import { TabbedLayout } from "@/components/layouts/TabbedLayout";
@@ -18,6 +17,7 @@ import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppLayoutConstants } from "@/constants/layout";
 import { FAB } from "react-native-paper";
+import { useAppRouter } from "@/hooks/use-app-router";
 
 export default function CategoriesScreen() {
   const theme = useAppTheme();
@@ -29,10 +29,15 @@ export default function CategoriesScreen() {
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [selectedType, setSelectedType] = useState<CategoryTypes | undefined>(undefined);
   const categoryDeleteDialogRef = useRef<AppConfirmationDialogRef>(null);
-  const categoryFormRef = useRef<CategoryFormOverlayRef>(null);
+  const router = useAppRouter();
 
-  const openCategoryForm = () => categoryFormRef.current?.open();
-  const closeCategoryForm = () => categoryFormRef.current?.close();
+  const openCategoryForm = (id?: string) => {
+    if (id) {
+      router.push(`/(modals)/category-form?id=${id}`);
+    } else {
+      router.push(`/(modals)/category-form`);
+    }
+  };
   const openDeleteDialog = () => categoryDeleteDialogRef.current?.open();
   const closeDeleteDialog = () => categoryDeleteDialogRef.current?.close();
 
@@ -76,14 +81,7 @@ export default function CategoriesScreen() {
         <CategoryListItem
           data={item}
           onPressEdit={(category) => {
-            categoryFormRef.current?.form.setForm({
-              id: category.id,
-              name: category.name,
-              type: category.type,
-              limit: category.limit ? { id: category.limit.id, amount: category.limit.amount } : null,
-            });
-
-            openCategoryForm();
+            openCategoryForm(category.id);
           }}
           onPressDelete={(category) => {
             setSelectedCategory(category);
@@ -114,7 +112,7 @@ export default function CategoriesScreen() {
       <CategoryList renderItem={renderItem} data={categories} />
 
       <AppFabOverlay>
-        <FAB icon="plus" size="large" onPress={openCategoryForm} />
+        <FAB icon="plus" size="large" onPress={() => openCategoryForm()} />
       </AppFabOverlay>
 
       <AppConfirmationDialog
@@ -131,14 +129,6 @@ export default function CategoriesScreen() {
         }}
       />
 
-      <CategoryFormOverlay
-        ref={categoryFormRef}
-        onSuccess={(category, mode) => {
-          queryClient.invalidateQueries({ queryKey: [QueryKeys.Overview.getKpis()[0]] });
-          refreshList();
-          closeCategoryForm();
-        }}
-      />
     </TabbedLayout>
   );
 }

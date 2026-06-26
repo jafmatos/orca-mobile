@@ -17,16 +17,15 @@ export function KpiCard(props: KpiCardProps) {
   const theme = useAppTheme();
 
   return (
-    <Surface
+    <View
       className="grow flex-1 flex flex-row items-center"
-      elevation={1}
       style={{
         height: 90,
         flexShrink: 0,
         borderRadius: theme.roundness,
       }}
     >
-      <View className="p-4 flex flex-col gap-2">
+      <View className="p-2 flex flex-col gap-2">
         <View className="flex flex-row items-center gap-2" style={{ height: 24 }}>
           <Text variant="titleSmall">{props.title}</Text>
 
@@ -39,6 +38,6 @@ export function KpiCard(props: KpiCardProps) {
           <AppHideableCurrencyText variant="bodyLarge">{currencyFormatter.format(props.amount || 0)}</AppHideableCurrencyText>
         )}
       </View>
-    </Surface>
+    </View>
   );
 }

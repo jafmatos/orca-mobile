@@ -7,13 +7,19 @@ import { ScrollView, View } from "react-native";
 import { Button, HelperText, IconButton, TextInput as PaperTextInput, SegmentedButtons } from "react-native-paper";
 import { AppCurrencyInput } from "../ui/AppCurrencyInput";
 import { AppDatePicker } from "../ui/AppDatePicker";
-import { AppFullScreenOverlay, AppFullScreenOverlayRef } from "../ui/AppFullScreenOverlay";
+import { FullScreenLayout } from "../layouts/FullScreenLayout";
+import { AppModalHeader } from "../ui/AppModalHeader";
 import { AppSelect } from "../ui/AppSelect";
 import { AppTextInput } from "../ui/AppTextInput";
 import { FormField } from "../ui/FormField";
 
-export type EntryCreateOrUpdateForm = Required<CreateEntryBody & UpdateEntryBody> & {
+export type EntryCreateOrUpdateForm = {
   id?: Entry["id"];
+  type: EntryTypes;
+  category?: { id: string };
+  amount: number;
+  description?: string;
+  when: Date;
 };
 
 export interface EntryFormOverlayProps {
@@ -26,24 +32,12 @@ export interface EntryFormOverlayProps {
   onChange: <Key extends keyof EntryCreateOrUpdateForm>(key: Key, value: EntryCreateOrUpdateForm[Key]) => void;
   onSubmit: () => void;
   onDelete?: () => void;
+  onBackPress?: () => void;
 }
 
-export type EntryFormOverlayRef = AppFullScreenOverlayRef;
-
-export const EntryFormOverlay = React.forwardRef<EntryFormOverlayRef, EntryFormOverlayProps>(function EntryForm(
-  props: EntryFormOverlayProps,
-  ref,
-) {
+export function EntryForm(props: EntryFormOverlayProps) {
   const theme = useAppTheme();
   const categoryQuery = useCategories();
-  const overlayRef = React.useRef<AppFullScreenOverlayRef>(null);
-
-  useImperativeHandle(ref, () => {
-    return {
-      open: (...params: Parameters<AppFullScreenOverlayRef["open"]>) => overlayRef.current?.open(...params),
-      close: (...params: Parameters<AppFullScreenOverlayRef["close"]>) => overlayRef.current?.close(...params),
-    };
-  });
 
   const categoryOptions = useMemo(() => {
     return (
@@ -59,15 +53,16 @@ export const EntryFormOverlay = React.forwardRef<EntryFormOverlayRef, EntryFormO
   }, [categoryQuery.data?.data, props.values.type]);
 
   return (
-    <AppFullScreenOverlay 
-      ref={overlayRef} 
-      title={props.title}
-      HeaderRightComponent={
-        props.onDelete ? (
-          <IconButton icon="trash-can-outline" iconColor={theme.colors.error} onPress={props.onDelete} />
-        ) : undefined
-      }
-    >
+    <FullScreenLayout>
+      <AppModalHeader 
+        title={props.title}
+        onBackPress={props.onBackPress}
+        HeaderRightComponent={
+          props.onDelete ? (
+            <IconButton icon="trash-can-outline" iconColor={theme.colors.error} onPress={props.onDelete} />
+          ) : undefined
+        }
+      />
       <ScrollView
         contentContainerClassName="p-4 flex flex-col gap-4"
         keyboardShouldPersistTaps="handled"
@@ -101,7 +96,7 @@ export const EntryFormOverlay = React.forwardRef<EntryFormOverlayRef, EntryFormO
             mode="outlined"
             label="Categoria"
             value={props.values.category?.id}
-            onChange={(id) => props.onChange("category", { id })}
+            onChange={(id) => props.onChange("category", id ? { id } : undefined)}
             closeOnSelect
             options={categoryOptions}
           />
@@ -113,11 +108,11 @@ export const EntryFormOverlay = React.forwardRef<EntryFormOverlayRef, EntryFormO
           )}
         </FormField>
 
-        <View className="flex flex-row items-center gap-4">
+        <View className="flex flex-row items-start gap-4">
           <FormField className="grow basis-0">
             <AppCurrencyInput
               mode="outlined"
-              label="Valor"
+              label="Valor *"
               value={props.values.amount}
               defaultValue={0}
               onChange={(value) => props.onChange("amount", value)}
@@ -133,8 +128,8 @@ export const EntryFormOverlay = React.forwardRef<EntryFormOverlayRef, EntryFormO
           <FormField className="grow basis-0">
             <AppDatePicker
               mode="outlined"
-              label="Data"
-              value={props.values.when}
+              label="Data *"
+              value={props.values.when || new Date()}
               onChange={(value) => props.onChange("when", value)}
               error={!!props.errors?.when}
             />
@@ -151,7 +146,7 @@ export const EntryFormOverlay = React.forwardRef<EntryFormOverlayRef, EntryFormO
           <AppTextInput
             mode="outlined"
             label="Descrição"
-            value={props.values.description}
+            value={props.values.description || ""}
             onChangeText={(value) => props.onChange("description", value)}
             autoCorrect={false}
             spellCheck={false}
@@ -159,9 +154,9 @@ export const EntryFormOverlay = React.forwardRef<EntryFormOverlayRef, EntryFormO
             right={
               <PaperTextInput.Affix
                 textStyle={{
-                  color: props.values.description.length > 60 ? theme.colors.error : theme.colors.onBackground,
+                  color: (props.values.description || "").length > 60 ? theme.colors.error : theme.colors.onBackground,
                 }}
-                text={`${props.values.description.length}/60`}
+                text={`${(props.values.description || "").length}/60`}
               />
             }
           />
@@ -183,6 +178,6 @@ export const EntryFormOverlay = React.forwardRef<EntryFormOverlayRef, EntryFormO
           {props.submitButtonText}
         </Button>
       </ScrollView>
-    </AppFullScreenOverlay>
+    </FullScreenLayout>
   );
-});
+}

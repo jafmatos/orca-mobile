@@ -4,23 +4,28 @@ import { useAppForm } from "@/hooks/use-app-form";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { Entry, EntryTypes } from "@/models/Entry";
-import { EntryService, ExportEntriesArguments, ListEntriesArguments } from "@/services/Api/EntryApiService";
-import { useMutation } from "@tanstack/react-query";
+import { DeleteEntryReturnType, EntryService, ExportEntriesArguments, ListEntriesArguments } from "@/services/Api/EntryApiService";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { File, Paths } from "expo-file-system";
+import { PortalHost } from "@gorhom/portal";
 import * as Sharing from "expo-sharing";
 import { BottomSheetRef } from "jam-bottomsheet";
-import React, { useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { Keyboard, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppLayoutConstants } from "@/constants/layout";
 import { Button, Chip, IconButton, Searchbar, Text } from "react-native-paper";
-import { AppBottomSheet } from "../ui/AppBottomSheet";
-import { AppChipSelect } from "../ui/AppChipSelect";
-import { AppDatePicker } from "../ui/AppDatePicker";
-import { AppFullScreenOverlay, AppFullScreenOverlayRef } from "../ui/AppFullScreenOverlay";
-import { FormField } from "../ui/FormField";
-import { EntryFilter, EntryList } from "./EntryList";
-import { EntryListItem } from "./EntryListItem";
+import { AppBottomSheet } from "@/components/ui/AppBottomSheet";
+import { AppChipSelect } from "@/components/ui/AppChipSelect";
+import { AppDatePicker } from "@/components/ui/AppDatePicker";
+import { FormField } from "@/components/ui/FormField";
+import { EntryFilter, EntryList } from "@/components/entries/EntryList";
+import { EntryListItem } from "@/components/entries/EntryListItem";
+import { useRouter } from "expo-router";
+import { FullScreenLayout } from "@/components/layouts/FullScreenLayout";
+import { AppKeyboardDismissing } from "@/components/ui/AppKeyboardDismissing";
+import { EntryDetailBottomSheet } from "@/components/entries/EntryDetailBottomSheet";
+import { QueryKeys } from "@/utils/QueryKeys";
 
 enum FilterDateOptions {
   Period = "period",
@@ -55,20 +60,15 @@ const filterTypeOptions = Array.from(filterTypeOptionsMap.entries()).map(([value
   label,
 }));
 
-export type EntrySearchOverlayRef = AppFullScreenOverlayRef;
+export default function EntrySearchScreen() {
+  const searchBarRef = useRef<React.ElementRef<typeof Searchbar>>(null);
+  const filterBottomSheetRef = useRef<BottomSheetRef>(null);
+  const exportBottomSheetRef = useRef<BottomSheetRef>(null);
+  const detailBottomSheetRef = useRef<BottomSheetRef>(null);
+  const router = useRouter();
+  const queryClient = useQueryClient();
 
-export interface EntrySearchOverlayProps {
-  onEntryPress?: (entry: Entry) => void;
-}
-
-export const EntrySearchOverlay = React.forwardRef<EntrySearchOverlayRef, EntrySearchOverlayProps>(function EntrySearchOverlay(
-  { onEntryPress },
-  ref,
-) {
-  const overlayRef = React.useRef<AppFullScreenOverlayRef>(null);
-  const searchBarRef = React.useRef<React.ElementRef<typeof Searchbar>>(null);
-  const filterBottomSheetRef = React.useRef<BottomSheetRef>(null);
-  const exportBottomSheetRef = React.useRef<BottomSheetRef>(null);
+  const [selectedEntry, setSelectedEntry] = useState<Entry>();
 
   const openEntryFilter = () => {
     Keyboard.dismiss();
@@ -135,23 +135,35 @@ export const EntrySearchOverlay = React.forwardRef<EntrySearchOverlayRef, EntryS
     },
   });
 
-  const categoryQuery = useCategories();
-  const user = useAuthUser();
+  const entryDeleteMutation = useMutation<DeleteEntryReturnType, Error, Entry>({
+    mutationFn: (entry) => EntryService.delete(entry.id),
+    onError: (error) => {
+      toast.error({
+        title: "Ops...",
+        description: error.message || "Erro desconhecido",
+        topOffset: toastOffset,
+      });
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: QueryKeys.Overview.getKpis() });
+      queryClient.invalidateQueries({ queryKey: QueryKeys.Overview.getExpenseByCategory() });
+      queryClient.invalidateQueries({ queryKey: QueryKeys.Overview.getMonthlyEvolution() });
+      queryClient.invalidateQueries({ queryKey: QueryKeys.Entry.getEntries() });
 
-  React.useImperativeHandle(ref, () => {
-    return {
-      open: () => {
-        overlayRef.current?.open({
-          onFinished: () => {
-            searchBarRef.current?.focus();
-          },
-        });
-      },
-      close: () => {
-        overlayRef.current?.close();
-      },
-    };
+      setSelectedEntry(undefined);
+      detailBottomSheetRef.current?.close();
+    },
   });
+
+  const categoryQuery = useCategories();
+  const authUserQuery = useAuthUser();
+  const user = authUserQuery.data?.user;
+
+  useEffect(() => {
+    setTimeout(() => {
+      searchBarRef.current?.focus();
+    }, 100);
+  }, []);
 
   const handleApplyFilters = () => {
     const values = filterForm.values;
@@ -166,74 +178,82 @@ export const EntrySearchOverlay = React.forwardRef<EntrySearchOverlayRef, EntryS
   };
 
   return (
-    <AppFullScreenOverlay
-      portalHostName="search-overlay"
-      ref={overlayRef}
-      HeaderComponent={
-        <View className="flex flex-1 flex-row items-center gap-2 h-full w-full">
-          <IconButton
-            size={24}
-            style={{ marginLeft: 0, width: 44, height: 44 }}
-            iconColor={theme.colors.onBackground}
-            icon="arrow-left"
-            onPress={() => overlayRef.current?.close()}
-          />
+    <FullScreenLayout>
+      <View
+        className="px-4 h-[72px] flex flex-row gap-2 items-center"
+        style={{
+          backgroundColor: theme.colors.surface,
+          boxShadow: `0 1px 3px -2px ${theme.colors.outlineVariant}`,
+        }}
+      >
+        <AppKeyboardDismissing.View>
+          <View className="flex flex-1 flex-row items-center gap-2 h-full w-full">
+            <IconButton
+              size={24}
+              style={{ marginLeft: 0, width: 44, height: 44 }}
+              iconColor={theme.colors.onBackground}
+              icon="arrow-left"
+              onPress={() => router.back()}
+            />
 
-          <Searchbar
-            ref={searchBarRef}
-            style={{
-              flex: 1,
-              height: 44,
-              borderRadius: 22,
-              marginRight: 8,
-              backgroundColor: theme.colors.backdrop,
-            }}
-            inputStyle={{ minHeight: 44, color: theme.colors.onBackground }}
-            placeholderTextColor={theme.colors.onSurfaceDisabled}
-            placeholder="Pesquisar..."
-            value={filterForm.values.text || ""}
-            onChangeText={filterForm.makeSetter("text")}
-            onIconPress={() => setFilter(filterForm.values)}
-            onClearIconPress={() => {
-              const updatedFilter = filterForm.setValue("text", "");
-              setFilter(updatedFilter);
-            }}
-            onSubmitEditing={() => setFilter(filterForm.values)}
-          />
+            <Searchbar
+              ref={searchBarRef}
+              style={{
+                flex: 1,
+                height: 44,
+                borderRadius: 22,
+                marginRight: 8,
+                backgroundColor: theme.colors.backdrop,
+              }}
+              inputStyle={{ minHeight: 44, color: theme.colors.onBackground }}
+              placeholderTextColor={theme.colors.onSurfaceDisabled}
+              placeholder="Pesquisar..."
+              value={filterForm.values.text || ""}
+              onChangeText={filterForm.makeSetter("text")}
+              onIconPress={() => setFilter(filterForm.values)}
+              onClearIconPress={() => {
+                const updatedFilter = filterForm.setValue("text", "");
+                setFilter(updatedFilter);
+              }}
+              onSubmitEditing={() => setFilter(filterForm.values)}
+            />
 
-          <IconButton
-            mode="contained"
-            theme={{ colors: { surfaceVariant: theme.colors.backdrop, primary: theme.colors.onBackground } }}
-            style={{ marginLeft: 0, width: 44, height: 44 }}
-            icon="tune"
-            size={24}
-            onPress={openEntryFilter}
-          />
+            <IconButton
+              mode="contained"
+              theme={{ colors: { surfaceVariant: theme.colors.backdrop, primary: theme.colors.onBackground } }}
+              style={{ marginLeft: 0, width: 44, height: 44 }}
+              icon="tune"
+              size={24}
+              onPress={openEntryFilter}
+            />
 
-          <IconButton
-            mode="contained"
-            theme={{ colors: { surfaceVariant: theme.colors.backdrop, primary: theme.colors.onBackground } }}
-            style={{ marginLeft: 0, width: 44, height: 44 }}
-            icon="download"
-            size={24}
-            onPress={openEntryExport}
-          />
-        </View>
-      }
-    >
-      <EntryList
-        renderItem={({ item }) => (
-          <EntryListItem
-            data={item}
-            onPress={() => {
-              onEntryPress?.(item);
-            }}
-          />
-        )}
+            <IconButton
+              mode="contained"
+              theme={{ colors: { surfaceVariant: theme.colors.backdrop, primary: theme.colors.onBackground } }}
+              style={{ marginLeft: 0, width: 44, height: 44 }}
+              icon="download"
+              size={24}
+              onPress={openEntryExport}
+            />
+          </View>
+        </AppKeyboardDismissing.View>
+      </View>
+
+      <View style={{ flex: 1 }}>
+        <EntryList
+          renderItem={({ item }) => (
+            <EntryListItem
+              data={item}
+              onPress={() => {
+                setSelectedEntry(item);
+                detailBottomSheetRef.current?.open();
+              }}
+            />
+          )}
           ListHeaderComponent={
             <View>
               {Object.values(activeFilters).filter((v) => !!v).length > 0 && (
-                <View className="flex flex-row flex-wrap gap-2 pb-4">
+                <View className="flex flex-row flex-wrap gap-2 pb-4 px-4 pt-4">
                   {activeFilters.type && (
                     <Chip
                       compact
@@ -282,8 +302,9 @@ export const EntrySearchOverlay = React.forwardRef<EntrySearchOverlayRef, EntryS
           }
           filter={filter}
         />
+      </View>
 
-      <AppBottomSheet imperative ref={filterBottomSheetRef} fullscreen>
+      <AppBottomSheet imperative ref={filterBottomSheetRef} fullscreen portalHostName="entry-search-bottomsheet">
         <View className="flex flex-col gap-4">
           <View className="flex flex-row items-center justify-between">
             <Text variant="headlineSmall">Filtros</Text>
@@ -418,7 +439,7 @@ export const EntrySearchOverlay = React.forwardRef<EntrySearchOverlayRef, EntryS
         </View>
       </AppBottomSheet>
 
-      <AppBottomSheet imperative ref={exportBottomSheetRef}>
+      <AppBottomSheet imperative ref={exportBottomSheetRef} portalHostName="entry-search-bottomsheet">
         <View className="flex flex-col">
           <View className="flex flex-row justify-between items-center pb-2">
             <Text variant="titleLarge">Exportar lançamentos</Text>
@@ -453,6 +474,32 @@ export const EntrySearchOverlay = React.forwardRef<EntrySearchOverlayRef, EntryS
           </View>
         </View>
       </AppBottomSheet>
-    </AppFullScreenOverlay>
+
+      <EntryDetailBottomSheet
+        ref={detailBottomSheetRef}
+        portalHostName="entry-search-bottomsheet"
+        entry={selectedEntry}
+        onCloseAnimationFinished={() => setSelectedEntry(undefined)}
+        onDuplicate={(entry) => {
+          detailBottomSheetRef.current?.close({
+            onFinished: () => {
+              router.push(`/(modals)/entry-manual-form?duplicateFromId=${entry.id}`);
+            }
+          });
+        }}
+        onEdit={(entry) => {
+          detailBottomSheetRef.current?.close({
+            onFinished: () => {
+              router.push(`/(modals)/entry-manual-form?id=${entry.id}`);
+            }
+          });
+        }}
+        onDelete={async (entry) => {
+          await entryDeleteMutation.mutateAsync(entry);
+        }}
+      />
+      
+      <PortalHost name="entry-search-bottomsheet" />
+    </FullScreenLayout>
   );
-});
+}

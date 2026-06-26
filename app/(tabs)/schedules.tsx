@@ -1,6 +1,5 @@
 import { TabbedLayout } from "@/components/layouts/TabbedLayout";
 import { Navigation } from "@/components/Navigation";
-import { ScheduleFormOverlay, ScheduleFormOverlayRef } from "@/components/schedules/ScheduleFormOverlay";
 import { ScheduleList } from "@/components/schedules/ScheduleList";
 import { ScheduleListItem } from "@/components/schedules/ScheduleListItem";
 import { SchedulesCalendarView } from "@/components/schedules/SchedulesCalendarView";
@@ -21,7 +20,7 @@ import { DeleteEntryReturnType, EntryService } from "@/services/Api/EntryApiServ
 import { currencyFormatter } from "@/utils/currencyFormatter";
 import { QueryKeys } from "@/utils/QueryKeys";
 import { InfiniteData, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "expo-router";
+import { useAppRouter } from "@/hooks/use-app-router";
 import { BottomSheetRef } from "jam-bottomsheet";
 import React, { useCallback, useState } from "react";
 import { View } from "react-native";
@@ -32,7 +31,7 @@ import { CreateScheduleOccurrenceReturnType, ScheduleOccurrenceService } from "@
 import { AppSegmentedControl } from "@/components/ui/AppSegmentedControl";
 
 export default function SchedulesScreen() {
-  const router = useRouter();
+  const router = useAppRouter();
   const [viewMode, setViewMode] = useState<"list" | "calendar">("calendar");
   const [selectedScheduleContext, setSelectedScheduleContext] = useState<{
     schedule: Schedule;
@@ -46,7 +45,6 @@ export default function SchedulesScreen() {
   const schedules = React.useMemo(() => schedulesQuery.data?.pages.flatMap((page) => page.data) || [], [schedulesQuery.data]);
 
   const detailBottomSheetRef = React.useRef<BottomSheetRef>(null);
-  const scheduleFormOverlayRef = React.useRef<ScheduleFormOverlayRef>(null);
 
   const openScheduleDetail = useCallback((schedule: Schedule, dateStr?: string, isDone?: boolean, entryId?: string) => {
     const defaultDate = new Date();
@@ -80,9 +78,6 @@ export default function SchedulesScreen() {
       onFinished: () => setSelectedScheduleContext(undefined),
     });
   }, []);
-
-  const openScheduleForm = () => scheduleFormOverlayRef.current?.open();
-  const closeScheduleForm = () => scheduleFormOverlayRef.current?.close();
 
   const toast = useAppToast();
   const theme = useAppTheme();
@@ -308,17 +303,8 @@ export default function SchedulesScreen() {
       )}
 
       <AppFabOverlay>
-        <FAB icon="plus" size="large" onPress={() => openScheduleForm()} />
+        <FAB icon="plus" size="large" onPress={() => router.goToScheduleForm()} />
       </AppFabOverlay>
-
-      <ScheduleFormOverlay
-        ref={scheduleFormOverlayRef}
-        onSuccess={(schedule, mode) => {
-          queryClient.invalidateQueries({ queryKey: QueryKeys.Schedule.getSchedules(), refetchType: "all" });
-
-          closeScheduleForm();
-        }}
-      />
 
       <AppBottomSheet
         imperative
@@ -347,20 +333,11 @@ export default function SchedulesScreen() {
                 onPress={() => {
                   if (!selectedSchedule) return;
 
-                  scheduleFormOverlayRef.current?.form.setForm({
-                    id: selectedSchedule.id,
-                    type: selectedSchedule.type,
-                    category: {
-                      id: selectedSchedule.category?.id || "",
-                    },
-                    amount: selectedSchedule.amount,
-                    description: selectedSchedule.description,
-                    referenceTimestamp: new Date(selectedSchedule.referenceTimestamp),
-                    frequency: selectedSchedule.frequency,
-                    dayOfWeek: selectedSchedule.dayOfWeek,
+                  detailBottomSheetRef.current?.close({
+                    onFinished: () => {
+                      router.goToScheduleForm(selectedSchedule.id);
+                    }
                   });
-
-                  openScheduleForm();
                 }}
               />
               <AppConfirmationDialog

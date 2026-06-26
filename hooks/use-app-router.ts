@@ -29,5 +29,22 @@ export function useAppRouter() {
     goToOverview: () => router.push("/(tabs)/overview"),
     goToAnalyses: () => router.push("/(tabs)/analyses"),
     goToProfile: () => router.push("/(tabs)/profile"),
+    goToCategoryForm: (id?: string) => {
+      if (id) router.push(`/(modals)/category-form?id=${id}`);
+      else router.push("/(modals)/category-form");
+    },
+    goToEntryManualForm: (id?: string) => {
+      if (id) router.push(`/(modals)/entry-manual-form?id=${id}`);
+      else router.push("/(modals)/entry-manual-form");
+    },
+    goToEntrySmartForm: () => router.push("/(modals)/entry-smart-form"),
+    goToEntrySearch: () => router.push("/(modals)/entry-search"),
+    goToScheduleForm: (id?: string) => {
+      if (id) router.push(`/(modals)/schedule-form?id=${id}`);
+      else router.push("/(modals)/schedule-form");
+    },
+    goToProfileForm: () => router.push("/(modals)/profile-form"),
+    goToManageSubscription: () => router.push("/(modals)/manage-subscription"),
+    goToSettings: () => router.push("/(modals)/settings"),
   };
 }

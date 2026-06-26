@@ -1,16 +1,16 @@
 import { useAuthUser } from "@/hooks/queries/use-auth-user";
 import { useAppRouter } from "@/hooks/use-app-router";
 import { useAppTheme } from "@/hooks/use-app-theme";
-import { AppAuthenticationTokenStore } from "@/utils/AuthenticationTokenStore";
 import { Portal, PortalHost } from "@gorhom/portal";
 import { Link, usePathname } from "expo-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Pressable, View } from "react-native";
-import { Button, Divider, Icon, IconButton, Text } from "react-native-paper";
+import { Divider, Icon, IconButton, Text } from "react-native-paper";
 import { AppAvatar } from "./ui/AppAvatar";
 import { AppDrawer } from "./ui/AppDrawer";
 import { AppHideableCurrencyToggle } from "./ui/AppHideableCurrencyToggle";
 import { AppLayoutConstants } from "@/constants/layout";
+import { AppLogoutButton } from "./ui/AppLogoutButton";
 
 export interface DrawerNavigationItemProps {
   icon?: string;
@@ -22,8 +22,6 @@ export interface DrawerNavigationItemProps {
 
 export interface NavigationProps {
   SubHeaderComponent?: React.ReactNode;
-  backgroundColor?: string;
-  contentColor?: string;
   hideShadow?: boolean;
   hideCurrencyToggle?: boolean;
   colored?: boolean;
@@ -61,10 +59,11 @@ function DrawerNavigationItem(props: DrawerNavigationItemProps) {
 
 export function Navigation(props: NavigationProps) {
   const theme = useAppTheme();
-  const router = useAppRouter();
-  const user = useAuthUser();
+  const authUserQuery = useAuthUser();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const hasActiveSubscription = !!user?.subscription && ["active", "trialing"].includes(user.subscription.status);
+
+  const authUser = useMemo(() => authUserQuery.data?.user, [authUserQuery.data]);
+  const hasActiveSubscription = useMemo(() => !!authUser?.subscription?.isActive, [authUser]);
 
   const closeDrawer = () => setIsDrawerOpen(false);
 
@@ -82,14 +81,11 @@ export function Navigation(props: NavigationProps) {
           zIndex: 1,
         }}
       >
-        <View
-          className="px-4 flex flex-row justify-between items-center"
-          style={{ height: AppLayoutConstants.headerHeight }}
-        >
+        <View className="px-4 flex flex-row justify-between items-center" style={{ height: AppLayoutConstants.headerHeight }}>
           <View style={{ backgroundColor: "transparent", borderRadius: 100 }}>
             <AppAvatar
-              url={user?.avatar?.url}
-              fallback={user?.name[0].toUpperCase()}
+              url={authUser?.avatar?.url}
+              fallback={authUser?.name[0].toUpperCase()}
               color={contentColor}
               backgroundColor={buttonBackgroundColor}
             />
@@ -138,8 +134,8 @@ export function Navigation(props: NavigationProps) {
         >
           <View className="flex flex-row gap-2 items-center">
             <AppAvatar
-              url={user?.avatar?.url}
-              fallback={user?.name[0].toUpperCase()}
+              url={authUser?.avatar?.url}
+              fallback={authUser?.name[0].toUpperCase()}
               color={theme.colors.onBackground}
               backgroundColor={theme.colors.backdrop}
             />
@@ -154,9 +150,9 @@ export function Navigation(props: NavigationProps) {
                   color: theme.colors.onBackground,
                 }}
               >
-                {user?.name}
+                {authUser?.name}
               </Text>
-              <Text variant="bodySmall">{user?.email}</Text>
+              <Text variant="bodySmall">{authUser?.email}</Text>
             </View>
           </View>
 
@@ -168,24 +164,18 @@ export function Navigation(props: NavigationProps) {
             <DrawerNavigationItem onPressCallback={closeDrawer} to={"/schedules"} icon="clock" text="Agendamentos" />
             <DrawerNavigationItem onPressCallback={closeDrawer} to={"/categories"} icon="bookmark" text="Categorias" />
             <DrawerNavigationItem onPressCallback={closeDrawer} to={"/overview"} icon="chart-donut" text="Visão Geral" />
-            <DrawerNavigationItem onPressCallback={closeDrawer} to={"/analyses"} icon="creation" text="Análises" disabled={!hasActiveSubscription} />
+            <DrawerNavigationItem
+              onPressCallback={closeDrawer}
+              to={"/analyses"}
+              icon="creation"
+              text="Análises"
+              disabled={!hasActiveSubscription}
+            />
             <DrawerNavigationItem onPressCallback={closeDrawer} to={"/profile"} icon="account" text="Meu Perfil" />
+            <DrawerNavigationItem onPressCallback={closeDrawer} to={"/(modals)/settings"} icon="cog" text="Configurações" />
           </View>
 
-          <Button
-            mode="contained"
-            icon="logout"
-            buttonColor={theme.colors.error}
-            textColor={theme.colors.onError}
-            style={{ borderRadius: theme.roundness }}
-            onPress={() => {
-              AppAuthenticationTokenStore.remove();
-
-              router.goToSignIn();
-            }}
-          >
-            Sair
-          </Button>
+          <AppLogoutButton />
         </AppDrawer>
       </Portal>
     </>

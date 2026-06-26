@@ -2,14 +2,19 @@ import { useAppForm } from "@/hooks/use-app-form";
 import { useAppFormWithMutation } from "@/hooks/use-app-form-with-mutation";
 import { User } from "@/models/User";
 import { ProfileService, UpdateProfileArguments, UpdateProfileReturnType } from "@/services/Api/Users/ProfileApiService";
-import React, { useImperativeHandle, useMemo } from "react";
-import { Keyboard, TouchableWithoutFeedback, View } from "react-native";
+import React, { useEffect, useMemo } from "react";
+import { View } from "react-native";
 import { Button, HelperText } from "react-native-paper";
-import { AppTextInput } from "../ui/AppTextInput";
-import { AppFullScreenOverlay, AppFullScreenOverlayProps, AppFullScreenOverlayRef } from "../ui/AppFullScreenOverlay";
-import { AppSelect } from "../ui/AppSelect";
-import { FormField } from "../ui/FormField";
-import { AppKeyboardDismissing } from "../ui/AppKeyboardDismissing";
+import { AppTextInput } from "@/components/ui/AppTextInput";
+import { AppSelect } from "@/components/ui/AppSelect";
+import { FormField } from "@/components/ui/FormField";
+import { AppKeyboardDismissing } from "@/components/ui/AppKeyboardDismissing";
+import { FullScreenLayout } from "@/components/layouts/FullScreenLayout";
+import { AppModalHeader } from "@/components/ui/AppModalHeader";
+import { useRouter } from "expo-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { QueryKeys } from "@/utils/QueryKeys";
+import { useAuthUser } from "@/hooks/queries/use-auth-user";
 
 export interface UpdateProfileForm {
   name: string;
@@ -17,19 +22,11 @@ export interface UpdateProfileForm {
   periodReferenceDay: number;
 }
 
-export interface ProfileOverlayProps extends Omit<AppFullScreenOverlayProps, "title"> {
-  onSuccess?: (user: User) => void;
-}
-
-export interface ProfileFormOverlayRef extends AppFullScreenOverlayRef {
-  form: ReturnType<typeof useAppForm<UpdateProfileForm>>;
-}
-
-export const ProfileFormOverlay = React.forwardRef<ProfileFormOverlayRef, ProfileOverlayProps>(function ProfileForm(
-  props: ProfileOverlayProps,
-  ref,
-) {
-  const categoryFormRef = React.useRef<AppFullScreenOverlayRef>(null);
+export default function ProfileFormScreen() {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const authUserQuery = useAuthUser();
+  const user = authUserQuery.data?.user;
 
   const profileForm = useAppForm<UpdateProfileForm>({
     name: "",
@@ -37,20 +34,24 @@ export const ProfileFormOverlay = React.forwardRef<ProfileFormOverlayRef, Profil
     periodReferenceDay: 1,
   });
 
-  useImperativeHandle(ref, () => {
-    return {
-      open: () => categoryFormRef.current?.open(),
-      close: () => categoryFormRef.current?.close(),
-      form: profileForm,
-    };
-  });
+  useEffect(() => {
+    if (!user) return;
+
+    profileForm.setForm({
+      name: user.name,
+      email: user.email,
+      periodReferenceDay: user.periodReferenceDay,
+    });
+  }, [user]);
 
   const { mutation: profileUpdateMutation } = useAppFormWithMutation<UpdateProfileForm, UpdateProfileArguments, UpdateProfileReturnType>(
     profileForm,
     {
       mutationFn: (body) => ProfileService.update(body),
       onSuccess: (data) => {
-        props.onSuccess?.(data.user);
+        queryClient.setQueryData(QueryKeys.User.getAuthUser(), { user: data.user });
+        queryClient.invalidateQueries({ queryKey: QueryKeys.User.getAuthUser() });
+        router.back();
       },
     },
   );
@@ -63,7 +64,8 @@ export const ProfileFormOverlay = React.forwardRef<ProfileFormOverlayRef, Profil
   }, []);
 
   return (
-    <AppFullScreenOverlay ref={categoryFormRef} title="Editar Perfil">
+    <FullScreenLayout>
+      <AppModalHeader title="Editar Perfil" />
       <AppKeyboardDismissing.ScrollView>
         <View className="p-4 flex flex-col gap-4">
           <FormField>
@@ -120,6 +122,6 @@ export const ProfileFormOverlay = React.forwardRef<ProfileFormOverlayRef, Profil
           </Button>
         </View>
       </AppKeyboardDismissing.ScrollView>
-    </AppFullScreenOverlay>
+    </FullScreenLayout>
   );
-});
+}

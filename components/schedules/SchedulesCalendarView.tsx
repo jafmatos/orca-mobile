@@ -26,7 +26,8 @@ interface SchedulesCalendarViewProps {
 
 export function SchedulesCalendarView({ schedules, onCheckPress, onSchedulePress }: SchedulesCalendarViewProps) {
   const theme = useAppTheme();
-  const user = useAuthUser();
+  const authUserQuery = useAuthUser();
+  const user = authUserQuery.data?.user;
   const bottomSheetRef = React.useRef<BottomSheetRef>(null);
 
   const today = new Date();

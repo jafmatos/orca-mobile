@@ -4,12 +4,12 @@ import { currencyFormatter } from "@/utils/currencyFormatter";
 import React, { forwardRef, useState } from "react";
 import { View } from "react-native";
 import { IconButton, Text } from "react-native-paper";
-import { AppBottomSheet, AppBottomSheetRef } from "../ui/AppBottomSheet";
+import { AppBottomSheet, AppBottomSheetComplementaryProps, AppBottomSheetRef } from "../ui/AppBottomSheet";
 import { AppConfirmationDialog } from "../ui/AppConfirmationDialog";
 import { AppHideableCurrencyText } from "../ui/AppHideableCurrencyText";
 import { AppSkeleton } from "../ui/AppSkeleton";
 
-export interface EntryDetailBottomSheetProps {
+export interface EntryDetailBottomSheetProps extends AppBottomSheetComplementaryProps {
   entry?: Entry;
   onCloseAnimationFinished?: () => void;
   onEdit?: (entry: Entry) => void;
@@ -20,12 +20,12 @@ export interface EntryDetailBottomSheetProps {
 export type EntryDetailBottomSheetRef = AppBottomSheetRef;
 
 export const EntryDetailBottomSheet = forwardRef<EntryDetailBottomSheetRef, EntryDetailBottomSheetProps>(
-  function EntryDetailBottomSheet({ entry, onCloseAnimationFinished, onEdit, onDuplicate, onDelete }, ref) {
+  function EntryDetailBottomSheet({ entry, onCloseAnimationFinished, onEdit, onDuplicate, onDelete, portalHostName }, ref) {
     const theme = useAppTheme();
     const [isDeleting, setIsDeleting] = useState(false);
 
     return (
-      <AppBottomSheet imperative ref={ref} onCloseAnimationFinished={onCloseAnimationFinished}>
+      <AppBottomSheet imperative ref={ref} onCloseAnimationFinished={onCloseAnimationFinished} portalHostName={portalHostName}>
         <View className="flex flex-col gap-4">
           <View className="flex flex-row justify-between items-center gap-4">
             <View style={{ flexShrink: 1 }}>
