@@ -1,9 +1,12 @@
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { Text } from "react-native-paper";
 import { SubscriptionCard } from "../SubscriptionCard";
+import { useRouter } from "expo-router";
+import { useAppRouter } from "@/hooks/use-app-router";
 
 export function SubscriptionPromoCard() {
   const theme = useAppTheme();
+  const router = useAppRouter();
 
   return (
     <SubscriptionCard>
@@ -19,7 +22,7 @@ export function SubscriptionPromoCard() {
         </Text>
       </SubscriptionCard.Content>
 
-      <SubscriptionCard.Action onPress={() => {}}>Vamos lá!</SubscriptionCard.Action>
+      <SubscriptionCard.Action onPress={() => router.goToPlans()}>Vamos lá!</SubscriptionCard.Action>
     </SubscriptionCard>
   );
 }

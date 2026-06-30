@@ -8,7 +8,6 @@ import { useAppRouter } from "@/hooks/use-app-router";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { AvatarService } from "@/services/Api/Users/AvatarApiService";
-import { ProfileService } from "@/services/Api/Users/ProfileApiService";
 import { QueryKeys } from "@/utils/QueryKeys";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import * as ImagePicker from "expo-image-picker";
@@ -18,9 +17,11 @@ import { AppLayoutConstants } from "@/constants/layout";
 import { Pressable, ScrollView, View } from "react-native";
 import { Button, Icon, IconButton, Surface, Text } from "react-native-paper";
 import { AppLogoutButton } from "@/components/ui/AppLogoutButton";
+import { useHasActiveSubscription } from "@/hooks/queries/use-has-active-subscription";
 
 export default function ProfileScreen() {
   const authUserQuery = useAuthUser();
+  const hasActiveSubscription = useHasActiveSubscription();
   const theme = useAppTheme();
   const router = useAppRouter();
   const toast = useAppToast();
@@ -36,8 +37,6 @@ export default function ProfileScreen() {
 
   const openAvatarBottomSheet = () => avatarBottomSheetRef.current?.open();
   const closeAvatarBottomSheet = () => avatarBottomSheetRef.current?.close();
-
-
 
   const uploadAvatarMutation = useMutation({
     mutationFn: (formData: FormData) => AvatarService.update(formData),
@@ -196,7 +195,7 @@ export default function ProfileScreen() {
           />
         </Surface>
 
-        {authUser?.subscription ? (
+        {hasActiveSubscription && authUser?.subscription ? (
           <Surface
             style={{
               borderRadius: theme.roundness,
@@ -226,7 +225,7 @@ export default function ProfileScreen() {
                 buttonColor={theme.colors.primaryContainer}
                 textColor={theme.colors.primary}
                 className="mt-2"
-                onPress={() => router.goToManageSubscription()}
+                onPress={() => router.goToBillingPortal()}
                 style={{ borderRadius: theme.roundness }}
               >
                 Gerenciar Assinatura
@@ -236,7 +235,6 @@ export default function ProfileScreen() {
         ) : (
           <SubscriptionPromoCard />
         )}
-
 
         <AppLogoutButton />
       </ScrollView>

@@ -22,6 +22,7 @@ export function useAppRouter() {
           id,
         },
       }),
+    goToPlans: () => router.push("/(modals)/plans"),
     goToHome: () => router.push("/(tabs)"),
     goToEntries: () => router.push("/(tabs)/entries"),
     goToSchedules: () => router.push("/(tabs)/schedules"),
@@ -44,7 +45,7 @@ export function useAppRouter() {
       else router.push("/(modals)/schedule-form");
     },
     goToProfileForm: () => router.push("/(modals)/profile-form"),
-    goToManageSubscription: () => router.push("/(modals)/manage-subscription"),
+    goToBillingPortal: () => router.push("/(modals)/billing-portal"),
     goToSettings: () => router.push("/(modals)/settings"),
   };
 }

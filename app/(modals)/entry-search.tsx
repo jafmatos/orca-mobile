@@ -253,7 +253,7 @@ export default function EntrySearchScreen() {
           ListHeaderComponent={
             <View>
               {Object.values(activeFilters).filter((v) => !!v).length > 0 && (
-                <View className="flex flex-row flex-wrap gap-2 pb-4 px-4 pt-4">
+                <View className="flex flex-row flex-wrap gap-2 pb-4">
                   {activeFilters.type && (
                     <Chip
                       compact
