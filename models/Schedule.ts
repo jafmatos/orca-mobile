@@ -23,11 +23,12 @@ export interface Schedule {
   id: string;
   type: EntryTypes;
   amount: number;
-  description: string;
-  when?: string;
-  referenceTimestamp: string;
+  description?: string;
   frequency: ScheduleFrequency;
+  time: string;
+  timezone: string;
   dayOfWeek?: number;
+  dayOfMonth?: number;
   category?: Category;
   occurrences?: ScheduleOccurrence[];
   cycles?: ScheduleCycle[];

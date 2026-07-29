@@ -1,5 +1,5 @@
 import { Entry, EntryTypes } from "@/models/Entry";
-import { CursorPaginatedData, PaginatedData } from "@/models/PaginatedData";
+import { CursorPaginatedData } from "@/models/PaginatedData";
 import { $axios } from "@/utils/$axios";
 import { AxiosResponse } from "axios";
 import qs from "qs";
@@ -39,17 +39,16 @@ export type ExportEntriesArguments = {
   };
 };
 
-export type CreateEntryBody =
-  | {
-      type: EntryTypes;
-      category?: {
-        id: string;
-      };
-      amount: number;
-      description?: string;
-      when: Date;
-    }
-  | FormData;
+export type CreateEntryBody = {
+  type: EntryTypes;
+  category?: {
+    id?: string;
+    name?: string;
+  };
+  amount: number;
+  description?: string;
+  when: Date | string;
+};
 
 export type CreateEntryReturnType = {
   entry: Entry;
@@ -58,7 +57,7 @@ export type CreateEntryReturnType = {
 export type CreateSmartEntryBody =
   | {
       text: string;
-      now: Date;
+      now: Date | string;
     }
   | FormData;
 
@@ -75,13 +74,14 @@ export type CreateBulkEntryReturnType = {
 };
 
 export type UpdateEntryBody = {
-  type: EntryTypes;
+  type?: EntryTypes;
   category?: {
-    id: string;
-  };
+    id?: string;
+    name?: string;
+  } | null;
   amount?: number;
   description?: string;
-  when?: Date;
+  when?: Date | string;
 };
 
 export type UpdateEntryReturnType = {
@@ -117,8 +117,8 @@ export class EntryService {
     return data;
   }
 
-  private static async _createSmart(body: CreateSmartEntryBody): Promise<CreateSmartEntryReturnType> {
-    const { data } = await $axios.post(`${this.path}/smart`, body, {
+  private static async _smartExtract(body: CreateSmartEntryBody): Promise<CreateSmartEntryReturnType> {
+    const { data } = await $axios.post(`${this.path}/smart-extract`, body, {
       headers: body instanceof FormData ? { "Content-Type": "multipart/form-data" } : undefined,
     });
 
@@ -148,6 +148,6 @@ export class EntryService {
   public static readonly update = EntryService._update.bind(EntryService);
   public static readonly delete = EntryService._delete.bind(EntryService);
   public static readonly exportEntries = EntryService._exportEntries.bind(EntryService);
-  public static readonly createSmart = EntryService._createSmart.bind(EntryService);
+  public static readonly smartExtract = EntryService._smartExtract.bind(EntryService);
   public static readonly createBulk = EntryService._createBulk.bind(EntryService);
 }

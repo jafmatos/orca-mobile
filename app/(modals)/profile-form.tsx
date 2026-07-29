@@ -19,7 +19,7 @@ import { useAuthUser } from "@/hooks/queries/use-auth-user";
 export interface UpdateProfileForm {
   name: string;
   email: string;
-  periodReferenceDay: number;
+  salaryDay: number;
 }
 
 export default function ProfileFormScreen() {
@@ -31,7 +31,7 @@ export default function ProfileFormScreen() {
   const profileForm = useAppForm<UpdateProfileForm>({
     name: "",
     email: "",
-    periodReferenceDay: 1,
+    salaryDay: 1,
   });
 
   useEffect(() => {
@@ -40,7 +40,7 @@ export default function ProfileFormScreen() {
     profileForm.setForm({
       name: user.name,
       email: user.email,
-      periodReferenceDay: user.periodReferenceDay,
+      salaryDay: user.salaryDay,
     });
   }, [user]);
 
@@ -99,14 +99,14 @@ export default function ProfileFormScreen() {
               closeOnSelect
               mode="outlined"
               label="Dia do Salário*"
-              value={String(profileForm.values.periodReferenceDay)}
+              value={String(profileForm.values.salaryDay)}
               options={dayOptions}
-              onChange={(value) => profileForm.setValue("periodReferenceDay", Number(value))}
+              onChange={(value) => profileForm.setValue("salaryDay", Number(value))}
             />
 
-            {profileForm.hasError("periodReferenceDay") && (
+            {profileForm.hasError("salaryDay") && (
               <HelperText type="error" visible={true}>
-                {profileForm.getError("periodReferenceDay")}
+                {profileForm.getError("salaryDay")}
               </HelperText>
             )}
           </FormField>

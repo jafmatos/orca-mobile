@@ -38,7 +38,7 @@ export type UpdateCategoryReturnType = {
 };
 
 export type DeleteCategoryReturnType = {
-  category: Category;
+  message: string;
 };
 
 export class CategoryService {

@@ -14,44 +14,57 @@ export interface FindScheduleReturnType {
   schedule: Schedule;
 }
 
-export interface CreateScheduleBody {
+interface CreateScheduleBodyBase {
+  time: string;
+  timezone: string;
   type: EntryTypes;
-  category?: { id: string };
   amount: number;
-  description: string;
-  referenceTimestamp: Date;
-  frequency: ScheduleFrequency;
-  dayOfWeek?: number;
+  description?: string;
+  category?: { id: string } | null;
 }
+
+export interface CreateScheduleBodyWeekly extends CreateScheduleBodyBase {
+  frequency: ScheduleFrequency.Weekly;
+  dayOfWeek: number;
+}
+
+export interface CreateScheduleBodyMonthly extends CreateScheduleBodyBase {
+  frequency: ScheduleFrequency.Monthly;
+  dayOfMonth: number;
+}
+
+export type CreateScheduleBody = CreateScheduleBodyWeekly | CreateScheduleBodyMonthly;
 
 export interface CreateScheduleReturnType {
   schedule: Schedule;
 }
 
-export interface UpdateScheduleBody {
+interface UpdateScheduleBodyBase {
+  time?: string;
+  timezone?: string;
   type?: EntryTypes;
-  category?: { id: string };
   amount?: number;
   description?: string;
-  referenceTimestamp?: Date;
-  frequency?: ScheduleFrequency;
+  category?: { id: string } | null;
+}
+
+export interface UpdateScheduleBodyWeekly extends UpdateScheduleBodyBase {
+  frequency: ScheduleFrequency.Weekly;
   dayOfWeek?: number;
 }
+
+export interface UpdateScheduleBodyMonthly extends UpdateScheduleBodyBase {
+  frequency: ScheduleFrequency.Monthly;
+  dayOfMonth?: number;
+}
+
+export type UpdateScheduleBody = UpdateScheduleBodyWeekly | UpdateScheduleBodyMonthly;
 
 export interface UpdateScheduleReturnType {
   schedule: Schedule;
 }
 
 export interface RemoveScheduleReturnType {
-  schedule: Schedule;
-}
-
-export interface SwitchScheduleBody {
-  when: Date;
-  isDone?: boolean;
-}
-
-export interface SwitchScheduleReturnType {
   schedule: Schedule;
 }
 

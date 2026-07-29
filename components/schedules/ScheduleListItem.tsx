@@ -19,7 +19,7 @@ export function ScheduleListItem({ schedule, isDone, onCheckPress, ...pressableP
   const theme = useAppTheme();
 
   const getFrequencyText = () => {
-    const timeOfDay = new Date(schedule.referenceTimestamp).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+    const timeOfDay = schedule.time;
 
     if (schedule.frequency === ScheduleFrequency.Weekly) {
       const dayOfWeek = schedule.dayOfWeek !== undefined ? WEEKDAYS[schedule.dayOfWeek] : "";
@@ -27,9 +27,7 @@ export function ScheduleListItem({ schedule, isDone, onCheckPress, ...pressableP
       return `${dayOfWeek} às ${timeOfDay}`;
     }
 
-    const date = new Date(schedule.referenceTimestamp).getDate();
-
-    return `Dia ${date} às ${timeOfDay}`;
+    return `Dia ${schedule.dayOfMonth ?? "?"} às ${timeOfDay}`;
   };
 
   return (

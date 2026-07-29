@@ -6,9 +6,12 @@ export interface User {
   email: string;
   name: string;
   balance?: number;
-  periodGe: string;
-  periodLe: string;
-  periodReferenceDay: number;
+  salaryDay: number;
+  currentCycle: {
+    start: string;
+    end: string;
+  };
+  financialGoal?: string | null;
   acceptsNotifications: boolean;
   createdAt: string;
   avatar?: UserAvatar;

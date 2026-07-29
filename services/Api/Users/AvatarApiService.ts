@@ -2,7 +2,7 @@ import { User } from "@/models/User";
 import { $axios } from "@/utils/$axios";
 
 export class AvatarService {
-  private static readonly endpoint = "/users/avatar";
+  private static readonly endpoint = "/users/me/avatar";
 
   private static async _update(formData: FormData): Promise<User> {
     const { data } = await $axios.put(this.endpoint, formData, {

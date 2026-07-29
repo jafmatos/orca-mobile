@@ -38,10 +38,10 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
-          "dark": {
-            "backgroundColor": "#000000"
-          }
+          "backgroundColor": "#914d00",
+					"dark": {
+						"backgroundColor": "#ffb77d"
+					}
         }
       ],
       "expo-secure-store",

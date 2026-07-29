@@ -50,17 +50,23 @@ export function AnalysisListItem({ analysis, ...pressableProps }: AnalysisListIt
 
           <View className="flex flex-row items-center gap-3 mt-1">
             {issuesCount > 0 && (
-              <View className="flex flex-row items-center gap-1 bg-red-100 dark:bg-red-900/30 px-2 py-0.5 rounded-md">
-                <Icon source="alert-circle-outline" size={14} color={theme.colors.error} />
-                <Text style={{ color: theme.colors.error, fontSize: 12, fontWeight: "bold" }}>
+              <View
+                className="flex flex-row items-center gap-1 px-2 py-0.5 rounded-md"
+                style={{ backgroundColor: theme.colors.errorContainer }}
+              >
+                <Icon source="alert-circle-outline" size={14} color={theme.colors.onErrorContainer} />
+                <Text style={{ color: theme.colors.onErrorContainer, fontSize: 12, fontWeight: "bold" }}>
                   {issuesCount} {issuesCount === 1 ? "alerta" : "alertas"}
                 </Text>
               </View>
             )}
             {actionsCount > 0 && (
-              <View className="flex flex-row items-center gap-1 bg-green-100 dark:bg-green-900/30 px-2 py-0.5 rounded-md">
-                <Icon source="check-circle-outline" size={14} color={theme.colors.success} />
-                <Text style={{ color: theme.colors.success, fontSize: 12, fontWeight: "bold" }}>
+              <View
+                className="flex flex-row items-center gap-1 px-2 py-0.5 rounded-md"
+                style={{ backgroundColor: theme.colors.successContainer }}
+              >
+                <Icon source="check-circle-outline" size={14} color={theme.colors.onSuccessContainer} />
+                <Text style={{ color: theme.colors.onSuccessContainer, fontSize: 12, fontWeight: "bold" }}>
                   {actionsCount} {actionsCount === 1 ? "plano" : "planos"}
                 </Text>
               </View>

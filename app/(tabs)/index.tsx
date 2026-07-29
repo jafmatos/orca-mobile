@@ -202,7 +202,7 @@ export default function HomeScreen() {
       <Navigation colored hideShadow={true} />
 
       <ScrollView contentContainerClassName="grow" style={{ backgroundColor: theme.colors.primary }} showsVerticalScrollIndicator={false}>
-        <View className="grow px-4 pt-2 pb-8">
+        <View className="px-4 pt-2 pb-8">
           <Text variant="titleMedium" theme={{ colors: { onSurface: theme.colors.onPrimary } }}>
             {authUser ? `${greeting}, ${authUser.name.split(" ")[0]}!` : greeting}
           </Text>

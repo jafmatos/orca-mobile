@@ -332,7 +332,7 @@ export default function EntrySearchScreen() {
                 setFilterDateOption(option);
 
                 if (option === FilterDateOptions.Period && !!user) {
-                  filterForm.setValue("when", { ge: new Date(user.periodGe), le: new Date(user.periodLe) });
+                  filterForm.setValue("when", { ge: new Date(user.currentCycle.start), le: new Date(user.currentCycle.end) });
                 } else if (option === FilterDateOptions.Week) {
                   const endOfToday = new Date();
                   const startOfWeekAtMidnight = new Date();
@@ -363,8 +363,8 @@ export default function EntrySearchScreen() {
                   filterForm.setValue("when", undefined);
                 } else {
                   filterForm.setValue("when", {
-                    ge: new Date(user.periodGe),
-                    le: new Date(user.periodLe),
+                    ge: new Date(user.currentCycle.start),
+                    le: new Date(user.currentCycle.end),
                   });
                 }
               }}

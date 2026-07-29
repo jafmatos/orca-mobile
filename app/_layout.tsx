@@ -1,6 +1,6 @@
 import "../global.css";
 import { configureReanimatedLogger, ReanimatedLogLevel } from "react-native-reanimated";
-import { Stack } from "expo-router";
+import { Stack, usePathname } from "expo-router";
 import { ThemeProvider, DefaultTheme, DarkTheme } from "@react-navigation/native";
 import { isAxiosError } from "axios";
 import { useAppThemeName } from "@/hooks/use-app-theme-name";
@@ -15,9 +15,11 @@ import { PortalHost, PortalProvider } from "@gorhom/portal";
 import { BottomSheetProvider } from "jam-bottomsheet";
 import * as SplashScreen from "expo-splash-screen";
 import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from "@expo-google-fonts/inter";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { AppToast } from "@/components/AppToast";
 import * as SystemUI from "expo-system-ui";
+import { StatusBar } from "expo-status-bar";
+import { useAppTheme } from "@/hooks/use-app-theme";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -34,14 +36,14 @@ export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: (failureCount, error) => {
-				if (!isAxiosError(error)) return failureCount < 3;
-				if (error.response?.status === 401) return false;
+        if (!isAxiosError(error)) return failureCount < 3;
+        if (error.response?.status === 401) return false;
 
-				return failureCount < 3;
+        return failureCount < 3;
       },
     },
     mutations: {
-      retry: false
+      retry: false,
     },
   },
 });
@@ -96,50 +98,51 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={reactNavigationTheme}>
       <PaperProvider
-      theme={{
-        ...paperTheme,
-        dark: appThemeName === "dark",
-        colors: paperColors,
-        fonts: customFonts,
-      }}
-    >
-      <KeyboardProvider>
-        <PortalProvider>
-          <BottomSheetProvider>
-            <QueryClientProvider client={queryClient}>
+        theme={{
+          ...paperTheme,
+          dark: appThemeName === "dark",
+          colors: paperColors,
+          fonts: customFonts,
+        }}
+      >
+        <KeyboardProvider>
+          <PortalProvider>
+            <BottomSheetProvider>
+              <QueryClientProvider client={queryClient}>
                 <Stack
                   screenOptions={{
                     headerShown: false,
                     contentStyle: { backgroundColor: paperColors.background },
                   }}
                 >
-                <Stack.Screen name="(tabs)" />
-                <Stack.Screen name="(auth)/sign-in" />
-                <Stack.Screen name="(auth)/sign-up/index" />
-                <Stack.Screen name="(auth)/sign-up/confirm/[id]" />
-                <Stack.Screen name="(auth)/reset-password/index" />
-                <Stack.Screen name="(auth)/reset-password/confirm/[id]" />
-                <Stack.Screen name="(modals)/category-form" options={{ presentation: "modal" }} />
-                <Stack.Screen name="(modals)/entry-manual-form" options={{ presentation: "modal" }} />
-                <Stack.Screen name="(modals)/entry-smart-form" options={{ presentation: "modal" }} />
-                <Stack.Screen name="(modals)/entry-search" options={{ presentation: "modal" }} />
-                <Stack.Screen name="(modals)/schedule-form" options={{ presentation: "modal" }} />
-                <Stack.Screen name="(modals)/profile-form" options={{ presentation: "modal" }} />
-                <Stack.Screen name="(modals)/billing-portal" options={{ presentation: "modal" }} />
-                <Stack.Screen name="(modals)/plans" options={{ presentation: "modal" }} />
-                <Stack.Screen name="(modals)/subscription-success" options={{ presentation: "modal" }} />
-                <Stack.Screen name="(modals)/settings" options={{ presentation: "modal" }} />
-              </Stack>
+                  <Stack.Screen name="(tabs)" />
+                  <Stack.Screen name="(auth)/sign-in" />
+                  <Stack.Screen name="(auth)/sign-up/index" />
+                  <Stack.Screen name="(auth)/sign-up/confirm/[id]" />
+                  <Stack.Screen name="(auth)/reset-password/index" />
+                  <Stack.Screen name="(auth)/reset-password/confirm/[id]" />
+                  <Stack.Screen name="(modals)/category-form" options={{ presentation: "modal" }} />
+                  <Stack.Screen name="(modals)/entry-manual-form" options={{ presentation: "modal" }} />
+                  <Stack.Screen name="(modals)/entry-smart-form" options={{ presentation: "modal" }} />
+                  <Stack.Screen name="(modals)/entry-search" options={{ presentation: "modal" }} />
+                  <Stack.Screen name="(modals)/schedule-form" options={{ presentation: "modal" }} />
+                  <Stack.Screen name="(modals)/profile-form" options={{ presentation: "modal" }} />
+                  <Stack.Screen name="(modals)/billing-portal" options={{ presentation: "modal" }} />
+                  <Stack.Screen name="(modals)/plans" options={{ presentation: "modal" }} />
+                  <Stack.Screen name="(modals)/subscription-success" options={{ presentation: "modal" }} />
+                  <Stack.Screen name="(modals)/settings" options={{ presentation: "modal" }} />
+                </Stack>
 
-              <PortalHost name="select" />
-              <SystemBars style={appThemeName === "dark" ? "light" : "dark"} />
-							
-              <AppToast />
-            </QueryClientProvider>
-          </BottomSheetProvider>
-        </PortalProvider>
-      </KeyboardProvider>
-    </PaperProvider>
+                <PortalHost name="select" />
+
+                <StatusBar style={appThemeName === "dark" ? "light" : "dark"} translucent />
+
+                <AppToast />
+              </QueryClientProvider>
+            </BottomSheetProvider>
+          </PortalProvider>
+        </KeyboardProvider>
+      </PaperProvider>
     </ThemeProvider>
   );
 }

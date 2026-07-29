@@ -29,29 +29,50 @@ import { useQueryClient } from "@tanstack/react-query";
 import { QueryKeys } from "@/utils/QueryKeys";
 import { useSchedules } from "@/hooks/queries/use-schedules";
 
-export type ScheduleCreateOrUpdateForm = CreateScheduleBody &
-  UpdateScheduleBody & {
-    id?: Schedule["id"];
-  };
+function timeStringToDate(time: string): Date {
+  const [hours, minutes] = time.split(":").map(Number);
+  const d = new Date();
+  d.setHours(hours, minutes, 0, 0);
+  return d;
+}
+
+function dateToTimeString(date: Date): string {
+  return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+}
+
+export type ScheduleCreateOrUpdateForm = {
+  id?: Schedule["id"];
+  frequency: ScheduleFrequency;
+  type: EntryTypes;
+  amount: number;
+  description: string;
+  time: string;
+  timezone: string;
+  dayOfWeek?: number;
+  dayOfMonth?: number;
+  category?: { id: string } | null;
+};
 
 export default function ScheduleFormScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const router = useRouter();
   const queryClient = useQueryClient();
   const theme = useAppTheme();
-  
+
   const schedulesQuery = useSchedules();
+
+  const defaultTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   const scheduleForm = useAppForm<ScheduleCreateOrUpdateForm>({
     type: EntryTypes.Expense,
-    category: {
-      id: "",
-    },
+    category: { id: "" },
     amount: 0,
     description: "",
-    referenceTimestamp: new Date(),
+    time: dateToTimeString(new Date()),
+    timezone: defaultTimezone,
     frequency: ScheduleFrequency.Monthly,
-    dayOfWeek: undefined,
+    dayOfMonth: new Date().getDate(),
+    dayOfWeek: new Date().getDay(),
   });
   const categoryQuery = useCategories();
 
@@ -65,10 +86,12 @@ export default function ScheduleFormScreen() {
           type: schedule.type,
           category: schedule.category ? { id: schedule.category.id } : { id: "" },
           amount: schedule.amount,
-          description: schedule.description,
-          referenceTimestamp: new Date(schedule.referenceTimestamp),
+          description: schedule.description || "",
+          time: schedule.time,
+          timezone: schedule.timezone,
           frequency: schedule.frequency,
           dayOfWeek: schedule.dayOfWeek,
+          dayOfMonth: schedule.dayOfMonth,
         });
       }
     }
@@ -76,16 +99,21 @@ export default function ScheduleFormScreen() {
 
   const { mutation: scheduleCreateOrUpdateMutation } = useAppFormWithMutation<
     ScheduleCreateOrUpdateForm,
-    CreateScheduleBody & UpdateScheduleBody,
+    ScheduleCreateOrUpdateForm,
     CreateScheduleReturnType | UpdateScheduleReturnType
   >(scheduleForm, {
     mutationFn: (body) => {
-      if (scheduleForm.values.id) return ScheduleService.update(scheduleForm.values.id!, body);
-      else return ScheduleService.create(body);
+      const { id: _id, ...rest } = body;
+
+      if (scheduleForm.values.id)
+        return ScheduleService.update(scheduleForm.values.id, rest as UpdateScheduleBody);
+      else
+        return ScheduleService.create(rest as CreateScheduleBody);
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       scheduleForm.clear();
       queryClient.invalidateQueries({ queryKey: QueryKeys.Schedule.getSchedules() });
+			
       router.back();
     },
     onError: (error: any) => {
@@ -273,20 +301,14 @@ export default function ScheduleFormScreen() {
                   mode="outlined"
                   label="Dia do mês"
                   options={dayOfMonthOptions}
-                  value={scheduleForm.values.referenceTimestamp.getDate()}
-                  onChange={(value) => {
-                    const newValue = new Date(scheduleForm.values.referenceTimestamp);
-
-                    newValue.setDate(value);
-
-                    scheduleForm.setValue("referenceTimestamp", newValue);
-                  }}
-                  error={scheduleForm.hasError("referenceTimestamp")}
+                  value={scheduleForm.values.dayOfMonth ?? new Date().getDate()}
+                  onChange={(value) => scheduleForm.setValue("dayOfMonth", value)}
+                  error={scheduleForm.hasError("dayOfMonth")}
                 />
 
-                {scheduleForm.hasError("referenceTimestamp") && (
+                {scheduleForm.hasError("dayOfMonth") && (
                   <HelperText type="error" visible={true}>
-                    {scheduleForm.getError("referenceTimestamp")}
+                    {scheduleForm.getError("dayOfMonth")}
                   </HelperText>
                 )}
               </FormField>
@@ -296,14 +318,14 @@ export default function ScheduleFormScreen() {
               <AppTimePicker
                 mode="outlined"
                 label="Horário"
-                value={scheduleForm.values.referenceTimestamp}
-                onChange={(value) => scheduleForm.setValue("referenceTimestamp", value)}
-                error={scheduleForm.hasError("referenceTimestamp")}
+                value={timeStringToDate(scheduleForm.values.time)}
+                onChange={(date) => scheduleForm.setValue("time", dateToTimeString(date))}
+                error={scheduleForm.hasError("time")}
               />
 
-              {scheduleForm.hasError("referenceTimestamp") && (
+              {scheduleForm.hasError("time") && (
                 <HelperText type="error" visible={true}>
-                  {scheduleForm.getError("referenceTimestamp")}
+                  {scheduleForm.getError("time")}
                 </HelperText>
               )}
             </FormField>

@@ -51,10 +51,10 @@ export function SchedulesCalendarView({ schedules, onCheckPress, onSchedulePress
 
   const markedDates = useMemo(() => {
     const marks: any = {};
-    const ge = user?.periodGe ? new Date(user.periodGe) : new Date(0);
-    const le = user?.periodLe ? new Date(user.periodLe) : new Date(8640000000000000 - 1);
+    const ge = user?.currentCycle?.start ? new Date(user.currentCycle.start) : new Date(0);
+    const le = user?.currentCycle?.end ? new Date(user.currentCycle.end) : new Date(8640000000000000 - 1);
 
-    if (user?.periodGe && user?.periodLe) {
+    if (user?.currentCycle?.start && user?.currentCycle?.end) {
       let safetyCount = 0;
       const iterationDate = new Date(ge);
       const geDate = new Date(ge);
@@ -110,7 +110,7 @@ export function SchedulesCalendarView({ schedules, onCheckPress, onSchedulePress
     }
 
     return marks;
-  }, [user?.periodGe, user?.periodLe, currentMonth, theme, selectedDateStr, schedulesInCalendar]);
+  }, [user?.currentCycle?.start, user?.currentCycle?.end, currentMonth, theme, selectedDateStr, schedulesInCalendar]);
 
   const schedulesForSelectedDate = useMemo(() => {
     if (!selectedDateStr) return [];
@@ -120,8 +120,8 @@ export function SchedulesCalendarView({ schedules, onCheckPress, onSchedulePress
     });
   }, [schedules, selectedDateStr]);
 
-  const geDate = user?.periodGe ? new Date(user.periodGe) : new Date();
-  const leDate = user?.periodLe ? new Date(user.periodLe) : new Date();
+  const geDate = user?.currentCycle?.start ? new Date(user.currentCycle.start) : new Date();
+  const leDate = user?.currentCycle?.end ? new Date(user.currentCycle.end) : new Date();
 
   const isLeftDisabled =
     currentMonth.year < geDate.getFullYear() || (currentMonth.year === geDate.getFullYear() && currentMonth.month <= geDate.getMonth() + 1);

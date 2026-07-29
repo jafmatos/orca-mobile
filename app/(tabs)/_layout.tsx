@@ -2,7 +2,6 @@ import { KeyboardAvoidingComponent } from "@/components/KeyboardAvoindingCompone
 import { SafeAreaComponent } from "@/components/SafeAreaComponent";
 import { PortalHost } from "@gorhom/portal";
 import { Tabs, usePathname } from "expo-router";
-import { StatusBar } from "expo-status-bar";
 import React, { useMemo } from "react";
 import { View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -16,15 +15,9 @@ export default function TabLayout() {
 
   const isHomeScreen = useMemo(() => pathname === "/" || pathname === "", [pathname]);
   const topSafeAreaBg = useMemo(() => (isHomeScreen ? theme.colors.primary : theme.colors.background), [isHomeScreen, theme]);
-  const statusBarStyle = useMemo(
-    () => (isHomeScreen ? (theme.dark ? "dark" : "light") : theme.dark ? "light" : "dark"),
-    [isHomeScreen, theme],
-  );
 
   return (
     <GestureHandlerRootView>
-      <StatusBar style={statusBarStyle} backgroundColor="transparent" translucent />
-
       <KeyboardAvoidingComponent
         style={{
           position: "relative",

@@ -1,27 +1,25 @@
+import { EntryDraftForm } from "@/components/entries/EntryDraftForm";
+import { EntryListItem } from "@/components/entries/EntryListItem";
+import { FullScreenLayout } from "@/components/layouts/FullScreenLayout";
+import { AppAntonioAvatar } from "@/components/ui/AppAntonioAvatar";
+import { AppKeyboardDismissing } from "@/components/ui/AppKeyboardDismissing";
+import { AppModalHeader } from "@/components/ui/AppModalHeader";
+import { AppTextInput } from "@/components/ui/AppTextInput";
+import { AudioWaveIndicator } from "@/components/ui/AudioWaveIndicator";
+import { FormField } from "@/components/ui/FormField";
+import { useCategories } from "@/hooks/queries/use-categories";
 import { useAppForm } from "@/hooks/use-app-form";
 import { useAppTheme } from "@/hooks/use-app-theme";
-import { Entry, EntryTypes } from "@/models/Entry";
-import { CreateBulkEntryBody, EntryService } from "@/services/Api/EntryApiService";
-import { Audio } from "expo-av";
-import React, { useMemo, useState } from "react";
-import { FlatList, ScrollView, View } from "react-native";
-import { Button, Text, Icon, Surface, IconButton } from "react-native-paper";
-import { AppTextInput } from "@/components/ui/AppTextInput";
-import { TextInput as PaperTextInput } from "react-native-paper";
-import { AppAntonioAvatar } from "@/components/ui/AppAntonioAvatar";
-import { FormField } from "@/components/ui/FormField";
-import { EntryListItem } from "@/components/entries/EntryListItem";
-import { AudioWaveIndicator } from "@/components/ui/AudioWaveIndicator";
+import { Entry } from "@/models/Entry";
+import { EntryService } from "@/services/Api/EntryApiService";
+import { QueryKeys } from "@/utils/QueryKeys";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
-import { AppKeyboardDismissing } from "@/components/ui/AppKeyboardDismissing";
-import { useCategories } from "@/hooks/queries/use-categories";
+import { Audio } from "expo-av";
 import { useRouter } from "expo-router";
-import { QueryKeys } from "@/utils/QueryKeys";
-import { FullScreenLayout } from "@/components/layouts/FullScreenLayout";
-import { AppModalHeader } from "@/components/ui/AppModalHeader";
-import { EntryDraftForm } from "@/components/entries/EntryDraftForm";
-import { SafeAreaComponent } from "@/components/SafeAreaComponent";
+import React, { useMemo, useState } from "react";
+import { View } from "react-native";
+import { Button, Icon, TextInput as PaperTextInput, Text } from "react-native-paper";
 
 export interface CreateSmartEntryForm {
   text: string;
@@ -40,7 +38,7 @@ export default function EntrySmartFormScreen() {
   const [editingDraft, setEditingDraft] = useState<Entry | null>(null);
 
   const smartEntryMutation = useMutation({
-    mutationFn: EntryService.createSmart,
+    mutationFn: EntryService.smartExtract,
     onSuccess: (data) => {
       createSmartEntryForm.clear();
       setSavedAudioUri(null);
@@ -134,7 +132,7 @@ export default function EntrySmartFormScreen() {
     setSavedAudioUri(uri);
     const formData = new FormData();
 
-    formData.append("audio", {
+    formData.append("file", {
       uri,
       name: "audio.m4a",
       type: "audio/m4a",
@@ -201,6 +199,10 @@ export default function EntrySmartFormScreen() {
     return categoriesQuery.data?.data || [];
   }, [categoriesQuery.data]);
 
+  const sortedDrafts = useMemo(() => {
+    return [...drafts].sort((a, b) => new Date(b.when).getTime() - new Date(a.when).getTime());
+  }, [drafts]);
+
   const handleSaveBulk = () => {
     const validEntries = drafts.map((p) => ({
       type: p.type,
@@ -226,7 +228,7 @@ export default function EntrySmartFormScreen() {
                   ...previousDraft,
                   amount: updatedDraft.amount,
                   description: updatedDraft.description || "",
-                  when: updatedDraft.when,
+                  when: updatedDraft.when.toISOString(),
                   type: updatedDraft.type,
                   category:
                     updatedDraft.category?.id !== previousDraft.category?.id
@@ -371,12 +373,10 @@ export default function EntrySmartFormScreen() {
 
               {drafts.length > 0 && (
                 <View className="mt-2 flex flex-col gap-2">
-                  <Text variant="titleMedium">
-                    Rascunhos para Revisão
-                  </Text>
+                  <Text variant="titleMedium">Rascunhos para Revisão</Text>
 
                   <View className="flex flex-col gap-4" style={{ paddingBottom: 160 }}>
-                    {drafts.map((draft) => (
+                    {sortedDrafts.map((draft) => (
                       <EntryListItem key={draft.id} data={draft} hasError={!draft.amount} onPress={() => setEditingDraft(draft)} />
                     ))}
                   </View>

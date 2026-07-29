@@ -20,8 +20,8 @@ export class SignInService {
 
   private static async _createAuthenticationToken(body: CreateAuthenticationTokenArguments): Promise<CreateAuthenticationTokenReturnType> {
     const { data } = await $axios.post(this.endpoint, body);
-
-    return data;
+    
+		return data;
   }
 
   private static async _getProfile(): Promise<GetProfileReturnType> {

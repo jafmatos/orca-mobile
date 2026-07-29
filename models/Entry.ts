@@ -1,4 +1,5 @@
 import { Category } from "./Category";
+import { ScheduleOccurrence } from "./ScheduleOccurrence";
 import { User } from "./User";
 
 export enum EntryTypes {
@@ -9,10 +10,13 @@ export enum EntryTypes {
 export interface Entry {
   id: string;
   userId: User["id"];
-  categoryId: Category["id"];
+  categoryId?: Category["id"] | null;
   type: EntryTypes;
   amount: number;
-  description: string;
-  when: Date;
-  category?: Category;
+  description?: string;
+  when: string;
+  createdAt: string;
+  category?: Category | null;
+  user?: User;
+  occurrence?: ScheduleOccurrence;
 }
