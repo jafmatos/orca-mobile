@@ -1,7 +1,6 @@
 import { useAppTheme } from "@/hooks/use-app-theme";
 import React, { forwardRef, useCallback, useImperativeHandle, useState } from "react";
 import { Button, Dialog, Portal, Text } from "react-native-paper";
-import { Conditional } from "../utils/Conditional";
 
 type TriggerProps = {
   open?: () => void;

@@ -1,5 +1,6 @@
-import { KeyboardAvoidingComponent } from "@/components/KeyboardAvoindingComponent";
-import { SafeAreaComponent } from "@/components/SafeAreaComponent";
+import { AppKeyboardAvoidingComponent } from "@/components/utils/AppKeyboardAvoidingComponent";
+import { AppSafeAreaComponent } from "@/components/utils/AppSafeAreaComponent";
+import { ROUTES } from "@/hooks/use-app-router";
 import { PortalHost } from "@gorhom/portal";
 import { Tabs, usePathname } from "expo-router";
 import React, { useMemo } from "react";
@@ -18,7 +19,7 @@ export default function TabLayout() {
 
   return (
     <GestureHandlerRootView>
-      <KeyboardAvoidingComponent
+      <AppKeyboardAvoidingComponent
         style={{
           position: "relative",
           backgroundColor: theme.colors.background,
@@ -26,7 +27,7 @@ export default function TabLayout() {
       >
         <View style={{ position: "absolute", top: 0, left: 0, right: 0, height: insets.top, backgroundColor: topSafeAreaBg, zIndex: 1 }} />
 
-        <SafeAreaComponent className="grow">
+        <AppSafeAreaComponent className="grow">
           <Tabs
             screenOptions={{
               tabBarActiveTintColor: theme.colors.primary,
@@ -50,57 +51,57 @@ export default function TabLayout() {
             }}
           >
             <Tabs.Screen
-              name="index"
+              name={ROUTES.home.name}
               options={{
-                title: "Início",
-                tabBarIcon: ({ color }) => <Icon source="home" size={24} color={color} />,
+                title: ROUTES.home.title,
+                tabBarIcon: ({ color }) => <Icon source={ROUTES.home.icon} size={24} color={color} />,
               }}
             />
             <Tabs.Screen
-              name="entries"
+              name={ROUTES.entries.name}
               options={{
-                title: "Lançamentos",
-                tabBarIcon: ({ color }) => <Icon source="receipt-text" size={24} color={color} />,
+                title: ROUTES.entries.title,
+                tabBarIcon: ({ color }) => <Icon source={ROUTES.entries.icon} size={24} color={color} />,
               }}
             />
             <Tabs.Screen
-              name="categories"
+              name={ROUTES.categories.name}
               options={{
-                title: "Categorias",
-                tabBarIcon: ({ color }) => <Icon source="bookmark" size={24} color={color} />,
-              }}
-            />
-            <Tabs.Screen
-              name="overview"
-              options={{
-                title: "Visão Geral",
-                tabBarIcon: ({ color }) => <Icon source="chart-donut" size={24} color={color} />,
-              }}
-            />
-            <Tabs.Screen
-              name="profile"
-              options={{
-                title: "Meu Perfil",
-                tabBarIcon: ({ color }) => <Icon source="account" size={24} color={color} />,
-              }}
-            />
-            <Tabs.Screen
-              name="schedules"
-              options={{
-                title: "Agendamentos",
+                title: ROUTES.categories.title,
                 href: null,
               }}
             />
             <Tabs.Screen
-              name="analyses"
+              name={ROUTES.overview.name}
               options={{
-                title: "Análises",
+                title: ROUTES.overview.title,
+                tabBarIcon: ({ color }) => <Icon source={ROUTES.overview.icon} size={24} color={color} />,
+              }}
+            />
+            <Tabs.Screen
+              name={ROUTES.profile.name}
+              options={{
+                title: ROUTES.profile.title,
+                href: null,
+              }}
+            />
+            <Tabs.Screen
+              name={ROUTES.schedules.name}
+              options={{
+                title: ROUTES.schedules.title,
+                href: null,
+              }}
+            />
+            <Tabs.Screen
+              name={ROUTES.analyses.name}
+              options={{
+                title: ROUTES.analyses.title,
                 href: null,
               }}
             />
           </Tabs>
-        </SafeAreaComponent>
-      </KeyboardAvoidingComponent>
+        </AppSafeAreaComponent>
+      </AppKeyboardAvoidingComponent>
 
       <PortalHost name="drawer" />
       <PortalHost name="search-overlay" />

@@ -16,8 +16,9 @@ import { BottomSheetProvider } from "jam-bottomsheet";
 import * as SplashScreen from "expo-splash-screen";
 import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from "@expo-google-fonts/inter";
 import { useEffect, useMemo } from "react";
-import { AppToast } from "@/components/AppToast";
+import { AppToast } from "@/components/utils/AppToast";
 import * as SystemUI from "expo-system-ui";
+import { MODAL_ROUTES, ROUTES } from "@/hooks/use-app-router";
 import { StatusBar } from "expo-status-bar";
 import { useAppTheme } from "@/hooks/use-app-theme";
 
@@ -115,27 +116,28 @@ export default function RootLayout() {
                     contentStyle: { backgroundColor: paperColors.background },
                   }}
                 >
-                  <Stack.Screen name="(tabs)" />
-                  <Stack.Screen name="(auth)/sign-in" />
-                  <Stack.Screen name="(auth)/sign-up/index" />
-                  <Stack.Screen name="(auth)/sign-up/confirm/[id]" />
-                  <Stack.Screen name="(auth)/reset-password/index" />
-                  <Stack.Screen name="(auth)/reset-password/confirm/[id]" />
-                  <Stack.Screen name="(modals)/category-form" options={{ presentation: "modal" }} />
-                  <Stack.Screen name="(modals)/entry-manual-form" options={{ presentation: "modal" }} />
-                  <Stack.Screen name="(modals)/entry-smart-form" options={{ presentation: "modal" }} />
-                  <Stack.Screen name="(modals)/entry-search" options={{ presentation: "modal" }} />
-                  <Stack.Screen name="(modals)/schedule-form" options={{ presentation: "modal" }} />
-                  <Stack.Screen name="(modals)/profile-form" options={{ presentation: "modal" }} />
-                  <Stack.Screen name="(modals)/billing-portal" options={{ presentation: "modal" }} />
-                  <Stack.Screen name="(modals)/plans" options={{ presentation: "modal" }} />
-                  <Stack.Screen name="(modals)/subscription-success" options={{ presentation: "modal" }} />
-                  <Stack.Screen name="(modals)/settings" options={{ presentation: "modal" }} />
+                  <Stack.Screen name={ROUTES.tabs.name} />
+                  <Stack.Screen name={ROUTES.signIn.name} />
+                  <Stack.Screen name={ROUTES.signUp.name} />
+                  <Stack.Screen name={ROUTES.signUpConfirm.name} />
+                  <Stack.Screen name={ROUTES.resetPassword.name} />
+                  <Stack.Screen name={ROUTES.resetPasswordConfirm.name} />
+                  <Stack.Screen name={MODAL_ROUTES.categoryForm.name} options={{ presentation: "modal" }} />
+                  <Stack.Screen name={MODAL_ROUTES.entryManualForm.name} options={{ presentation: "modal" }} />
+                  <Stack.Screen name={MODAL_ROUTES.entrySmartForm.name} options={{ presentation: "modal" }} />
+                  <Stack.Screen name={MODAL_ROUTES.entrySearch.name} options={{ presentation: "modal" }} />
+                  <Stack.Screen name={MODAL_ROUTES.scheduleForm.name} options={{ presentation: "modal" }} />
+                  <Stack.Screen name={MODAL_ROUTES.profileForm.name} options={{ presentation: "modal" }} />
+                  <Stack.Screen name={MODAL_ROUTES.billingPortal.name} options={{ presentation: "modal" }} />
+                  <Stack.Screen name={MODAL_ROUTES.plans.name} options={{ presentation: "modal" }} />
+                  <Stack.Screen name={MODAL_ROUTES.subscriptionSuccess.name} options={{ presentation: "modal" }} />
+                  <Stack.Screen name={MODAL_ROUTES.settings.name} options={{ presentation: "modal" }} />
+                  <Stack.Screen name={MODAL_ROUTES.chatAssistant.name} options={{ presentation: "modal" }} />
                 </Stack>
 
                 <PortalHost name="select" />
 
-                <StatusBar style={appThemeName === "dark" ? "light" : "dark"} translucent />
+                <RootStatusBar />
 
                 <AppToast />
               </QueryClientProvider>
@@ -145,4 +147,12 @@ export default function RootLayout() {
       </PaperProvider>
     </ThemeProvider>
   );
+}
+
+function RootStatusBar() {
+  const appThemeName = useAppThemeName();
+  const pathname = usePathname();
+  const isHomeScreen = useMemo(() => pathname === "/" || pathname === "", [pathname]);
+
+  return <StatusBar style={isHomeScreen || appThemeName === "dark" ? "light" : "dark"} translucent />;
 }

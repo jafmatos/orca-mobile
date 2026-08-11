@@ -1,6 +1,8 @@
 import { FullScreenLayout } from "@/components/layouts/FullScreenLayout";
+import { AppFormField } from "@/components/ui/AppFormField";
 import { AppSecureInput } from "@/components/ui/AppSecureInput";
-import { FormField } from "@/components/ui/FormField";
+import { AppTextInput } from "@/components/ui/AppTextInput";
+import { AppKeyboardDismissing } from "@/components/utils/AppKeyboardDismissing";
 import { websiteUrl } from "@/constants/website-url";
 import { useAppForm } from "@/hooks/use-app-form";
 import { useAppFormWithMutation } from "@/hooks/use-app-form-with-mutation";
@@ -8,8 +10,6 @@ import { useAppRouter } from "@/hooks/use-app-router";
 import { CreateSignUpKeyArguments, CreateSignUpKeyReturnType, SignUpService } from "@/services/Api/Users/Auth/SignUpApiService";
 import { Pressable, View } from "react-native";
 import { Button, Checkbox, HelperText, Text, useTheme } from "react-native-paper";
-import { AppTextInput } from "@/components/ui/AppTextInput";
-import { AppKeyboardDismissing } from "@/components/ui/AppKeyboardDismissing";
 
 type SignUpForm = {
   email: string;
@@ -48,7 +48,7 @@ export default function SignUpScreen() {
             <Text variant="headlineMedium">Cadastrar-se</Text>
             <Text variant="bodyMedium">Junte-se a nós e comece a gerenciar suas finanças de forma simples e segura.</Text>
             <View className="flex gap-4">
-              <FormField>
+              <AppFormField>
                 <AppTextInput
                   label="Nome*"
                   autoCapitalize="words"
@@ -64,9 +64,9 @@ export default function SignUpScreen() {
                     {form.getError("name")}
                   </HelperText>
                 )}
-              </FormField>
+              </AppFormField>
 
-              <FormField>
+              <AppFormField>
                 <AppTextInput
                   label="Email*"
                   placeholder="Digite seu email"
@@ -81,9 +81,9 @@ export default function SignUpScreen() {
                     {form.getError("email")}
                   </HelperText>
                 )}
-              </FormField>
+              </AppFormField>
 
-              <FormField>
+              <AppFormField>
                 <AppSecureInput
                   label="Senha*"
                   placeholder="Digite sua senha"
@@ -97,9 +97,9 @@ export default function SignUpScreen() {
                     {form.getError("password")}
                   </HelperText>
                 )}
-              </FormField>
+              </AppFormField>
 
-              <FormField>
+              <AppFormField>
                 <AppSecureInput
                   mode="outlined"
                   label="Confirmação da senha*"
@@ -113,7 +113,7 @@ export default function SignUpScreen() {
                     {form.getError("passwordConfirmation") || "As senhas não coincidem"}
                   </HelperText>
                 )}
-              </FormField>
+              </AppFormField>
 
               <Pressable
                 className="flex flex-row items-center"

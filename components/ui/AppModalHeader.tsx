@@ -1,9 +1,9 @@
+import { useAppRouter } from "@/hooks/use-app-router";
 import React from "react";
 import { View } from "react-native";
 import { IconButton, Text, useTheme } from "react-native-paper";
-import { useAppRouter } from "@/hooks/use-app-router";
-import { AppKeyboardDismissing } from "./AppKeyboardDismissing";
-import { Conditional } from "../utils/Conditional";
+import { AppConditional } from "../utils/AppConditional";
+import { AppKeyboardDismissing } from "../utils/AppKeyboardDismissing";
 
 export interface AppModalHeaderProps {
   title?: string;
@@ -33,7 +33,7 @@ export function AppModalHeader(props: AppModalHeaderProps) {
       }}
     >
       <AppKeyboardDismissing.View>
-        <Conditional
+        <AppConditional
           if={!!props.HeaderComponent}
           _then={props.HeaderComponent}
           _else={

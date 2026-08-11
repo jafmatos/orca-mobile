@@ -1,7 +1,7 @@
 import { FullScreenLayout } from "@/components/layouts/FullScreenLayout";
-import { AppKeyboardDismissing } from "@/components/ui/AppKeyboardDismissing";
+import { AppFormField } from "@/components/ui/AppFormField";
 import { AppOTPInput } from "@/components/ui/AppOTPInput";
-import { FormField } from "@/components/ui/FormField";
+import { AppKeyboardDismissing } from "@/components/utils/AppKeyboardDismissing";
 import { useAppForm } from "@/hooks/use-app-form";
 import { useAppFormWithMutation } from "@/hooks/use-app-form-with-mutation";
 import { useAppRouter } from "@/hooks/use-app-router";
@@ -40,7 +40,7 @@ export default function ConfirmSignUpScreen() {
             <Text variant="bodyMedium">Para confirmar o cadastro, digite o código que te enviamos pelo e-mail.</Text>
 
             <View className="flex gap-4">
-              <FormField>
+              <AppFormField>
                 <AppOTPInput
                   label="Código*"
                   placeholder="Digite o código de verificação"
@@ -54,7 +54,7 @@ export default function ConfirmSignUpScreen() {
                     {form.getError("otp")}
                   </HelperText>
                 )}
-              </FormField>
+              </AppFormField>
 
               <Button
                 className="mt-2"

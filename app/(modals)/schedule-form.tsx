@@ -1,7 +1,18 @@
+import { FullScreenLayout } from "@/components/layouts/FullScreenLayout";
+import { AppCurrencyInput } from "@/components/ui/AppCurrencyInput";
+import { AppDropdownSelect } from "@/components/ui/AppDropdownSelect";
+import { AppFormField } from "@/components/ui/AppFormField";
+import { AppModalHeader } from "@/components/ui/AppModalHeader";
+import { AppSelect } from "@/components/ui/AppSelect";
+import { AppTextInput } from "@/components/ui/AppTextInput";
+import { AppTimePicker } from "@/components/ui/AppTimePicker";
+import { AppKeyboardDismissing } from "@/components/utils/AppKeyboardDismissing";
 import { useCategories } from "@/hooks/queries/use-categories";
+import { useSchedules } from "@/hooks/queries/use-schedules";
 import { useAppForm } from "@/hooks/use-app-form";
 import { useAppFormWithMutation } from "@/hooks/use-app-form-with-mutation";
 import { useAppTheme } from "@/hooks/use-app-theme";
+import { ApiErrorResponseData } from "@/models/ApiErrorResponseData";
 import { EntryTypes } from "@/models/Entry";
 import { Schedule, ScheduleFrequency } from "@/models/Schedule";
 import {
@@ -11,23 +22,12 @@ import {
   UpdateScheduleBody,
   UpdateScheduleReturnType,
 } from "@/services/Api/ScheduleApiService";
-import React, { useMemo, useEffect } from "react";
-import { View } from "react-native";
-import { Button, HelperText, SegmentedButtons, TextInput as PaperTextInput } from "react-native-paper";
-import { AppTextInput } from "@/components/ui/AppTextInput";
-import { AppCurrencyInput } from "@/components/ui/AppCurrencyInput";
-import { AppSelect } from "@/components/ui/AppSelect";
-import { FormField } from "@/components/ui/FormField";
-import { AppDropdownSelect } from "@/components/ui/AppDropdownSelect";
-import { AppTimePicker } from "@/components/ui/AppTimePicker";
-import { ApiErrorResponseData } from "@/models/ApiErrorResponseData";
-import { AppKeyboardDismissing } from "@/components/ui/AppKeyboardDismissing";
-import { FullScreenLayout } from "@/components/layouts/FullScreenLayout";
-import { AppModalHeader } from "@/components/ui/AppModalHeader";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { useQueryClient } from "@tanstack/react-query";
 import { QueryKeys } from "@/utils/QueryKeys";
-import { useSchedules } from "@/hooks/queries/use-schedules";
+import { useQueryClient } from "@tanstack/react-query";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useEffect, useMemo } from "react";
+import { View } from "react-native";
+import { Button, HelperText, TextInput as PaperTextInput, SegmentedButtons } from "react-native-paper";
 
 function timeStringToDate(time: string): Date {
   const [hours, minutes] = time.split(":").map(Number);
@@ -77,8 +77,8 @@ export default function ScheduleFormScreen() {
   const categoryQuery = useCategories();
 
   useEffect(() => {
-    if (id && schedulesQuery.data?.pages) {
-      const schedules = schedulesQuery.data.pages.flatMap((p) => p.data);
+    if (id && schedulesQuery.data?.data) {
+      const schedules = schedulesQuery.data.data;
       const schedule = schedules.find((s) => s.id === id);
       if (schedule) {
         scheduleForm.setForm({
@@ -95,7 +95,7 @@ export default function ScheduleFormScreen() {
         });
       }
     }
-  }, [id, schedulesQuery.data?.pages]);
+  }, [id, schedulesQuery.data?.data]);
 
   const { mutation: scheduleCreateOrUpdateMutation } = useAppFormWithMutation<
     ScheduleCreateOrUpdateForm,
@@ -105,15 +105,13 @@ export default function ScheduleFormScreen() {
     mutationFn: (body) => {
       const { id: _id, ...rest } = body;
 
-      if (scheduleForm.values.id)
-        return ScheduleService.update(scheduleForm.values.id, rest as UpdateScheduleBody);
-      else
-        return ScheduleService.create(rest as CreateScheduleBody);
+      if (scheduleForm.values.id) return ScheduleService.update(scheduleForm.values.id, rest as UpdateScheduleBody);
+      else return ScheduleService.create(rest as CreateScheduleBody);
     },
     onSuccess: () => {
       scheduleForm.clear();
       queryClient.invalidateQueries({ queryKey: QueryKeys.Schedule.getSchedules() });
-			
+
       router.back();
     },
     onError: (error: any) => {
@@ -152,7 +150,7 @@ export default function ScheduleFormScreen() {
       <AppModalHeader title={!!scheduleForm.values.id ? "Editar agendamento" : "Novo agendamento"} />
       <AppKeyboardDismissing.ScrollView>
         <View className="p-4 flex flex-col gap-4">
-          <FormField>
+          <AppFormField>
             <SegmentedButtons
               value={scheduleForm.values.type}
               onValueChange={scheduleForm.makeSetter("type")}
@@ -173,9 +171,9 @@ export default function ScheduleFormScreen() {
                 },
               }}
             />
-          </FormField>
+          </AppFormField>
 
-          <FormField>
+          <AppFormField>
             <AppSelect
               mode="outlined"
               label="Categoria"
@@ -190,10 +188,10 @@ export default function ScheduleFormScreen() {
                 {scheduleForm.getError("category")}
               </HelperText>
             )}
-          </FormField>
+          </AppFormField>
 
           <View className="flex flex-row gap-4">
-            <FormField className="grow basis-0">
+            <AppFormField className="grow basis-0">
               <AppCurrencyInput
                 mode="outlined"
                 label="Valor"
@@ -208,10 +206,10 @@ export default function ScheduleFormScreen() {
                   {scheduleForm.getError("amount")}
                 </HelperText>
               )}
-            </FormField>
+            </AppFormField>
           </View>
 
-          <FormField>
+          <AppFormField>
             <AppTextInput
               mode="outlined"
               label="Descrição"
@@ -235,9 +233,9 @@ export default function ScheduleFormScreen() {
                 {scheduleForm.getError("description")}
               </HelperText>
             )}
-          </FormField>
+          </AppFormField>
 
-          <FormField>
+          <AppFormField>
             <AppDropdownSelect<ScheduleFrequency>
               label="Frequência"
               mode="outlined"
@@ -266,11 +264,11 @@ export default function ScheduleFormScreen() {
                 {scheduleForm.getError("frequency")}
               </HelperText>
             )}
-          </FormField>
+          </AppFormField>
 
           <View className="flex flex-row gap-4">
             {scheduleForm.values.frequency === ScheduleFrequency.Weekly ? (
-              <FormField className="grow basis-0">
+              <AppFormField className="grow basis-0">
                 <AppSelect
                   mode="outlined"
                   label="Dia da Semana"
@@ -293,9 +291,9 @@ export default function ScheduleFormScreen() {
                     {scheduleForm.getError("dayOfWeek")}
                   </HelperText>
                 )}
-              </FormField>
+              </AppFormField>
             ) : (
-              <FormField className="grow basis-0">
+              <AppFormField className="grow basis-0">
                 <AppSelect<number>
                   closeOnSelect
                   mode="outlined"
@@ -311,10 +309,10 @@ export default function ScheduleFormScreen() {
                     {scheduleForm.getError("dayOfMonth")}
                   </HelperText>
                 )}
-              </FormField>
+              </AppFormField>
             )}
 
-            <FormField className="grow basis-0">
+            <AppFormField className="grow basis-0">
               <AppTimePicker
                 mode="outlined"
                 label="Horário"
@@ -328,7 +326,7 @@ export default function ScheduleFormScreen() {
                   {scheduleForm.getError("time")}
                 </HelperText>
               )}
-            </FormField>
+            </AppFormField>
           </View>
 
           <Button

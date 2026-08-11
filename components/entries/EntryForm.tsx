@@ -1,17 +1,16 @@
 import { useCategories } from "@/hooks/queries/use-categories";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { Entry, EntryTypes } from "@/models/Entry";
-import { CreateEntryBody, UpdateEntryBody } from "@/services/Api/EntryApiService";
-import React, { useImperativeHandle, useMemo } from "react";
+import React, { useMemo } from "react";
 import { ScrollView, View } from "react-native";
 import { Button, HelperText, IconButton, TextInput as PaperTextInput, SegmentedButtons } from "react-native-paper";
+import { FullScreenLayout } from "../layouts/FullScreenLayout";
 import { AppCurrencyInput } from "../ui/AppCurrencyInput";
 import { AppDatePicker } from "../ui/AppDatePicker";
-import { FullScreenLayout } from "../layouts/FullScreenLayout";
+import { AppFormField } from "../ui/AppFormField";
 import { AppModalHeader } from "../ui/AppModalHeader";
 import { AppSelect } from "../ui/AppSelect";
 import { AppTextInput } from "../ui/AppTextInput";
-import { FormField } from "../ui/FormField";
 
 export type EntryCreateOrUpdateForm = {
   id?: Entry["id"];
@@ -54,13 +53,11 @@ export function EntryForm(props: EntryFormOverlayProps) {
 
   return (
     <FullScreenLayout>
-      <AppModalHeader 
+      <AppModalHeader
         title={props.title}
         onBackPress={props.onBackPress}
         HeaderRightComponent={
-          props.onDelete ? (
-            <IconButton icon="trash-can-outline" iconColor={theme.colors.error} onPress={props.onDelete} />
-          ) : undefined
+          props.onDelete ? <IconButton icon="trash-can-outline" iconColor={theme.colors.error} onPress={props.onDelete} /> : undefined
         }
       />
       <ScrollView
@@ -68,7 +65,7 @@ export function EntryForm(props: EntryFormOverlayProps) {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <FormField>
+        <AppFormField>
           <SegmentedButtons
             value={props.values.type}
             onValueChange={(value) => props.onChange("type", value)}
@@ -89,9 +86,9 @@ export function EntryForm(props: EntryFormOverlayProps) {
               },
             }}
           />
-        </FormField>
+        </AppFormField>
 
-        <FormField>
+        <AppFormField>
           <AppSelect
             mode="outlined"
             label="Categoria"
@@ -106,10 +103,10 @@ export function EntryForm(props: EntryFormOverlayProps) {
               {props.errors?.category}
             </HelperText>
           )}
-        </FormField>
+        </AppFormField>
 
         <View className="flex flex-row items-start gap-4">
-          <FormField className="grow basis-0">
+          <AppFormField className="grow basis-0">
             <AppCurrencyInput
               mode="outlined"
               label="Valor *"
@@ -123,9 +120,9 @@ export function EntryForm(props: EntryFormOverlayProps) {
                 {props.errors?.amount}
               </HelperText>
             )}
-          </FormField>
+          </AppFormField>
 
-          <FormField className="grow basis-0">
+          <AppFormField className="grow basis-0">
             <AppDatePicker
               mode="outlined"
               label="Data *"
@@ -139,10 +136,10 @@ export function EntryForm(props: EntryFormOverlayProps) {
                 {props.errors?.when}
               </HelperText>
             )}
-          </FormField>
+          </AppFormField>
         </View>
 
-        <FormField>
+        <AppFormField>
           <AppTextInput
             mode="outlined"
             label="Descrição"
@@ -166,7 +163,7 @@ export function EntryForm(props: EntryFormOverlayProps) {
               {props.errors?.description}
             </HelperText>
           )}
-        </FormField>
+        </AppFormField>
 
         <Button
           className="mt-2"

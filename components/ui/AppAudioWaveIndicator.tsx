@@ -8,15 +8,14 @@ const AnimatedAudioBar = ({ delay }: { delay: number }) => {
   const theme = useAppTheme();
 
   useEffect(() => {
-    // start with a delay to make them unsynchronized
     const timeout = setTimeout(() => {
       height.value = withRepeat(
         withSequence(
           withTiming(Math.random() * 12 + 8, { duration: 300 + Math.random() * 200, easing: Easing.inOut(Easing.ease) }),
-          withTiming(4, { duration: 300 + Math.random() * 200, easing: Easing.inOut(Easing.ease) })
+          withTiming(4, { duration: 300 + Math.random() * 200, easing: Easing.inOut(Easing.ease) }),
         ),
         -1,
-        true
+        true,
       );
     }, delay);
 
@@ -27,17 +26,10 @@ const AnimatedAudioBar = ({ delay }: { delay: number }) => {
     height: height.value,
   }));
 
-  return (
-    <Animated.View
-      style={[
-        { width: 3, backgroundColor: theme.colors.error, borderRadius: 2, marginHorizontal: 2 },
-        animatedStyle,
-      ]}
-    />
-  );
+  return <Animated.View style={[{ width: 3, backgroundColor: theme.colors.error, borderRadius: 2, marginHorizontal: 2 }, animatedStyle]} />;
 };
 
-export function AudioWaveIndicator({ staticWave = false }: { staticWave?: boolean }) {
+export function AppAudioWaveIndicator({ staticWave = false }: { staticWave?: boolean }) {
   const theme = useAppTheme();
 
   const staticHeights = useMemo(() => [4, 6, 8, 12, 16, 10, 8, 14, 18, 12, 6, 8, 4, 10, 6, 14, 10, 6, 4, 8, 12, 6, 4], []);

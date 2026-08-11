@@ -6,6 +6,7 @@ import { $axios } from "@/utils/$axios";
 export interface ListSchedulesQuery {
   page?: number;
   perPage?: number;
+  paginated?: boolean;
 }
 
 export interface ListSchedulesReturnType extends PaginatedData<Schedule> {}

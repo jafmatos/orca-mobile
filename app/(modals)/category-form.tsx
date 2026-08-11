@@ -1,3 +1,10 @@
+import { FullScreenLayout } from "@/components/layouts/FullScreenLayout";
+import { AppCurrencyInput } from "@/components/ui/AppCurrencyInput";
+import { AppFormField } from "@/components/ui/AppFormField";
+import { AppModalHeader } from "@/components/ui/AppModalHeader";
+import { AppTextInput } from "@/components/ui/AppTextInput";
+import { AppKeyboardDismissing } from "@/components/utils/AppKeyboardDismissing";
+import { useCategories } from "@/hooks/queries/use-categories";
 import { useAppForm } from "@/hooks/use-app-form";
 import { useAppFormWithMutation } from "@/hooks/use-app-form-with-mutation";
 import { useAppTheme } from "@/hooks/use-app-theme";
@@ -9,19 +16,12 @@ import {
   UpdateCategoryBody,
   UpdateCategoryReturnType,
 } from "@/services/Api/CategoryApiService";
+import { QueryKeys } from "@/utils/QueryKeys";
+import { useQueryClient } from "@tanstack/react-query";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect } from "react";
 import { View } from "react-native";
-import { Button, HelperText, SegmentedButtons, TextInput as PaperTextInput } from "react-native-paper";
-import { AppTextInput } from "@/components/ui/AppTextInput";
-import { AppCurrencyInput } from "@/components/ui/AppCurrencyInput";
-import { FormField } from "@/components/ui/FormField";
-import { AppKeyboardDismissing } from "@/components/ui/AppKeyboardDismissing";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { useCategories } from "@/hooks/queries/use-categories";
-import { useQueryClient } from "@tanstack/react-query";
-import { QueryKeys } from "@/utils/QueryKeys";
-import { FullScreenLayout } from "@/components/layouts/FullScreenLayout";
-import { AppModalHeader } from "@/components/ui/AppModalHeader";
+import { Button, HelperText, TextInput as PaperTextInput, SegmentedButtons } from "react-native-paper";
 
 type CategoryCreateOrUpdateForm = Required<CreateCategoryBody & UpdateCategoryBody> & {
   id?: Category["id"];
@@ -66,7 +66,7 @@ export default function CategoryFormScreen() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: QueryKeys.Category.getCategories() });
       queryClient.invalidateQueries({ queryKey: [QueryKeys.Overview.getKpis()[0]] });
-      
+
       router.back();
     },
   });
@@ -76,7 +76,7 @@ export default function CategoryFormScreen() {
       <AppModalHeader title={categoryForm.values.id ? "Editar categoria" : "Nova categoria"} />
       <AppKeyboardDismissing.ScrollView>
         <View className="p-4 flex flex-col gap-4">
-          <FormField>
+          <AppFormField>
             <SegmentedButtons
               value={categoryForm.values.type}
               onValueChange={(type) => {
@@ -109,9 +109,9 @@ export default function CategoryFormScreen() {
                 },
               }}
             />
-          </FormField>
+          </AppFormField>
 
-          <FormField>
+          <AppFormField>
             <AppTextInput
               mode="outlined"
               label="Nome*"
@@ -133,9 +133,9 @@ export default function CategoryFormScreen() {
                 {categoryForm.getError("name")}
               </HelperText>
             )}
-          </FormField>
+          </AppFormField>
 
-          <FormField>
+          <AppFormField>
             <AppCurrencyInput
               mode="outlined"
               label="Limite"
@@ -150,7 +150,7 @@ export default function CategoryFormScreen() {
                 {categoryForm.getError("limit")}
               </HelperText>
             )}
-          </FormField>
+          </AppFormField>
 
           <Button
             className="mt-2"

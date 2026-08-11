@@ -42,7 +42,7 @@ export default function SchedulesScreen() {
   const selectedSchedule = selectedScheduleContext?.schedule;
 
   const schedulesQuery = useSchedules();
-  const schedules = React.useMemo(() => schedulesQuery.data?.pages.flatMap((page) => page.data) || [], [schedulesQuery.data]);
+  const schedules = React.useMemo(() => schedulesQuery.data?.data || [], [schedulesQuery.data]);
 
   const detailBottomSheetRef = React.useRef<BottomSheetRef>(null);
 
@@ -83,7 +83,8 @@ export default function SchedulesScreen() {
   const theme = useAppTheme();
   const queryClient = useQueryClient();
   const insets = useSafeAreaInsets();
-  const toastOffset = insets.top + AppLayoutConstants.headerHeight + AppLayoutConstants.subHeaderHeight + AppLayoutConstants.toastBaseOffset;
+  const toastOffset =
+    insets.top + AppLayoutConstants.headerHeight + AppLayoutConstants.subHeaderHeight + AppLayoutConstants.toastBaseOffset;
 
   const scheduleDeleteMutation = useMutation<RemoveScheduleReturnType, Error, Schedule>({
     mutationFn: (schedule) => ScheduleService.remove(schedule.id),
@@ -111,32 +112,29 @@ export default function SchedulesScreen() {
       return data;
     },
     onSuccess: (data, variables) => {
-      queryClient.setQueriesData<InfiniteData<PaginatedData<Schedule>>>(
-        { queryKey: QueryKeys.Schedule.getSchedules() },
-        (oldData) => {
-          if (!oldData) return oldData;
-          return {
-            ...oldData,
-            pages: oldData.pages.map((page) => ({
-              ...page,
-              data: page.data.map((s) => {
-                if (s.id !== variables.schedule.id) return s;
-                let found = false;
-                return {
-                  ...s,
-                  cycles: s.cycles?.map((cycle) => {
-                    if (!found && cycle.status !== ScheduleCycleStatus.Done) {
-                      found = true;
-                      return { ...cycle, status: ScheduleCycleStatus.Done, occurrence: data.occurrence };
-                    }
-                    return cycle;
-                  }),
-                };
-              }),
-            })),
-          };
-        }
-      );
+      queryClient.setQueriesData<InfiniteData<PaginatedData<Schedule>>>({ queryKey: QueryKeys.Schedule.getSchedules() }, (oldData) => {
+        if (!oldData) return oldData;
+        return {
+          ...oldData,
+          pages: oldData.pages.map((page) => ({
+            ...page,
+            data: page.data.map((s) => {
+              if (s.id !== variables.schedule.id) return s;
+              let found = false;
+              return {
+                ...s,
+                cycles: s.cycles?.map((cycle) => {
+                  if (!found && cycle.status !== ScheduleCycleStatus.Done) {
+                    found = true;
+                    return { ...cycle, status: ScheduleCycleStatus.Done, occurrence: data.occurrence };
+                  }
+                  return cycle;
+                }),
+              };
+            }),
+          })),
+        };
+      });
 
       queryClient.invalidateQueries({ queryKey: QueryKeys.Schedule.getSchedules(), refetchType: "all" });
 
@@ -164,29 +162,26 @@ export default function SchedulesScreen() {
       return data;
     },
     onSuccess: (data, variables) => {
-      queryClient.setQueriesData<InfiniteData<PaginatedData<Schedule>>>(
-        { queryKey: QueryKeys.Schedule.getSchedules() },
-        (oldData) => {
-          if (!oldData) return oldData;
-          return {
-            ...oldData,
-            pages: oldData.pages.map((page) => ({
-              ...page,
-              data: page.data.map((s) => {
-                return {
-                  ...s,
-                  cycles: s.cycles?.map((cycle) => {
-                    if (cycle.occurrence?.entryId === variables.entryId) {
-                      return { ...cycle, status: ScheduleCycleStatus.Pending, occurrence: undefined };
-                    }
-                    return cycle;
-                  }),
-                };
-              }),
-            })),
-          };
-        }
-      );
+      queryClient.setQueriesData<InfiniteData<PaginatedData<Schedule>>>({ queryKey: QueryKeys.Schedule.getSchedules() }, (oldData) => {
+        if (!oldData) return oldData;
+        return {
+          ...oldData,
+          pages: oldData.pages.map((page) => ({
+            ...page,
+            data: page.data.map((s) => {
+              return {
+                ...s,
+                cycles: s.cycles?.map((cycle) => {
+                  if (cycle.occurrence?.entryId === variables.entryId) {
+                    return { ...cycle, status: ScheduleCycleStatus.Pending, occurrence: undefined };
+                  }
+                  return cycle;
+                }),
+              };
+            }),
+          })),
+        };
+      });
 
       queryClient.invalidateQueries({ queryKey: QueryKeys.Schedule.getSchedules(), refetchType: "all" });
 
@@ -336,7 +331,7 @@ export default function SchedulesScreen() {
                   detailBottomSheetRef.current?.close({
                     onFinished: () => {
                       router.goToScheduleForm(selectedSchedule.id);
-                    }
+                    },
                   });
                 }}
               />

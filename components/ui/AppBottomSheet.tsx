@@ -26,13 +26,10 @@ export const AppBottomSheet = React.forwardRef<AppBottomSheetRef, AppBottomSheet
   useImperativeHandle(ref, () => {
     return {
       open: (hooks) => {
-        "worklet";
-
-				isVisibleSharedValue.value = true;
+        isVisibleSharedValue.value = true;
         bottomSheetRef.current?.open(hooks);
       },
       close: (hooks) => {
-        "worklet";
         bottomSheetRef.current?.close(hooks);
       },
     };

@@ -2,10 +2,9 @@ import { useCategories } from "@/hooks/queries/use-categories";
 import { Category } from "@/models/Category";
 import { useMemo } from "react";
 import { ListRenderItem, View } from "react-native";
-import { FlatList } from "react-native-gesture-handler";
 import { EndOfListWithLoading } from "../EndOfListWithLoading";
 import { AppErrorState } from "../ui/AppErrorState";
-import { AppKeyboardDismissing } from "../ui/AppKeyboardDismissing";
+import { AppKeyboardDismissing } from "../utils/AppKeyboardDismissing";
 
 export interface CategoryListProps {
   data?: ArrayLike<Category>;

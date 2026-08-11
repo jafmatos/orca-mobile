@@ -4,22 +4,22 @@ import { EntryListItem } from "@/components/entries/EntryListItem";
 import { TabbedLayout } from "@/components/layouts/TabbedLayout";
 import { Navigation } from "@/components/Navigation";
 import { AppFabOverlay } from "@/components/ui/AppFabOverlay";
-import { Conditional } from "@/components/utils/Conditional";
+import { AppConditional } from "@/components/utils/AppConditional";
+import { AppLayoutConstants } from "@/constants/layout";
 import { useAuthUser } from "@/hooks/queries/use-auth-user";
+import { useAppRouter } from "@/hooks/use-app-router";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useAppToast } from "@/hooks/use-app-toast";
-import { useAppRouter } from "@/hooks/use-app-router";
 import { Entry } from "@/models/Entry";
+import { CursorPaginatedData } from "@/models/PaginatedData";
 import { DeleteEntryReturnType, EntryService } from "@/services/Api/EntryApiService";
 import { QueryKeys } from "@/utils/QueryKeys";
 import { InfiniteData, useMutation, useQueryClient } from "@tanstack/react-query";
 import { BottomSheetRef } from "jam-bottomsheet";
-import { CursorPaginatedData } from "@/models/PaginatedData";
 import React, { useCallback, useMemo, useState } from "react";
 import { View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { AppLayoutConstants } from "@/constants/layout";
 import { Button, FAB, Text } from "react-native-paper";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function EntriesScreen() {
   const toast = useAppToast();
@@ -145,10 +145,10 @@ export default function EntriesScreen() {
       <EntryList renderItem={renderItem} onRefresh={() => setNeedsRefresh(false)} />
 
       <AppFabOverlay>
-        <Conditional if={needsRefresh} _then={<FAB icon="refresh" size="medium" variant="secondary" onPress={refreshList} />} />
-        <Conditional
+        <AppConditional if={needsRefresh} _then={<FAB icon="refresh" size="medium" variant="secondary" onPress={refreshList} />} />
+        <AppConditional
           if={hasActiveSubscription}
-          _then={<FAB icon="microphone" size="medium" variant="tertiary" onPress={() => router.goToEntrySmartForm()} />}
+          _then={<FAB icon="microphone-outline" size="medium" variant="tertiary" onPress={() => router.goToEntrySmartForm()} />}
         />
         <FAB icon="plus" size="large" onPress={() => router.goToEntryManualForm()} />
       </AppFabOverlay>

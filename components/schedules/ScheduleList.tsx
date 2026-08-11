@@ -5,7 +5,7 @@ import { useMemo } from "react";
 import { FlatList, ListRenderItem, View } from "react-native";
 import { EndOfListWithLoading } from "../EndOfListWithLoading";
 import { AppErrorState } from "../ui/AppErrorState";
-import { AppKeyboardDismissing } from "../ui/AppKeyboardDismissing";
+import { AppKeyboardDismissing } from "../utils/AppKeyboardDismissing";
 
 export interface ScheduleListProps extends Partial<React.ComponentProps<typeof FlatList<Schedule>>> {
   renderItem: ListRenderItem<Schedule>;
@@ -17,7 +17,7 @@ export function ScheduleList(props: ScheduleListProps) {
     onSuccess: props.onFetchSuccess,
   });
 
-  const schedules = useMemo(() => schedulesQuery.data?.pages.flatMap((page) => page.data) || [], [schedulesQuery.data]);
+  const schedules = useMemo(() => schedulesQuery.data?.data || [], [schedulesQuery.data]);
 
   if (schedulesQuery.isError && schedules?.length === 0) {
     return <AppErrorState message={schedulesQuery.error?.message} onRetry={() => schedulesQuery.refetch()} />;
@@ -33,15 +33,13 @@ export function ScheduleList(props: ScheduleListProps) {
       ListHeaderComponent={props.ListHeaderComponent}
       ListFooterComponent={
         <EndOfListWithLoading
-          isLoading={schedulesQuery.isPending || schedulesQuery.isFetchingNextPage}
-          isOnEnd={!schedulesQuery.isPending && !schedulesQuery.isFetchingNextPage && !schedulesQuery.hasNextPage}
+          isLoading={schedulesQuery.isPending}
+          isOnEnd={!schedulesQuery.isPending}
           isEmpty={!schedulesQuery.isPending && !schedulesQuery.isFetching && schedules?.length === 0}
           endOfListText="Não há mais agendamentos"
           emptyListText="Não há agendamentos"
         />
       }
-      onEndReached={() => schedulesQuery.fetchNextPage()}
-      onEndReachedThreshold={1}
     />
   );
 }

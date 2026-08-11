@@ -16,9 +16,9 @@ export const AppHideableCurrencyToggle = (props: AppHideableCurrencyToggleProps)
   return (
     <Pressable onPress={toggle} style={props.style}>
       {isHidden ? (
-        <Icon source="eye" size={props.size || 24} color={props.color || theme.colors.onBackground} />
+        <Icon source="eye-outline" size={props.size || 24} color={props.color || theme.colors.onBackground} />
       ) : (
-        <Icon source="eye-off" size={props.size || 24} color={props.color || theme.colors.onBackground} />
+        <Icon source="eye-off-outline" size={props.size || 24} color={props.color || theme.colors.onBackground} />
       )}
     </Pressable>
   );

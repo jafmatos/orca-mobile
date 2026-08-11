@@ -1,5 +1,7 @@
 import { FullScreenLayout } from "@/components/layouts/FullScreenLayout";
-import { FormField } from "@/components/ui/FormField";
+import { AppFormField } from "@/components/ui/AppFormField";
+import { AppTextInput } from "@/components/ui/AppTextInput";
+import { AppKeyboardDismissing } from "@/components/utils/AppKeyboardDismissing";
 import { websiteUrl } from "@/constants/website-url";
 import { useAppForm } from "@/hooks/use-app-form";
 import { useAppFormWithMutation } from "@/hooks/use-app-form-with-mutation";
@@ -11,8 +13,6 @@ import {
 } from "@/services/Api/Users/Auth/ResetPasswordApiService";
 import { View } from "react-native";
 import { Button, HelperText, Text, useTheme } from "react-native-paper";
-import { AppTextInput } from "@/components/ui/AppTextInput";
-import { AppKeyboardDismissing } from "@/components/ui/AppKeyboardDismissing";
 
 type ResetPasswordForm = {
   email: string;
@@ -44,7 +44,7 @@ export default function ResetPasswordScreen() {
             <Text variant="headlineMedium">Recuperar senha</Text>
             <Text variant="bodyMedium">Esqueceu a senha? Acontece. Digite seu e-mail abaixo e te ajudaremos a recuperar o acesso.</Text>
             <View className="flex gap-4">
-              <FormField>
+              <AppFormField>
                 <AppTextInput
                   label="Email*"
                   placeholder="Digite seu email"
@@ -59,7 +59,7 @@ export default function ResetPasswordScreen() {
                     {form.getError("email")}
                   </HelperText>
                 )}
-              </FormField>
+              </AppFormField>
 
               <Button
                 className="mt-2"

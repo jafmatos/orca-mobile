@@ -2,7 +2,7 @@ import { AppChartContainer } from "@/components/ui/AppChartContainer";
 import { AppHideableCurrencyText } from "@/components/ui/AppHideableCurrencyText";
 import { AppHideableCurrencyToggle } from "@/components/ui/AppHideableCurrencyToggle";
 import { AppSkeleton } from "@/components/ui/AppSkeleton";
-import { Conditional } from "@/components/utils/Conditional";
+import { AppConditional } from "@/components/utils/AppConditional";
 import { useOverviewExpenseByCategory, UseOverviewExpenseByCategoryOptions } from "@/hooks/queries/use-overview-expense-by-category";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { Category } from "@/models/Category";
@@ -135,10 +135,10 @@ export const LimitsMonitorChart = React.forwardRef<LimitsMonitorChartRef, Limits
           <AppHideableCurrencyToggle size={18} />
         </View>
 
-        <Conditional
+        <AppConditional
           if={!expenseByCategoryQuery.isPending && !expenseByCategoryQuery.isFetching}
           _then={
-            <Conditional
+            <AppConditional
               if={categoriesWithLimit.length > 0}
               _then={
                 <FlatList

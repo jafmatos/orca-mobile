@@ -1,5 +1,5 @@
 import { useAuthUser } from "@/hooks/queries/use-auth-user";
-import { useAppRouter } from "@/hooks/use-app-router";
+import { ROUTES, useAppRouter } from "@/hooks/use-app-router";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { Portal, PortalHost } from "@gorhom/portal";
 import { Link, usePathname } from "expo-router";
@@ -15,7 +15,7 @@ import { AppLogoutButton } from "./ui/AppLogoutButton";
 export interface DrawerNavigationItemProps {
   icon?: string;
   onPressCallback?: () => void;
-  text: string;
+  text?: string;
   to: React.ComponentProps<typeof Link>["href"];
   disabled?: boolean;
 }
@@ -31,7 +31,8 @@ function DrawerNavigationItem(props: DrawerNavigationItemProps) {
   const router = useAppRouter();
   const theme = useAppTheme();
   const pathname = usePathname();
-  const isActive = pathname === props.to;
+  const targetPath = typeof props.to === "string" ? props.to.replace(/\/\((.*?)\)/, "") || "/" : "";
+  const isActive = pathname === props.to || pathname === targetPath;
 
   return (
     <Pressable
@@ -58,6 +59,7 @@ function DrawerNavigationItem(props: DrawerNavigationItemProps) {
 }
 
 export function Navigation(props: NavigationProps) {
+  const router = useAppRouter();
   const theme = useAppTheme();
   const authUserQuery = useAuthUser();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -82,14 +84,14 @@ export function Navigation(props: NavigationProps) {
         }}
       >
         <View className="px-4 flex flex-row justify-between items-center" style={{ height: AppLayoutConstants.headerHeight }}>
-          <View style={{ backgroundColor: "transparent", borderRadius: 100 }}>
+          <Pressable onPress={() => router.goToProfile()} style={{ backgroundColor: "transparent", borderRadius: 100 }}>
             <AppAvatar
               url={authUser?.avatar?.url}
               fallback={authUser?.name[0].toUpperCase()}
               color={contentColor}
               backgroundColor={buttonBackgroundColor}
             />
-          </View>
+          </Pressable>
 
           <View className="flex flex-row items-center gap-3">
             {!props.hideCurrencyToggle ? (
@@ -159,20 +161,57 @@ export function Navigation(props: NavigationProps) {
           <Divider />
 
           <View className="grow flex flex-col">
-            <DrawerNavigationItem onPressCallback={closeDrawer} to={"/"} icon="home" text="Início" />
-            <DrawerNavigationItem onPressCallback={closeDrawer} to={"/entries"} icon="receipt-text" text="Lançamentos" />
-            <DrawerNavigationItem onPressCallback={closeDrawer} to={"/schedules"} icon="clock" text="Agendamentos" />
-            <DrawerNavigationItem onPressCallback={closeDrawer} to={"/categories"} icon="bookmark" text="Categorias" />
-            <DrawerNavigationItem onPressCallback={closeDrawer} to={"/overview"} icon="chart-donut" text="Visão Geral" />
+            <DrawerNavigationItem onPressCallback={closeDrawer} to={ROUTES.home.path} icon={ROUTES.home.icon} text={ROUTES.home.title} />
             <DrawerNavigationItem
               onPressCallback={closeDrawer}
-              to={"/analyses"}
-              icon="creation"
-              text="Análises"
+              to={ROUTES.entries.path}
+              icon={ROUTES.entries.icon}
+              text={ROUTES.entries.title}
+            />
+            <DrawerNavigationItem
+              onPressCallback={closeDrawer}
+              to={ROUTES.schedules.path}
+              icon={ROUTES.schedules.icon}
+              text={ROUTES.schedules.title}
+            />
+            <DrawerNavigationItem
+              onPressCallback={closeDrawer}
+              to={ROUTES.categories.path}
+              icon={ROUTES.categories.icon}
+              text={ROUTES.categories.title}
+            />
+            <DrawerNavigationItem
+              onPressCallback={closeDrawer}
+              to={ROUTES.overview.path}
+              icon={ROUTES.overview.icon}
+              text={ROUTES.overview.title}
+            />
+            <DrawerNavigationItem
+              onPressCallback={closeDrawer}
+              to={ROUTES.analyses.path}
+              icon={ROUTES.analyses.icon}
+              text={ROUTES.analyses.title}
               disabled={!hasActiveSubscription}
             />
-            <DrawerNavigationItem onPressCallback={closeDrawer} to={"/profile"} icon="account" text="Meu Perfil" />
-            <DrawerNavigationItem onPressCallback={closeDrawer} to={"/(modals)/settings"} icon="cog" text="Configurações" />
+            <DrawerNavigationItem
+              onPressCallback={closeDrawer}
+              to={ROUTES.chatAssistant.path}
+              icon={ROUTES.chatAssistant.icon}
+              text={ROUTES.chatAssistant.title}
+              disabled={!hasActiveSubscription}
+            />
+            <DrawerNavigationItem
+              onPressCallback={closeDrawer}
+              to={ROUTES.profile.path}
+              icon={ROUTES.profile.icon}
+              text={ROUTES.profile.title}
+            />
+            <DrawerNavigationItem
+              onPressCallback={closeDrawer}
+              to={ROUTES.settings.path}
+              icon={ROUTES.settings.icon}
+              text={ROUTES.settings.title}
+            />
           </View>
 
           <AppLogoutButton />

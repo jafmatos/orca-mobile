@@ -64,6 +64,14 @@ export class AnalysisQueryKeys {
   }
 }
 
+export class ChatQueryKeys {
+  private static readonly baseKey = "chats";
+
+  public static getMessages() {
+    return [this.baseKey, "messages"];
+  }
+}
+
 export class QueryKeys {
   public static readonly User = UserQueryKeys;
   public static readonly Entry = EntryQueryKeys;
@@ -71,4 +79,5 @@ export class QueryKeys {
   public static readonly Overview = OverviewQueryKeys;
   public static readonly Schedule = ScheduleQueryKeys;
   public static readonly Analysis = AnalysisQueryKeys;
+  public static readonly Chat = ChatQueryKeys;
 }

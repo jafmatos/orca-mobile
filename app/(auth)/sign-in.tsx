@@ -1,6 +1,8 @@
 import { FullScreenLayout } from "@/components/layouts/FullScreenLayout";
+import { AppFormField } from "@/components/ui/AppFormField";
 import { AppSecureInput } from "@/components/ui/AppSecureInput";
-import { FormField } from "@/components/ui/FormField";
+import { AppTextInput } from "@/components/ui/AppTextInput";
+import { AppKeyboardDismissing } from "@/components/utils/AppKeyboardDismissing";
 import { useAppForm } from "@/hooks/use-app-form";
 import { useAppFormWithMutation } from "@/hooks/use-app-form-with-mutation";
 import { useAppRouter } from "@/hooks/use-app-router";
@@ -13,8 +15,6 @@ import { AppAuthenticationTokenStore } from "@/utils/AuthenticationTokenStore";
 import React from "react";
 import { View } from "react-native";
 import { Button, HelperText, Text, useTheme } from "react-native-paper";
-import { AppTextInput } from "@/components/ui/AppTextInput";
-import { AppKeyboardDismissing } from "@/components/ui/AppKeyboardDismissing";
 
 type SignInForm = {
   email: string;
@@ -50,7 +50,7 @@ export default function SignInScreen() {
             <Text variant="bodyMedium">Acesse sua conta e acompanhe suas finanças de forma simples e segura.</Text>
 
             <View className="flex gap-4">
-              <FormField>
+              <AppFormField>
                 <AppTextInput
                   label="Email*"
                   placeholder="Digite seu email"
@@ -65,9 +65,9 @@ export default function SignInScreen() {
                     {form.getError("email")}
                   </HelperText>
                 )}
-              </FormField>
+              </AppFormField>
 
-              <FormField>
+              <AppFormField>
                 <AppSecureInput
                   label="Senha*"
                   placeholder="Digite sua senha"
@@ -87,7 +87,7 @@ export default function SignInScreen() {
                     Esqueceu a senha?
                   </HelperText>
                 </View>
-              </FormField>
+              </AppFormField>
 
               <Button
                 className="mt-2"

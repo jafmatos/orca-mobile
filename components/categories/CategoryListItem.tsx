@@ -3,9 +3,9 @@ import { Category, CategoryTypes } from "@/models/Category";
 import { currencyFormatter } from "@/utils/currencyFormatter";
 import { useState } from "react";
 import { View } from "react-native";
-import { Surface, Menu, IconButton, Icon, Text } from "react-native-paper";
-import { Conditional } from "../utils/Conditional";
+import { Icon, IconButton, Menu, Text } from "react-native-paper";
 import { AppHideableCurrencyText } from "../ui/AppHideableCurrencyText";
+import { AppConditional } from "../utils/AppConditional";
 
 interface CategoryListItemProps {
   data: Category;
@@ -18,7 +18,7 @@ export function CategoryListItem(props: CategoryListItemProps) {
   const theme = useAppTheme();
 
   return (
-    <Surface
+    <View
       className={`relative py-1 pl-4 rounded-lg flex flex-row items-center justify-between gap-0 border-l-[6px]`}
       style={{
         borderRadius: theme.roundness,
@@ -31,7 +31,7 @@ export function CategoryListItem(props: CategoryListItemProps) {
         </Text>
       </View>
 
-      <Conditional
+      <AppConditional
         if={!!props.data.limit}
         _then={
           <AppHideableCurrencyText className="ml-4" variant="bodySmall">
@@ -69,6 +69,6 @@ export function CategoryListItem(props: CategoryListItemProps) {
           }}
         />
       </Menu>
-    </Surface>
+    </View>
   );
 }

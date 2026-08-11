@@ -4,7 +4,7 @@ import { PaginatedData } from "@/models/PaginatedData";
 import { useMemo } from "react";
 import { FlatList, ListRenderItem, View } from "react-native";
 import { EndOfListWithLoading } from "../EndOfListWithLoading";
-import { AppKeyboardDismissing } from "../ui/AppKeyboardDismissing";
+import { AppKeyboardDismissing } from "../utils/AppKeyboardDismissing";
 
 export interface AnalysisListProps extends Partial<React.ComponentProps<typeof FlatList<Analysis>>> {
   renderItem: ListRenderItem<Analysis>;

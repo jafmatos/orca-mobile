@@ -2,11 +2,11 @@ import { EntryDraftForm } from "@/components/entries/EntryDraftForm";
 import { EntryListItem } from "@/components/entries/EntryListItem";
 import { FullScreenLayout } from "@/components/layouts/FullScreenLayout";
 import { AppAntonioAvatar } from "@/components/ui/AppAntonioAvatar";
-import { AppKeyboardDismissing } from "@/components/ui/AppKeyboardDismissing";
+import { AppAudioWaveIndicator } from "@/components/ui/AppAudioWaveIndicator";
+import { AppFormField } from "@/components/ui/AppFormField";
 import { AppModalHeader } from "@/components/ui/AppModalHeader";
 import { AppTextInput } from "@/components/ui/AppTextInput";
-import { AudioWaveIndicator } from "@/components/ui/AudioWaveIndicator";
-import { FormField } from "@/components/ui/FormField";
+import { AppKeyboardDismissing } from "@/components/utils/AppKeyboardDismissing";
 import { useCategories } from "@/hooks/queries/use-categories";
 import { useAppForm } from "@/hooks/use-app-form";
 import { useAppTheme } from "@/hooks/use-app-theme";
@@ -18,8 +18,10 @@ import { isAxiosError } from "axios";
 import { Audio } from "expo-av";
 import { useRouter } from "expo-router";
 import React, { useMemo, useState } from "react";
-import { View } from "react-native";
-import { Button, Icon, TextInput as PaperTextInput, Text } from "react-native-paper";
+import { View, TouchableOpacity } from "react-native";
+import { Button, Icon, TextInput as PaperTextInput, Text, IconButton } from "react-native-paper";
+import * as ImagePicker from "expo-image-picker";
+import { Image } from "expo-image";
 
 export interface CreateSmartEntryForm {
   text: string;
@@ -43,6 +45,7 @@ export default function EntrySmartFormScreen() {
       createSmartEntryForm.clear();
       setSavedAudioUri(null);
       setSavedAudioDuration(0);
+      setSelectedImages([]);
 
       _setFeedbackMessage("");
       setDrafts((prev) => [
@@ -89,6 +92,7 @@ export default function EntrySmartFormScreen() {
   const [savedAudioUri, setSavedAudioUri] = useState<string | null>(null);
   const [savedAudioDuration, setSavedAudioDuration] = useState<number>(0);
   const [_feedbackMessage, _setFeedbackMessage] = useState<string>("");
+  const [selectedImages, setSelectedImages] = useState<string[]>([]);
 
   const formatDuration = (millis: number) => {
     const totalSeconds = Math.floor(millis / 1000);
@@ -185,6 +189,38 @@ export default function EntrySmartFormScreen() {
     }
   };
 
+  const handleImagePress = async () => {
+    if (selectedImages.length >= 3) {
+      _setFeedbackMessage("Você pode enviar no máximo 3 imagens.");
+      return;
+    }
+
+    try {
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permissionResult.granted) {
+        _setFeedbackMessage("Preciso da sua permissão para acessar a galeria de fotos!");
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        allowsMultipleSelection: true,
+        selectionLimit: 3 - selectedImages.length,
+        quality: 0.8,
+      });
+
+      if (!result.canceled) {
+        const newImages = result.assets.map((asset) => asset.uri);
+        setSelectedImages((prev) => {
+          const combined = [...prev, ...newImages];
+          return combined.slice(0, 3);
+        });
+      }
+    } catch (error) {
+      _setFeedbackMessage("Deu um erro ao abrir a galeria, pode tentar de novo?");
+    }
+  };
+
   const feedbackMessage = useMemo(() => {
     if (smartEntryMutation.isPending) return "Deixa comigo, estou analisando o que você me enviou...";
     if (bulkEntryMutation.isPending) return "Pronto! Estou guardando seus lançamentos...";
@@ -272,7 +308,7 @@ export default function EntrySmartFormScreen() {
                   </Text>
                   {recording ? (
                     <View className="flex flex-row items-center justify-center mt-2">
-                      <AudioWaveIndicator />
+                      <AppAudioWaveIndicator />
 
                       <Text style={{ color: theme.colors.error, fontWeight: "bold", marginLeft: 8 }}>
                         {formatDuration(recordingDuration)}
@@ -290,7 +326,7 @@ export default function EntrySmartFormScreen() {
                     </Text>
                     {recording ? (
                       <View className="flex flex-row items-center mt-1">
-                        <AudioWaveIndicator />
+                        <AppAudioWaveIndicator />
                         <Text style={{ color: theme.colors.error, fontWeight: "bold", marginLeft: 8 }}>
                           {formatDuration(recordingDuration)}
                         </Text>
@@ -308,7 +344,7 @@ export default function EntrySmartFormScreen() {
                     </Text>
 
                     <View className="grow">
-                      <AudioWaveIndicator staticWave />
+                      <AppAudioWaveIndicator staticWave />
                     </View>
 
                     <Button compact textColor={theme.colors.info} onPress={() => sendAudio(savedAudioUri)}>
@@ -318,58 +354,120 @@ export default function EntrySmartFormScreen() {
                 </View>
               )}
 
-              <FormField>
-                <AppTextInput
-                  mode="outlined"
-                  label="O que você gastou/recebeu?"
-                  value={createSmartEntryForm.values.text}
-                  onChangeText={(text) => {
-                    createSmartEntryForm.setValue("text", text);
+              {selectedImages.length > 0 && (
+                <View className="flex flex-row gap-4 mb-2">
+                  {selectedImages.map((uri, index) => (
+                    <View key={uri} className="relative">
+                      <Image source={{ uri }} style={{ width: 80, height: 80, borderRadius: theme.roundness }} />
+                      <View className="absolute -top-2 -right-2">
+                        <TouchableOpacity
+                          onPress={() => setSelectedImages((prev) => prev.filter((_, i) => i !== index))}
+                          style={{ backgroundColor: theme.colors.background, borderRadius: 12 }}
+                        >
+                          <Icon source="close-circle" color={theme.colors.error} size={24} />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              )}
 
-                    if (savedAudioUri) {
-                      setSavedAudioUri(null);
-                      setRecordingDuration(0);
-                      setRecording(null);
+              <View className="flex flex-row items-center gap-2">
+                <AppFormField className="flex-1">
+                  <AppTextInput
+                    mode="outlined"
+                    placeholder="O que você gastou/recebeu?"
+                    value={createSmartEntryForm.values.text}
+                    onChangeText={(text) => {
+                      createSmartEntryForm.setValue("text", text);
+
+                      if (savedAudioUri) {
+                        setSavedAudioUri(null);
+                        setRecordingDuration(0);
+                        setRecording(null);
+                      }
+                    }}
+                    multiline
+                    dense
+                    disabled={smartEntryMutation.isPending || bulkEntryMutation.isPending}
+                    style={{ textAlignVertical: "center" }}
+                    contentStyle={{ paddingTop: 12, paddingBottom: 12 }}
+                    outlineStyle={[
+                      { borderRadius: 24 },
+                      smartEntryMutation.isPending && { borderColor: theme.colors.outlineVariant },
+                    ]}
+                    right={
+                      <PaperTextInput.Icon
+                        icon="camera-outline"
+                        color={theme.colors.onBackground}
+                        disabled={
+                          smartEntryMutation.isPending || bulkEntryMutation.isPending || recording !== null || selectedImages.length >= 3
+                        }
+                        forceTextInputFocus={false}
+                        onPress={handleImagePress}
+                      />
                     }
-                  }}
-                  multiline
-                  numberOfLines={4}
-                  disabled={smartEntryMutation.isPending || bulkEntryMutation.isPending}
-                  outlineStyle={smartEntryMutation.isPending ? { borderColor: theme.colors.outlineVariant } : undefined}
-                  right={
-                    !!createSmartEntryForm.values.text.trim().length ? (
-                      <PaperTextInput.Icon
-                        icon="arrow-right"
-                        color={theme.colors.onBackground}
-                        disabled={smartEntryMutation.isPending || bulkEntryMutation.isPending}
-                        forceTextInputFocus={false}
-                        onPress={() => {
-                          smartEntryMutation.mutateAsync({
-                            text: createSmartEntryForm.values.text,
-                            now: new Date().toISOString(),
+                  />
+                </AppFormField>
+
+                {!!createSmartEntryForm.values.text.trim().length || selectedImages.length > 0 ? (
+                  <IconButton
+                    mode="contained"
+                    icon="send-outline"
+                    containerColor={theme.colors.primary}
+                    iconColor={theme.colors.onPrimary}
+                    size={20}
+                    style={{ margin: 0, width: 48, height: 48, borderRadius: 24 }}
+                    disabled={smartEntryMutation.isPending || bulkEntryMutation.isPending}
+                    onPress={() => {
+                      if (selectedImages.length > 0) {
+                        const formData = new FormData();
+                        if (createSmartEntryForm.values.text.trim().length > 0) {
+                          formData.append("text", createSmartEntryForm.values.text);
+                        }
+                        formData.append("now", new Date().toISOString());
+
+                        selectedImages.forEach((uri, index) => {
+                          formData.append("files", {
+                            uri,
+                            name: `image_${index}.jpg`,
+                            type: "image/jpeg",
                           } as any);
-                        }}
-                      />
-                    ) : recording ? (
-                      <PaperTextInput.Icon
-                        icon="stop-circle-outline"
-                        color={theme.colors.error}
-                        disabled={smartEntryMutation.isPending || bulkEntryMutation.isPending}
-                        forceTextInputFocus={false}
-                        onPress={handleMicPress}
-                      />
-                    ) : (
-                      <PaperTextInput.Icon
-                        icon="microphone"
-                        color={theme.colors.onBackground}
-                        disabled={smartEntryMutation.isPending || bulkEntryMutation.isPending}
-                        forceTextInputFocus={false}
-                        onPress={handleMicPress}
-                      />
-                    )
-                  }
-                />
-              </FormField>
+                        });
+
+                        smartEntryMutation.mutateAsync(formData as any);
+                      } else {
+                        smartEntryMutation.mutateAsync({
+                          text: createSmartEntryForm.values.text,
+                          now: new Date().toISOString(),
+                        } as any);
+                      }
+                    }}
+                  />
+                ) : recording ? (
+                  <IconButton
+                    mode="contained"
+                    icon="stop"
+                    containerColor={theme.colors.error}
+                    iconColor={theme.colors.onError}
+                    size={24}
+                    style={{ margin: 0, width: 48, height: 48, borderRadius: 24 }}
+                    disabled={smartEntryMutation.isPending || bulkEntryMutation.isPending}
+                    onPress={handleMicPress}
+                  />
+                ) : (
+                  <IconButton
+                    mode="contained"
+                    icon="microphone-outline"
+                    containerColor={theme.colors.primary}
+                    iconColor={theme.colors.onPrimary}
+                    size={24}
+                    style={{ margin: 0, width: 48, height: 48, borderRadius: 24 }}
+                    disabled={smartEntryMutation.isPending || bulkEntryMutation.isPending}
+                    onPress={handleMicPress}
+                  />
+                )}
+              </View>
 
               {drafts.length > 0 && (
                 <View className="mt-2 flex flex-col gap-2">

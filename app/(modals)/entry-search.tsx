@@ -1,3 +1,13 @@
+import { EntryDetailBottomSheet } from "@/components/entries/EntryDetailBottomSheet";
+import { EntryFilter, EntryList } from "@/components/entries/EntryList";
+import { EntryListItem } from "@/components/entries/EntryListItem";
+import { FullScreenLayout } from "@/components/layouts/FullScreenLayout";
+import { AppBottomSheet } from "@/components/ui/AppBottomSheet";
+import { AppChipSelect } from "@/components/ui/AppChipSelect";
+import { AppDatePicker } from "@/components/ui/AppDatePicker";
+import { AppFormField } from "@/components/ui/AppFormField";
+import { AppKeyboardDismissing } from "@/components/utils/AppKeyboardDismissing";
+import { AppLayoutConstants } from "@/constants/layout";
 import { useAuthUser } from "@/hooks/queries/use-auth-user";
 import { useCategories } from "@/hooks/queries/use-categories";
 import { useAppForm } from "@/hooks/use-app-form";
@@ -5,27 +15,17 @@ import { useAppTheme } from "@/hooks/use-app-theme";
 import { useAppToast } from "@/hooks/use-app-toast";
 import { Entry, EntryTypes } from "@/models/Entry";
 import { DeleteEntryReturnType, EntryService, ExportEntriesArguments, ListEntriesArguments } from "@/services/Api/EntryApiService";
+import { QueryKeys } from "@/utils/QueryKeys";
+import { PortalHost } from "@gorhom/portal";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { File, Paths } from "expo-file-system";
-import { PortalHost } from "@gorhom/portal";
+import { useRouter } from "expo-router";
 import * as Sharing from "expo-sharing";
 import { BottomSheetRef } from "jam-bottomsheet";
-import React, { useRef, useState, useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Keyboard, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { AppLayoutConstants } from "@/constants/layout";
 import { Button, Chip, IconButton, Searchbar, Text } from "react-native-paper";
-import { AppBottomSheet } from "@/components/ui/AppBottomSheet";
-import { AppChipSelect } from "@/components/ui/AppChipSelect";
-import { AppDatePicker } from "@/components/ui/AppDatePicker";
-import { FormField } from "@/components/ui/FormField";
-import { EntryFilter, EntryList } from "@/components/entries/EntryList";
-import { EntryListItem } from "@/components/entries/EntryListItem";
-import { useRouter } from "expo-router";
-import { FullScreenLayout } from "@/components/layouts/FullScreenLayout";
-import { AppKeyboardDismissing } from "@/components/ui/AppKeyboardDismissing";
-import { EntryDetailBottomSheet } from "@/components/entries/EntryDetailBottomSheet";
-import { QueryKeys } from "@/utils/QueryKeys";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 enum FilterDateOptions {
   Period = "period",
@@ -72,12 +72,12 @@ export default function EntrySearchScreen() {
 
   const openEntryFilter = () => {
     Keyboard.dismiss();
-    filterBottomSheetRef.current?.open();
+    setTimeout(() => { filterBottomSheetRef.current?.open(); }, 100);
   };
   const closeEntryFilter = () => filterBottomSheetRef.current?.close();
   const openEntryExport = () => {
     Keyboard.dismiss();
-    exportBottomSheetRef.current?.open();
+    setTimeout(() => { exportBottomSheetRef.current?.open(); }, 100);
   };
   const closeEntryExport = () => exportBottomSheetRef.current?.close();
 
@@ -186,57 +186,55 @@ export default function EntrySearchScreen() {
           boxShadow: `0 1px 3px -2px ${theme.colors.outlineVariant}`,
         }}
       >
-        <AppKeyboardDismissing.View>
-          <View className="flex flex-1 flex-row items-center gap-2 h-full w-full">
-            <IconButton
-              size={24}
-              style={{ marginLeft: 0, width: 44, height: 44 }}
-              iconColor={theme.colors.onBackground}
-              icon="arrow-left"
-              onPress={() => router.back()}
-            />
+        <View className="flex flex-1 flex-row items-center gap-2 h-full w-full">
+          <IconButton
+            size={24}
+            style={{ marginLeft: 0, width: 44, height: 44 }}
+            iconColor={theme.colors.onBackground}
+            icon="arrow-left"
+            onPress={() => router.back()}
+          />
 
-            <Searchbar
-              ref={searchBarRef}
-              style={{
-                flex: 1,
-                height: 44,
-                borderRadius: 22,
-                marginRight: 8,
-                backgroundColor: theme.colors.backdrop,
-              }}
-              inputStyle={{ minHeight: 44, color: theme.colors.onBackground }}
-              placeholderTextColor={theme.colors.onSurfaceDisabled}
-              placeholder="Pesquisar..."
-              value={filterForm.values.text || ""}
-              onChangeText={filterForm.makeSetter("text")}
-              onIconPress={() => setFilter(filterForm.values)}
-              onClearIconPress={() => {
-                const updatedFilter = filterForm.setValue("text", "");
-                setFilter(updatedFilter);
-              }}
-              onSubmitEditing={() => setFilter(filterForm.values)}
-            />
+          <Searchbar
+            ref={searchBarRef}
+            style={{
+              flex: 1,
+              height: 44,
+              borderRadius: 22,
+              marginRight: 8,
+              backgroundColor: theme.colors.backdrop,
+            }}
+            inputStyle={{ minHeight: 44, color: theme.colors.onBackground }}
+            placeholderTextColor={theme.colors.onSurfaceDisabled}
+            placeholder="Pesquisar..."
+            value={filterForm.values.text || ""}
+            onChangeText={filterForm.makeSetter("text")}
+            onIconPress={() => setFilter(filterForm.values)}
+            onClearIconPress={() => {
+              const updatedFilter = filterForm.setValue("text", "");
+              setFilter(updatedFilter);
+            }}
+            onSubmitEditing={() => setFilter(filterForm.values)}
+          />
 
-            <IconButton
-              mode="contained"
-              theme={{ colors: { surfaceVariant: theme.colors.backdrop, primary: theme.colors.onBackground } }}
-              style={{ marginLeft: 0, width: 44, height: 44 }}
-              icon="tune"
-              size={24}
-              onPress={openEntryFilter}
-            />
+          <IconButton
+            mode="contained"
+            theme={{ colors: { surfaceVariant: theme.colors.backdrop, primary: theme.colors.onBackground } }}
+            style={{ marginLeft: 0, width: 44, height: 44 }}
+            icon="tune"
+            size={24}
+            onPress={openEntryFilter}
+          />
 
-            <IconButton
-              mode="contained"
-              theme={{ colors: { surfaceVariant: theme.colors.backdrop, primary: theme.colors.onBackground } }}
-              style={{ marginLeft: 0, width: 44, height: 44 }}
-              icon="download"
-              size={24}
-              onPress={openEntryExport}
-            />
-          </View>
-        </AppKeyboardDismissing.View>
+          <IconButton
+            mode="contained"
+            theme={{ colors: { surfaceVariant: theme.colors.backdrop, primary: theme.colors.onBackground } }}
+            style={{ marginLeft: 0, width: 44, height: 44 }}
+            icon="download"
+            size={24}
+            onPress={openEntryExport}
+          />
+        </View>
       </View>
 
       <View style={{ flex: 1 }}>
@@ -321,8 +319,8 @@ export default function EntrySearchScreen() {
             </Button>
           </View>
 
-          <FormField>
-            <FormField.Label>Data</FormField.Label>
+          <AppFormField>
+            <AppFormField.Label>Data</AppFormField.Label>
 
             <AppChipSelect
               allowUnselect
@@ -398,20 +396,20 @@ export default function EntrySearchScreen() {
                 />
               </View>
             )}
-          </FormField>
+          </AppFormField>
 
-          <FormField>
-            <FormField.Label>Tipo de lançamento</FormField.Label>
+          <AppFormField>
+            <AppFormField.Label>Tipo de lançamento</AppFormField.Label>
 
             <AppChipSelect<EntryFilterForm["type"]>
               value={filterForm.values.type}
               options={filterTypeOptions}
               onChange={filterForm.makeSetter("type")}
             />
-          </FormField>
+          </AppFormField>
 
-          <FormField>
-            <FormField.Label>Categoria</FormField.Label>
+          <AppFormField>
+            <AppFormField.Label>Categoria</AppFormField.Label>
 
             <AppChipSelect<EntryFilterForm["category"]>
               value={filterForm.values.category}
@@ -431,7 +429,7 @@ export default function EntrySearchScreen() {
               ]}
               onChange={filterForm.makeSetter("category")}
             />
-          </FormField>
+          </AppFormField>
 
           <Button mode="contained" onPress={handleApplyFilters}>
             Aplicar
@@ -484,21 +482,21 @@ export default function EntrySearchScreen() {
           detailBottomSheetRef.current?.close({
             onFinished: () => {
               router.push(`/(modals)/entry-manual-form?duplicateFromId=${entry.id}`);
-            }
+            },
           });
         }}
         onEdit={(entry) => {
           detailBottomSheetRef.current?.close({
             onFinished: () => {
               router.push(`/(modals)/entry-manual-form?id=${entry.id}`);
-            }
+            },
           });
         }}
         onDelete={async (entry) => {
           await entryDeleteMutation.mutateAsync(entry);
         }}
       />
-      
+
       <PortalHost name="entry-search-bottomsheet" />
     </FullScreenLayout>
   );

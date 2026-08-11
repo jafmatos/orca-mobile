@@ -9,7 +9,7 @@ import React, { useMemo } from "react";
 import { FlatList, RefreshControl, View } from "react-native";
 import { EndOfListWithLoading } from "../EndOfListWithLoading";
 import { AppErrorState } from "../ui/AppErrorState";
-import { AppKeyboardDismissing } from "../ui/AppKeyboardDismissing";
+import { AppKeyboardDismissing } from "../utils/AppKeyboardDismissing";
 
 export type EntryFilter = Required<ListEntriesArguments>["query"]["filter"];
 

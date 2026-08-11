@@ -1,20 +1,19 @@
+import { FullScreenLayout } from "@/components/layouts/FullScreenLayout";
+import { AppFormField } from "@/components/ui/AppFormField";
+import { AppModalHeader } from "@/components/ui/AppModalHeader";
+import { AppSelect } from "@/components/ui/AppSelect";
+import { AppTextInput } from "@/components/ui/AppTextInput";
+import { AppKeyboardDismissing } from "@/components/utils/AppKeyboardDismissing";
+import { useAuthUser } from "@/hooks/queries/use-auth-user";
 import { useAppForm } from "@/hooks/use-app-form";
 import { useAppFormWithMutation } from "@/hooks/use-app-form-with-mutation";
-import { User } from "@/models/User";
 import { ProfileService, UpdateProfileArguments, UpdateProfileReturnType } from "@/services/Api/Users/ProfileApiService";
+import { QueryKeys } from "@/utils/QueryKeys";
+import { useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "expo-router";
 import React, { useEffect, useMemo } from "react";
 import { View } from "react-native";
 import { Button, HelperText } from "react-native-paper";
-import { AppTextInput } from "@/components/ui/AppTextInput";
-import { AppSelect } from "@/components/ui/AppSelect";
-import { FormField } from "@/components/ui/FormField";
-import { AppKeyboardDismissing } from "@/components/ui/AppKeyboardDismissing";
-import { FullScreenLayout } from "@/components/layouts/FullScreenLayout";
-import { AppModalHeader } from "@/components/ui/AppModalHeader";
-import { useRouter } from "expo-router";
-import { useQueryClient } from "@tanstack/react-query";
-import { QueryKeys } from "@/utils/QueryKeys";
-import { useAuthUser } from "@/hooks/queries/use-auth-user";
 
 export interface UpdateProfileForm {
   name: string;
@@ -68,7 +67,7 @@ export default function ProfileFormScreen() {
       <AppModalHeader title="Editar Perfil" />
       <AppKeyboardDismissing.ScrollView>
         <View className="p-4 flex flex-col gap-4">
-          <FormField>
+          <AppFormField>
             <AppTextInput
               mode="outlined"
               label="Nome*"
@@ -82,9 +81,9 @@ export default function ProfileFormScreen() {
                 {profileForm.getError("name")}
               </HelperText>
             )}
-          </FormField>
+          </AppFormField>
 
-          <FormField>
+          <AppFormField>
             <AppTextInput mode="outlined" label="E-mail*" value={profileForm.values.email} onChangeText={profileForm.makeSetter("email")} />
 
             {profileForm.hasError("email") && (
@@ -92,9 +91,9 @@ export default function ProfileFormScreen() {
                 {profileForm.getError("email")}
               </HelperText>
             )}
-          </FormField>
+          </AppFormField>
 
-          <FormField>
+          <AppFormField>
             <AppSelect
               closeOnSelect
               mode="outlined"
@@ -109,7 +108,7 @@ export default function ProfileFormScreen() {
                 {profileForm.getError("salaryDay")}
               </HelperText>
             )}
-          </FormField>
+          </AppFormField>
 
           <Button
             className="mt-2"

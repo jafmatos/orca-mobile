@@ -1,7 +1,9 @@
 import { FullScreenLayout } from "@/components/layouts/FullScreenLayout";
+import { AppFormField } from "@/components/ui/AppFormField";
 import { AppOTPInput } from "@/components/ui/AppOTPInput";
 import { AppSecureInput } from "@/components/ui/AppSecureInput";
-import { FormField } from "@/components/ui/FormField";
+import { AppKeyboardDismissing } from "@/components/utils/AppKeyboardDismissing";
+import { AppLayoutConstants } from "@/constants/layout";
 import { useAppForm } from "@/hooks/use-app-form";
 import { useAppFormWithMutation } from "@/hooks/use-app-form-with-mutation";
 import { useAppRouter } from "@/hooks/use-app-router";
@@ -14,10 +16,8 @@ import {
 import { AppAuthenticationTokenStore } from "@/utils/AuthenticationTokenStore";
 import { useLocalSearchParams } from "expo-router";
 import { View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { AppLayoutConstants } from "@/constants/layout";
 import { Button, HelperText, Text } from "react-native-paper";
-import { AppKeyboardDismissing } from "@/components/ui/AppKeyboardDismissing";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type ConfirmResetPasswordForm = {
   otp: string;
@@ -64,7 +64,7 @@ export default function ConfirmResetPasswordScreen() {
             <Text variant="headlineMedium">Nós te enviamos um código!</Text>
             <Text variant="bodyMedium">Para recuperar sua senha, digite o código que te enviamos pelo e-mail.</Text>
             <View className="flex gap-4">
-              <FormField>
+              <AppFormField>
                 <AppOTPInput
                   label="Código*"
                   placeholder="Digite o código de verificação"
@@ -78,9 +78,9 @@ export default function ConfirmResetPasswordScreen() {
                     {form.getError("otp")}
                   </HelperText>
                 )}
-              </FormField>
+              </AppFormField>
 
-              <FormField>
+              <AppFormField>
                 <AppSecureInput
                   label="Nova senha*"
                   placeholder="Digite sua nova senha"
@@ -94,9 +94,9 @@ export default function ConfirmResetPasswordScreen() {
                     {form.getError("password")}
                   </HelperText>
                 )}
-              </FormField>
+              </AppFormField>
 
-              <FormField>
+              <AppFormField>
                 <AppSecureInput
                   label="Confirmação da nova senha*"
                   placeholder="Confirme sua nova senha"
@@ -110,7 +110,7 @@ export default function ConfirmResetPasswordScreen() {
                     {form.getError("passwordConfirmation") || "As senhas não coincidem"}
                   </HelperText>
                 )}
-              </FormField>
+              </AppFormField>
 
               <Button
                 className="mt-2"

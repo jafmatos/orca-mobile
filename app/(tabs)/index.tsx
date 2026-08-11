@@ -2,30 +2,27 @@ import { EntryListItem } from "@/components/entries/EntryListItem";
 import { TabbedLayout } from "@/components/layouts/TabbedLayout";
 import { Navigation } from "@/components/Navigation";
 import { SubscriptionPromoCard } from "@/components/profile/SubscriptionPromoCard";
+import { ScheduleListItem } from "@/components/schedules/ScheduleListItem";
 import { AppHideableCurrencyText } from "@/components/ui/AppHideableCurrencyText";
 import { AppSkeleton } from "@/components/ui/AppSkeleton";
-import { Conditional } from "@/components/utils/Conditional";
-import { ScheduleListItem } from "@/components/schedules/ScheduleListItem";
-import { ScheduleOccurrenceService } from "@/services/Api/ScheduleOccurrenceApiService";
-import { CreateScheduleOccurrenceReturnType } from "@/services/Api/ScheduleOccurrenceApiService";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { InfiniteData } from "@tanstack/react-query";
-import { PaginatedData } from "@/models/PaginatedData";
-import { Schedule } from "@/models/Schedule";
-import { QueryKeys } from "@/utils/QueryKeys";
+import { AppConditional } from "@/components/utils/AppConditional";
 import { useAnalyses } from "@/hooks/queries/use-ai-analyses";
 import { useAuthUser } from "@/hooks/queries/use-auth-user";
 import { useEntries } from "@/hooks/queries/use-entries";
+import { useHasActiveSubscription } from "@/hooks/queries/use-has-active-subscription";
 import { useKpis } from "@/hooks/queries/use-kpis";
 import { useSchedules } from "@/hooks/queries/use-schedules";
-import { useAppRouter } from "@/hooks/use-app-router";
+import { MODAL_ROUTES, TAB_ROUTES, useAppRouter } from "@/hooks/use-app-router";
 import { useAppTheme } from "@/hooks/use-app-theme";
-import { ScheduleCycleStatus } from "@/models/Schedule";
+import { PaginatedData } from "@/models/PaginatedData";
+import { Schedule, ScheduleCycleStatus } from "@/models/Schedule";
+import { CreateScheduleOccurrenceReturnType, ScheduleOccurrenceService } from "@/services/Api/ScheduleOccurrenceApiService";
 import { currencyFormatter } from "@/utils/currencyFormatter";
+import { QueryKeys } from "@/utils/QueryKeys";
+import { InfiniteData, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { Pressable, ScrollView, View } from "react-native";
-import { Badge, Button, Divider, IconButton, List, Surface, Text } from "react-native-paper";
-import { useHasActiveSubscription } from "@/hooks/queries/use-has-active-subscription";
+import { Badge, Button, IconButton, List, Surface, Text } from "react-native-paper";
 
 export function ShortcutCard({
   icon,
@@ -41,29 +38,60 @@ export function ShortcutCard({
   const theme = useAppTheme();
 
   return (
-    <Pressable onPress={onPress} className="flex items-center gap-2">
-      <View className="relative">
-        {badgeCount !== undefined && badgeCount > 0 && <Badge className="absolute -top-2 -right-2 z-10">{badgeCount}</Badge>}
-        <Surface
-          elevation={1}
-          className="flex flex-row items-center justify-center"
-          style={{
-            backgroundColor: theme.colors.elevation.level1 || theme.colors.surface,
-            borderColor: theme.colors.outlineVariant,
-            borderRadius: theme.roundness,
-            width: 96,
-            height: 56,
-          }}
-        >
-          <IconButton icon={icon} size={20} iconColor={theme.colors.primary} style={{ margin: 0 }} />
-        </Surface>
-      </View>
+    <Pressable onPress={onPress} className="w-full flex items-center gap-2">
+      <Surface
+        elevation={1}
+        className="w-full flex flex-row items-center justify-center"
+        style={{
+          backgroundColor: theme.colors.elevation.level1 || theme.colors.surface,
+          borderColor: theme.colors.outlineVariant,
+          borderRadius: theme.roundness,
+          height: 40,
+        }}
+      >
+        <View className="relative flex flex-row items-center justify-center">
+          {badgeCount !== undefined && badgeCount > 0 && <Badge className="absolute -top-2 -right-6 z-10">{badgeCount}</Badge>}
 
-      <Text variant="labelMedium" style={{ fontWeight: "bold", marginLeft: 2, flexShrink: 1 }} numberOfLines={1} ellipsizeMode="tail">
-        {label}
-      </Text>
+          <IconButton icon={icon} size={20} iconColor={theme.colors.primary} style={{ margin: 0 }} />
+
+          <Text variant="labelMedium" style={{ fontWeight: "bold", marginLeft: 2, flexShrink: 1 }} numberOfLines={1} ellipsizeMode="tail">
+            {label}
+          </Text>
+        </View>
+      </Surface>
     </Pressable>
   );
+}
+
+function NewEntryShortcut() {
+  const router = useAppRouter();
+
+  return <ShortcutCard onPress={() => router.goToEntryManualForm()} icon="plus" label="Novo Lançamento" />;
+}
+
+function SchedulesShortcut(props: { pendingCount?: number }) {
+  const router = useAppRouter();
+
+  return (
+    <ShortcutCard
+      onPress={() => router.goToSchedules()}
+      icon={TAB_ROUTES.schedules.icon}
+      label={TAB_ROUTES.schedules.title}
+      badgeCount={props.pendingCount}
+    />
+  );
+}
+
+function SmartEntryShortcut() {
+  const router = useAppRouter();
+
+  return <ShortcutCard onPress={() => router.goToEntrySmartForm()} icon="microphone-outline" label="Lanç. Inteligente" />;
+}
+
+function ChatAssistantShortcut() {
+  const router = useAppRouter();
+
+  return <ShortcutCard onPress={() => router.goToChat()} icon={MODAL_ROUTES.chatAssistant.icon} label={MODAL_ROUTES.chatAssistant.title} />;
 }
 
 export default function HomeScreen() {
@@ -146,7 +174,7 @@ export default function HomeScreen() {
   }, [analysesQuery.data]);
 
   const { pendingSchedules, pendingCount } = useMemo(() => {
-    const allSchedules = schedulesQuery.data?.pages.flatMap((page) => page.data) || [];
+    const allSchedules = schedulesQuery.data?.data || [];
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -239,24 +267,31 @@ export default function HomeScreen() {
               Atalhos Rápidos
             </Text>
 
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ gap: 16 }}
-              contentContainerClassName="px-4 py-3"
-            >
-              <ShortcutCard onPress={() => router.goToEntryManualForm()} icon="plus" label="Novo Lançamento" />
-              <ShortcutCard onPress={() => router.goToEntrySmartForm()} icon="robot-outline" label="Lanç. Inteligente" />
-              <ShortcutCard onPress={() => router.goToSchedules()} icon="clock" label="Agendamentos" badgeCount={pendingCount} />
-              <ShortcutCard onPress={() => router.goToAnalyses()} icon="creation" label="Análises" />
+            <ScrollView showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 16 }} contentContainerClassName="px-4 py-3">
+              <AppConditional
+                if={hasActiveSubscription}
+                _then={
+                  <>
+                    <SmartEntryShortcut />
+                    <ChatAssistantShortcut />
+                    <SchedulesShortcut pendingCount={pendingCount} />
+                  </>
+                }
+                _else={
+                  <>
+                    <NewEntryShortcut />
+                    <SchedulesShortcut pendingCount={pendingCount} />
+                  </>
+                }
+              />
             </ScrollView>
           </View>
 
-          <Conditional
+          <AppConditional
             if={!isResolvingHomeData}
             _then={
               <>
-                <Conditional
+                <AppConditional
                   if={!hasActiveSubscription}
                   _then={
                     <View className="px-4 mb-8">
@@ -265,10 +300,10 @@ export default function HomeScreen() {
                   }
                 />
 
-                <Conditional
+                <AppConditional
                   if={showAntonioPlans}
                   _then={
-                    <View className="px-4 mb-8">
+                    <View className="px-4 py-4">
                       <View className="flex flex-row justify-between items-center mb-3">
                         <Text variant="titleMedium" style={{ fontWeight: "bold", letterSpacing: -0.2 }}>
                           Planos de Ação do Antônio
@@ -304,10 +339,10 @@ export default function HomeScreen() {
                     </View>
                   }
                   _else={
-                    <Conditional
+                    <AppConditional
                       if={pendingCount > 0}
                       _then={
-                        <View className="py-4 px-4">
+                        <View className="px-4 py-4">
                           <View className="flex flex-row justify-between items-center mb-3">
                             <Text variant="titleMedium" style={{ fontWeight: "bold", letterSpacing: -0.2 }}>
                               Contas Atrasadas
@@ -330,7 +365,7 @@ export default function HomeScreen() {
                         </View>
                       }
                       _else={
-                        <Conditional
+                        <AppConditional
                           if={!entriesQuery.isPending && !entriesQuery.isFetching && !!recentEntries.length}
                           _then={
                             <View className="py-4 px-4">

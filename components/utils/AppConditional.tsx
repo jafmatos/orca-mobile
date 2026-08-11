@@ -1,11 +1,11 @@
 import React from "react";
 
-export interface ConditionalProps {
+export interface AppConditionalProps {
   if: boolean;
   _then: React.ReactNode;
   _else?: React.ReactNode;
 }
 
-export function Conditional({ if: condition, _then, _else = null }: ConditionalProps) {
+export function AppConditional({ if: condition, _then, _else = null }: AppConditionalProps) {
   return <>{condition ? _then : _else}</>;
 }

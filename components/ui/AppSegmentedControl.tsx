@@ -1,8 +1,8 @@
-import React from "react";
-import { View, Pressable, ViewProps } from "react-native";
-import { Icon, Text } from "react-native-paper";
+import { AppConditional } from "@/components/utils/AppConditional";
 import { useAppTheme } from "@/hooks/use-app-theme";
-import { Conditional } from "@/components/utils/Conditional";
+import React from "react";
+import { Pressable, View, ViewProps } from "react-native";
+import { Icon, Text } from "react-native-paper";
 
 export interface AppSegmentedControlOption<T = string> {
   label: string;
@@ -32,7 +32,7 @@ export function AppSegmentedControl<T = string>({
   const theme = useAppTheme();
 
   const handlePress = (optionValue: T) => {
-		if (allowUnselect && value === optionValue) {
+    if (allowUnselect && value === optionValue) {
       onChange(undefined);
     } else {
       onChange(optionValue);
@@ -43,7 +43,7 @@ export function AppSegmentedControl<T = string>({
     <View {...props} className={`flex flex-row ${className || ""}`}>
       {options.map((option, index) => {
         const isSelected = value === option.value;
-        const textColor = isSelected ? (activeColor || theme.colors.primary) : (inactiveColor || theme.colors.onSurfaceVariant);
+        const textColor = isSelected ? activeColor || theme.colors.primary : inactiveColor || theme.colors.onSurfaceVariant;
 
         return (
           <Pressable
@@ -51,14 +51,17 @@ export function AppSegmentedControl<T = string>({
             onPress={() => handlePress(option.value)}
             className="relative flex-1 min-h-[48px] flex flex-row gap-3 items-center justify-center"
           >
-            <Conditional
+            <AppConditional
               if={isSelected}
-              _then={<View className="absolute h-1 w-full rounded-sm bottom-0" style={{ backgroundColor: activeColor || theme.colors.primary }} />}
+              _then={
+                <View
+                  className="absolute h-1 w-full rounded-sm bottom-0"
+                  style={{ backgroundColor: activeColor || theme.colors.primary }}
+                />
+              }
             />
 
-            {option.icon && (
-              <Icon source={option.icon} size={16} color={textColor} />
-            )}
+            {option.icon && <Icon source={option.icon} size={16} color={textColor} />}
 
             <Text variant="labelLarge" style={{ color: textColor }}>
               {option.label}
